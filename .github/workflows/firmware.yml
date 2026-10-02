@@ -1,0 +1,101 @@
+name: Firmware images
+
+# Builds an image for every machine in machine.h, each in its own job so that
+# no two builds share output/html_min, and keeps the images as artifacts.
+# A tag v* additionally publishes all images as a pre-release.
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Bytes the linker must leave for the stack in internal RAM; the build
+  # fails below this. Internal RAM is full, so every byte a change takes
+  # comes out of the stack.
+  MIN_STACK: 150
+
+jobs:
+  machines:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: list
+        run: |
+          list=$(grep -E '^[[:space:]]*(//[[:space:]]*)?#define MACHINE_' machine.h \
+            | sed -E 's%^[[:space:]]*(//[[:space:]]*)?#define MACHINE_%%' \
+            | awk '{print $1}' | sort -u | jq -Rnc '[inputs]')
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+
+  firmware:
+    needs: machines
+    runs-on: ubuntu-latest
+    container:
+      # Arch packages the newest SDCC release; Debian is a release behind
+      image: archlinux:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: ${{ fromJSON(needs.machines.outputs.list) }}
+    steps:
+      # git before checkout, so the image carries the commit in its version
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm --needed make gcc sdcc tinyxxd python json-c zlib git
+      - uses: actions/checkout@v7
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Build
+        run: make CI=1 MACHINE=${{ matrix.machine }}
+      - name: Check memory
+        run: |
+          out=output/${{ matrix.machine }}
+          stack=$(sed -nE 's/.*with ([0-9]+) bytes available.*/\1/p' $out/rtlplayground.mem)
+          {
+            echo "### ${{ matrix.machine }}"
+            echo "sdcc $(sdcc -v | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+            echo
+            echo "| | free bytes |"
+            echo "|---|---|"
+            echo "| stack | $stack |"
+            for b in BANK1 BANK2 BANK3; do
+              size=$(awk -v b=$b '$1 == b { print $3; exit }' $out/rtlplayground.map)
+              echo "| $b | $((49152 - 16#$size)) |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$stack" ] || [ "$stack" -lt "$MIN_STACK" ]; then
+            echo "::error::stack has ${stack:-?} bytes, below MIN_STACK=$MIN_STACK"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: firmware-${{ matrix.machine }}
+          path: output/${{ matrix.machine }}/rtlplayground-*.bin
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: firmware
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: firmware-*
+          merge-multiple: true
+          path: images
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'EOF'
+          Built by CI for every machine in machine.h. These images have not
+          been tried on hardware; keep a way to recover the flash before
+          writing one. Pick the image whose name matches your board exactly.
+          EOF
+          gh release create "$GITHUB_REF_NAME" images/*.bin \
+            --repo "$GITHUB_REPOSITORY" --prerelease \
+            --title "$GITHUB_REF_NAME" --notes-file notes.md
