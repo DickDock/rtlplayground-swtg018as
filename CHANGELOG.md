@@ -9,6 +9,11 @@
   - Replace the multi-page UI with a themed single-page app: light, dark and Selenized themes following the browser by default,
     English, Japanese and Chinese, save to flash merges the command log into the startup config and verifies the write,
     firmware images are checked in the browser before upload. #429
+- QoS, flow control and PFC
+  - `qos` command: priority source trust, DSCP and 802.1p to priority maps, port priority,
+    priority to queue map and strict or weighted queue scheduling.
+  - `fc` command: forced 802.3x pause per port, pause thresholds and threshold sets, buffer page counters.
+  - `pfc` command: Priority Flow Control (802.1Qbb) on the two 10G ports. See doc/qos_pfc.md.
 
 ## Changed
 

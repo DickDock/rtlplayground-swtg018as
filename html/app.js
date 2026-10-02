@@ -684,6 +684,11 @@ var CONF_CMDS=[
   /^igmp\s+(on|off)$/,/^mtu\s+\d{1,2}\s+\d+$/,
   /^bw\s+(in|out)\s+\d{1,2}\s+\S+$/,
   /^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\s+(off|\d{1,8}\s+(pps|kbps))$/,
+  /^qos\s+trust\s+(dscp|1p|port)$/,/^qos\s+dscp\s+\S+\s+\d$/,/^qos\s+(1p|queue)\s+\d\s+\d$/,
+  /^qos\s+port\s+\d{1,2}\s+\d$/,/^qos\s+sched\s+\d{1,2}\s+\d\s+(strict|\d{1,3})$/,
+  /^fc\s+\d{1,2}\s+(auto|on|off)$/,/^fc\s+\d{1,2}\s+set\s+\d$/,/^fc\s+thr\s+(glb|\d)\s+\S+\s+\S+$/,
+  /^fc\s+guar\s+\d\s+\S+$/,
+  /^pfc\s+\d{1,2}\s+(on\s+[0-7](,[0-7])*|off|map)$/,
 ];
 function isConfCmd(line){
   for(var i=0;i<CONF_CMDS.length;i++)if(CONF_CMDS[i].test(line))return true;
@@ -1964,6 +1969,9 @@ var CONF_OVERWRITE=[
   /^stp\s+(prio|hello|maxage|fwd|txhold|version)\b/,
   /^stp\s+(port\s+\d{1,2}|lag\s+[1-4])\s+(edge|cost|prio|guard|filter|p2p)\b/,
   /^igmp\b/,/^mtu\s+\d{1,2}\b/,/^storm\s+\d{1,2}\s+(bcast|mcast|ucast|umcast)\b/,
+  /^qos\s+trust\b/,/^qos\s+dscp\s+\S+/,/^qos\s+(1p|queue)\s+\d\b/,/^qos\s+port\s+\d{1,2}\b/,
+  /^qos\s+sched\s+\d{1,2}\s+\d\b/,
+  /^fc\s+\d{1,2}\s+set\b/,/^fc\s+thr\s+(glb|\d)\b/,/^fc\s+guar\s+\d\b/,
 ];
 var CONF_TOGGLE=[/^(syslog)\s+(on|off)$/,/^(stp)\s+(on|off)$/,/^(stp\s+(port\s+\d{1,2}|lag\s+[1-4]))\s+(on|off)$/];
 function mergeConf(base,texts){
@@ -1998,6 +2006,10 @@ function mergeConf(base,texts){
         order.sort(function(a,b){return a-b});
         conf.push("ingress "+order.map(function(n){return ports[n]}).join(" "));
         return;
+      }
+      if((m=line.match(/^(p?fc \d{1,2}) (auto|on|off|on \S+)$/))){
+        drop(new RegExp("^"+m[1]+" (auto|on|off)( |$)"));
+        conf.push(line);return;
       }
       if((m=line.match(/^bw (in|out) (\d{1,2}) (\S+)$/))){
         var pre="^bw "+m[1]+" "+m[2]+" ";

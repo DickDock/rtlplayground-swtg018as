@@ -82,6 +82,7 @@ SRCS += \
 	rtl837x_phy.c \
 	rtl837x_pins.c\
 	rtl837x_port.c \
+	rtl837x_qos.c \
 	rtl837x_stp.c \
 	rtl837x_storm.c \
 	rtl837x_lacp.c

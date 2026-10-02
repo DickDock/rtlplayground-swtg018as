@@ -18,6 +18,7 @@
 #include "rtl837x_igmp.h"
 #include "rtl837x_bandwidth.h"
 #include "rtl837x_storm.h"
+#include "rtl837x_qos.h"
 #include "sfp.h"
 #include "dhcp.h"
 #include "syslog.h"
@@ -2024,6 +2025,12 @@ void cmd_parser(void) __banked
 			parse_temp();
 		} else if (cmd_compare(0, "storm")) {
 			parse_storm();
+		} else if (cmd_compare(0, "qos")) {
+			qos_parse();
+		} else if (cmd_compare(0, "fc")) {
+			fc_parse();
+		} else if (cmd_compare(0, "pfc")) {
+			pfc_parse();
 		} else if (cmd_compare(0, "version")) {
 			print_sw_version();
 		} else if (cmd_compare(0, "time")) {

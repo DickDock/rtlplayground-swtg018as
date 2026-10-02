@@ -28,7 +28,8 @@ TESTS = $(BUILDDIR)/test_cmd_editor \
         $(BUILDDIR)/test_port_tables \
         $(BUILDDIR)/test_page_json \
         $(BUILDDIR)/test_httpd_tx \
-        $(BUILDDIR)/test_tick_gate
+        $(BUILDDIR)/test_tick_gate \
+        $(BUILDDIR)/test_qos
 
 # The table tests link the register mock and one environment file; stub/
 # stands in for the two headers a firmware build generates.
@@ -57,6 +58,10 @@ $(BUILDDIR)/test_page_json: test_page_json.c $(TABLE_ENV) hw_mock.h | $(BUILDDIR
 # httpd/httpd.c and uip/uip.c are compiled UNMODIFIED from the firmware tree;
 # this test carries the environment below them itself.
 $(BUILDDIR)/test_httpd_tx: test_httpd_tx.c $(SRCROOT)/httpd/httpd.c $(SRCROOT)/uip/uip.c | $(BUILDDIR)
+	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
+
+# rtl837x_qos.c is compiled UNMODIFIED from the firmware tree.
+$(BUILDDIR)/test_qos: test_qos.c support.c hw_mock.c env_tables.c $(SRCROOT)/cmd_editor.c $(SRCROOT)/rtl837x_qos.c hw_mock.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 # Sandboxes with a Makefile of their own; each fails the run when it fails.

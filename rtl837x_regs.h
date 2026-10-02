@@ -347,6 +347,68 @@
 #define EGBW_INC_IFG			0x02
 #define EGBW_CPUMODE			0x01
 
+/*
+ * Ingress priority decision, queue mapping and scheduling
+ * Addresses and field layouts from rtl8373_reg_definition.h (GPL-2.0,
+ * github.com/airjinkela/rtl837x-dsa-driver)
+ */
+#define RTL837X_PORT_PRI		0x5170	/* 3 bits per port: port-based priority */
+#define RTL837X_PORT_PRI_DUP		0x674C	/* copy of PORT_PRI, the SDK writes both */
+#define RTL837X_DOT1Q_PRI_REMAP		0x5174	/* 4 bits per PCP, low 3 used: PCP -> internal priority */
+#define RTL837X_PRI_SEL_REMAP_DSCP	0x5178	/* 10 DSCPs per register, 3 bits each */
+#define RTL837X_PRI_WEIGHT		0x5198	/* 2 tables, one-hot weight per source, highest wins */
+#define PRI_WEIGHT_DOT1Q		0
+#define PRI_WEIGHT_PORT			5
+#define PRI_WEIGHT_DSCP			10
+#define PRI_WEIGHT_ACL			15
+#define PRI_WEIGHT_SVLAN		20
+#define RTL837X_PORT_WEIGHT_SEL		0x51A0	/* 1 bit per port: which PRI_WEIGHT table */
+#define RTL837X_QID_TO_PRI		0x51A4	/* per port, 4 bits per priority, low 3 used: priority -> queue */
+#define RTL837X_SCHED_PORT_Q_CTRL	0x1D28	/* + port * 0x400 + queue * 4 */
+#define SCHED_Q_STRICT			0x80
+#define SCHED_Q_WEIGHT_MASK		0x7f
+
+/*
+ * 802.3x flow control
+ * Thresholds are in buffer pages, 12 bits each: ON in bits 27-16, OFF in bits 11-0
+ */
+#define RTL837X_MAC_FORCE_MODE_CTRL	0x6344	/* + port * 4 */
+#define MAC_FORCE_FC_EN			9
+#define MAC_FORCE_RX_PAUSE		8
+#define MAC_FORCE_TX_PAUSE		7
+#define RTL837X_FC_GLB_HI_THR		0x7154
+#define RTL837X_FC_PORT_HI_THR		0x7178	/* 4 threshold sets, + set * 4 */
+#define RTL837X_FC_PORT_GUAR_THR	0x71B8	/* 4 threshold sets, + set * 4 */
+#define RTL837X_FC_PORT_THR_SET_SEL	0x71C8	/* 2 bits per port */
+#define RTL837X_FC_GLB_PAGE_CNT		0x71CC
+#define RTL837X_FC_PORT_PAGE_CNT	0x71D0	/* + port * 4 */
+#define RTL837X_FC_GLB_PAGE_PEAKCNT	0x71F8
+#define RTL837X_FC_PORT_PEAK_PAGE_CNT	0x7224	/* + port * 4 */
+#define FC_THR_MASK			0xfff
+#define FC_THR_ON			16
+
+/*
+ * Priority flow control (802.1Qbb), only on the two 10G MACs 3 and 8.
+ * Registers exist twice, + index * 4 unless noted.
+ * ASSUMPTION, to be verified on hardware: index 0 is MAC 3, index 1 is MAC 8
+ */
+#define RTL837X_PFC_ENABLE_0		0x103C	/* 24: port, 23-16: RX, 15-8: TX, 7-0: priority enable */
+#define PFC_EN_PORT			24
+#define PFC_EN_RX			16
+#define PFC_EN_TX			8
+#define RTL837X_PFC_CTRL_2		0x1044
+#define RTL837X_PG_2_PEV_TABLE		0x104C	/* 64 bits, + index * 8: PG -> priority enable vector */
+#define RTL837X_PFC_CTRL_0		0x551C
+#define RTL837X_DPRI_2_PG_TABLE		0x5564	/* 3 bits per internal priority */
+#define RTL837X_PCP_2_PG_TABLE		0x556C	/* 3 bits per PCP */
+#define RTL837X_PFC_ENABLE_1		0x724C	/* 7-0: PG enable */
+#define RTL837X_PFC_CTRL_1		0x744C	/* 31-24: force PG congestion enable, 23-16: value, 15-8: PG congested */
+#define PFC_FORCE_CNG_EN		24
+#define PFC_FORCE_CNG_VAL		16
+#define PFC_PG_ISCNG			8
+#define RTL837X_PFC_PORT_PG_RX_PAGE_CNT	0x7454	/* + index * 0x20 + PG * 4: 27-16 peak, 11-0 current */
+#define PFC_IDENTITY_PG_MAP		0x00fac688	/* priority n -> PG n */
+
 #ifdef REGDBG
 
 #define REG_SET(r, v) do { \
