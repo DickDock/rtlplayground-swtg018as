@@ -1,3 +1,49 @@
+# rtl837x-plus
+
+[![Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml/badge.svg)](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml)
+
+rtl837x-plus is a fork of [RTLPlayground](https://github.com/logicog/RTLPlayground), the
+open-source firmware for RTL8372/RTL8373 based 2.5 Gbit/s switches. It adds QoS, flow control
+and link aggregation functions for lossless RoCEv2 networks.
+
+## Features
+
+- QoS: priority from DSCP, IEEE 802.1p or port, queue mapping and scheduling ([documentation](doc/qos_pfc.md))
+- IEEE 802.3x flow control and IEEE 802.1Qbb Priority Flow Control ([documentation](doc/qos_pfc.md))
+- IEEE 802.3ad LACP, from upstream pull request [#299](https://github.com/logicog/RTLPlayground/pull/299) ([documentation](doc/lacp.md))
+
+> [!WARNING]
+> These functions have not yet been fully verified on hardware. Before installing an
+> image, make sure that the flash can be restored with a SOIC-8 clip; see
+> [Flashing the ROM directly](#5-flashing-the-rom-directly-hardware-way-but-also-only-way-to-rescue).
+
+## Download
+
+Firmware images for all supported devices are built automatically. Download them from
+the latest run of the
+[Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml?query=branch%3Amain)
+workflow, or from [Releases](https://github.com/HiroGitea/rtl837x-plus/releases) for
+tagged versions. Select the image that matches your device exactly; see
+[Supported devices](doc/supported_devices.md).
+
+## Building
+
+Build requirements are listed in section (0) below. To build an image for one device:
+
+```
+make MACHINE=<device>
+```
+
+## License
+
+MIT, as RTLPlayground. LACP was written by DrDoof for RTLPlayground. QoS and PFC
+register definitions are based on
+[rtl837x-dsa-driver](https://github.com/airjinkela/rtl837x-dsa-driver).
+
+---
+
+*The following is the original RTLPlayground README.*
+
 # RTLPlayground
 A Playground for Firmware development for advanced user of RTL8372/RTL8373 based 2.5GBit Switches.
 
@@ -360,6 +406,7 @@ The following documents give further documentation on specific features of the R
 - [SFP+ ports](doc/sfp.md) 
 - [Trunking aka. port aggregation](doc/trunking.md)
 - [LACP (802.3ad link aggregation)](doc/lacp.md)
+- [QoS, flow control and PFC](doc/qos_pfc.md)
 - [VLAN](doc/vlan.md)
 - [Storm control](doc/storm_control.md)
 - [Modifications and Flash replacement](doc/mods.md)
