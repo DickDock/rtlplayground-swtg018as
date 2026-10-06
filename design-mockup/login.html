@@ -3,38 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Switch Login</title>
+<title>交换机登录 · UI 稿预览</title>
 <style>
 :root{
   --bg:#f2f5f7;--panel:#ffffff;--panel2:#e9eef2;--bd:#dbe2e8;--fg:#1b2732;--fg2:#5d6b78;
   --ac:#0c7a99;--acfg:#ffffff;--bad:#c94a40;
   --sel:rgba(12,122,153,.10);
-  --shadow:0 1px 2px rgba(16,34,44,.05),0 4px 14px rgba(16,34,44,.06);
   --shadow-pop:0 2px 6px rgba(16,34,44,.08),0 16px 40px rgba(16,34,44,.16);
   --r-sm:6px;--r-md:8px;--r-xl:16px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,
          "PingFang SC","Hiragino Sans","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
-  --t1:.14s;--ease:cubic-bezier(.4,0,.2,1);
+  --t1:.14s;--t2:.2s;--ease:cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="dark"]{
   --bg:#0c1116;--panel:#141b22;--panel2:#1c242c;--bd:#2a333d;--fg:#dfe7ee;--fg2:#8a97a4;
   --ac:#4cc4e4;--acfg:#04252e;--bad:#ef6f66;
   --sel:rgba(76,196,228,.13);
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 14px rgba(0,0,0,.38);
   --shadow-pop:0 2px 6px rgba(0,0,0,.5),0 16px 40px rgba(0,0,0,.55);
 }
 :root[data-theme="sel-dark"]{
   --bg:#103c48;--panel:#184956;--panel2:#1f505e;--bd:#2e5d6b;--fg:#b2c5c5;--fg2:#7f949a;
   --ac:#62b6d9;--acfg:#06222b;--bad:#fb6450;
   --sel:rgba(98,182,217,.15);
-  --shadow:0 1px 2px rgba(0,10,14,.5),0 4px 14px rgba(0,10,14,.35);
   --shadow-pop:0 2px 6px rgba(0,10,14,.5),0 16px 40px rgba(0,10,14,.5);
 }
 :root[data-theme="sel-light"]{
   --bg:#fbf3db;--panel:#fffaef;--panel2:#f0e8d2;--bd:#ddd3b9;--fg:#46565c;--fg2:#82908f;
   --ac:#0b6f8e;--acfg:#ffffff;--bad:#c33c42;
   --sel:rgba(11,111,142,.10);
-  --shadow:0 1px 2px rgba(90,75,40,.10),0 4px 14px rgba(90,75,40,.10);
   --shadow-pop:0 2px 6px rgba(90,75,40,.12),0 16px 40px rgba(90,75,40,.16);
 }
 *{box-sizing:border-box;margin:0}
@@ -67,8 +63,17 @@ button{
 }
 button:hover{background:color-mix(in srgb,var(--ac) 88%,var(--fg))}
 button:active{transform:translateY(1px)}
-button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #err{color:var(--bad);font-size:13px;font-weight:600;min-height:20px;margin-top:14px;text-align:center}
+.pvbar{
+  position:fixed;left:16px;bottom:16px;z-index:60;display:flex;gap:6px;align-items:center;
+  background:var(--panel);border:1px solid var(--bd);border-radius:999px;
+  padding:5px 8px 5px 12px;box-shadow:var(--shadow-pop);font-size:12px;color:var(--fg2);
+}
+.pvbar button{
+  width:auto;margin:0;padding:2px 10px;font-size:12px;font-weight:400;
+  border:1px solid var(--bd);background:var(--panel2);border-radius:999px;color:var(--fg);
+}
+.pvbar button.on{background:var(--ac);color:var(--acfg);border-color:transparent}
 </style>
 <script>
 (function(){
@@ -89,34 +94,39 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
       <rect x="2" y="7" width="20" height="10" rx="2"/>
       <path d="M6 11v2M10 11v2M14 11v2M18 11v2"/>
     </svg>
-    <h1 id="hn">Switch Login</h1>
+    <h1>交换机登录</h1>
   </div>
-  <p class="sub" id="sub">RTLPlayground management interface</p>
-  <form method="post" action="login">
-    <label for="pwd" id="lp">Password</label>
-    <input id="pwd" name="pwd" type="password" autocomplete="current-password" autofocus required
-           oninput="document.getElementById('err').textContent=''">
-    <button type="submit" id="lb">Sign in</button>
+  <p class="sub">RTLPlayground 管理界面</p>
+  <form onsubmit="return false">
+    <label for="pwd">密码</label>
+    <input id="pwd" type="password" autocomplete="current-password" autofocus>
+    <button type="submit">登录</button>
     <div id="err"></div>
   </form>
 </div>
+
+<div class="pvbar">
+  预览工具:
+  <button data-t="light">浅色</button>
+  <button data-t="dark">深色</button>
+  <button data-t="sel-light">Sel 浅</button>
+  <button data-t="sel-dark">Sel 深</button>
+  <button id="errbtn">错误态</button>
+</div>
+
 <script>
 (function(){
-  var L={
-    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again."],
-    ja:["スイッチ ログイン","RTLPlayground 管理インターフェース","パスワード","ログイン","パスワードが違います。もう一度お試しください。"],
-    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。"],
-    es:["Inicio de sesión del switch","Interfaz de gestión de RTLPlayground","Contraseña","Iniciar sesión","Contraseña incorrecta, inténtalo de nuevo."],
-    fr:["Utilisateur du commutateur","Interface de management RTLPlayground","Mot de passe","Se connecter","Mot de passe erronné, essayez à nouveau."]
+  var pills=document.querySelectorAll(".pvbar button[data-t]");
+  for(var i=0;i<pills.length;i++){
+    pills[i].onclick=function(){
+      document.documentElement.dataset.theme=this.getAttribute("data-t");
+      for(var j=0;j<pills.length;j++)pills[j].classList.toggle("on",pills[j]===this);
+    };
+  }
+  document.getElementById("errbtn").onclick=function(){
+    var e=document.getElementById("err");
+    e.textContent=e.textContent?"":"密码错误,请重试。";
   };
-  var l="zh";
-  var s=L[l]||L.en;
-  document.title=s[0];
-  document.getElementById("hn").textContent=s[0];
-  document.getElementById("sub").textContent=s[1];
-  document.getElementById("lp").textContent=s[2];
-  document.getElementById("lb").textContent=s[3];
-  if(document.referrer.endsWith("login.html"))document.getElementById("err").textContent=s[4];
 })();
 </script>
 </body>

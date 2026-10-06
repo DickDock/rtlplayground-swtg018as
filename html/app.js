@@ -14,6 +14,7 @@ c_type:"Type",c_state:"State",c_enabled:"Enabled",c_load:"Load",c_disable:"Disab
 c_full:"full",c_half:"half",c_devices:"devices",c_yes:"yes",c_no:"no",
 d_ports:"Ports",d_ports_h:"click a port for details",d_system:"System",d_traffic:"Traffic",
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
+d_conn:"connected",d_errs:"errors",d_live:"Live traffic",d_live_h:"packets/s, last 5 min",d_bars:"Per-port throughput",d_bars_h:"packets/s",d_sfp:"Optical module",d_present:"present",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Built",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"State",p_disabled:"disabled",p_up:"up",p_txgb:"TX good / bad",p_rxgb:"RX good / bad",
@@ -133,6 +134,7 @@ c_type:"タイプ",c_state:"状態",c_enabled:"有効",c_load:"読み込み",c_d
 c_full:"全二重",c_half:"半二重",c_devices:"デバイス",c_yes:"はい",c_no:"いいえ",
 d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示",d_system:"システム",d_traffic:"トラフィック",
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
+d_conn:"接続済み",d_errs:"エラー",d_live:"リアルタイムトラフィック",d_live_h:"パケット/秒、直近5分",d_bars:"ポート別スループット",d_bars_h:"パケット/秒",d_sfp:"光モジュール",d_present:"在位",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
 i_built:"ビルド日",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
 p_state:"状態",p_disabled:"無効",p_up:"アップ",p_txgb:"TX 正常 / 異常",p_rxgb:"RX 正常 / 異常",
@@ -246,6 +248,7 @@ c_type:"类型",c_state:"状态",c_enabled:"启用",c_load:"读取",c_disable:"�
 c_full:"全双工",c_half:"半双工",c_devices:"台设备",c_yes:"是",c_no:"否",
 d_ports:"端口",d_ports_h:"点击端口查看详情",d_system:"系统",d_traffic:"流量",
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
+d_conn:"已连接",d_errs:"错误",d_live:"实时流量",d_live_h:"包/秒 · 近 5 分钟",d_bars:"每端口吞吐",d_bars_h:"包/秒",d_sfp:"光模块",d_present:"在位",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
 i_built:"构建日期",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"状态",p_disabled:"已禁用",p_up:"已连接",p_txgb:"TX 正常 / 错误",p_rxgb:"RX 正常 / 错误",
@@ -359,6 +362,7 @@ c_type:"Tipo",c_state:"Estado",c_enabled:"Habilitado",c_load:"Cargar",c_disable:
 c_full:"dúplex completo",c_half:"semidúplex",c_devices:"dispositivos",c_yes:"sí",c_no:"no",
 d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_system:"Sistema",d_traffic:"Tráfico",
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
+d_conn:"conectados",d_errs:"errores",d_live:"Tráfico en vivo",d_live_h:"paquetes/s, últimos 5 min",d_bars:"Rendimiento por puerto",d_bars_h:"paquetes/s",d_sfp:"Módulo óptico",d_present:"presente",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Compilado",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",p_txgb:"TX correctos / erróneos",p_rxgb:"RX correctos / erróneos",
@@ -471,6 +475,7 @@ c_type:"Type",c_state:"Etat",c_enabled:"Activé",c_load:"Charger",c_disable:"Dé
 c_full:"full",c_half:"half",c_devices:"Equipements",c_yes:"oui",c_no:"non",
 d_ports:"Ports",d_ports_h:"Cliquer pour le détail du port",d_system:"Système",d_traffic:"Trafic",
 d_traffic_h:"paquets/s, en direct",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX mauvais",d_rxbad:"RX mauvais",
+d_conn:"connectés",d_errs:"erreurs",d_live:"Trafic en direct",d_live_h:"paquets/s, 5 dernières min",d_bars:"Débit par port",d_bars_h:"paquets/s",d_sfp:"Module optique",d_present:"présent",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"MAC",i_fw:"Micro logiciel",
 i_built:"Compilé",i_hw:"Matériel",i_flash:"Flash",i_syslog:"Log système",
 p_state:"Etat",p_disabled:"désactivé",p_up:"up",p_txgb:"TX bon / mauvais",p_rxgb:"RX bon / mauvais",
@@ -570,13 +575,7 @@ fw_login:"Vers l'écran de connection",fw_rebooting:"Le commutateur redémarre..
 fw_timeout:"Le commutateur n'est plus joignable depuis 150 s: verifiez l'alimentation ou utilisez la console série"
 }
 };
-var rtlLang=(function(){
-  var s=null;
-  try{s=localStorage.getItem("rtl_lang");}catch(e){}
-  if(s&&LANG[s])return s;
-  var b=(navigator.language||"en").slice(0,2);
-  return LANG[b]?b:"en";
-})();
+var rtlLang="zh";
 function t(k,v){
   var s=LANG[rtlLang][k]||LANG.en[k]||k;
   if(v)for(var x in v)s=s.split("{"+x+"}").join(v[x]);
@@ -590,7 +589,7 @@ function i18nApply(){
 
 var S={
   ports:[],n:0,physToLog:[],logToPhys:[],sfpSlot:[],info:{},detail:null,
-  dirty:false,prev:null,prevT:0,rates:[],mtu:[],
+  dirty:false,prev:null,prevT:0,rates:[],mtu:[],histR:[],histT:[],pbSig:"",
 };
 var LINKS=["Down","10M","100M","1000M","500M","10G","2.5G","5G"];
 var LINKC=[null,"--s10","--s100","--s1000","--s5g","--s10g","--s2g5","--s5g"];
@@ -817,6 +816,10 @@ function pollStatus(){
       });
     }
     S.prev=s;S.prevT=now;S.ports=s;
+    var sr=0,sx=0;
+    S.rates.forEach(function(r){if(r){sr+=r.rx;sx+=r.tx;}});
+    S.histR.push(sr);S.histT.push(sx);
+    if(S.histR.length>120){S.histR.shift();S.histT.shift();}
     updateStrip();
     var hk=tabHooks[curTab];
     if(hk&&hk.status)hk.status();
@@ -941,6 +944,94 @@ function renderInfo(){
 function pollInfo(){
   return getJSON("/information.json").then(function(j){S.info=j;renderInfo()});
 }
+function dashChips(){
+  var c=0,e=0,sr=0,st=0;
+  S.ports.forEach(function(p){
+    if(p.enabled&&p.link>0)c++;
+    e+=Number(BigInt(p.txB)+BigInt(p.rxB));
+    var r=S.rates[p.portNum-1];
+    if(r){sr+=r.rx;st+=r.tx;}
+  });
+  $("dconn").textContent=c+"/"+S.n;
+  $("dtotrx").textContent=fmtPps(sr);
+  $("dtottx").textContent=fmtPps(st);
+  $("derrs").textContent=String(e);
+}
+function dashChart(){
+  var n=S.histR.length;
+  if(!n)return;
+  var m=1,i,x,y,step=600/119,dr="",dt="";
+  for(i=0;i<n;i++){
+    if(S.histR[i]>m)m=S.histR[i];
+    if(S.histT[i]>m)m=S.histT[i];
+  }
+  for(i=0;i<n;i++){
+    x=((i+120-n)*step).toFixed(1);
+    y=(165-S.histR[i]/m*150).toFixed(1);
+    dr+=(i?"L":"M")+x+","+y;
+    y=(165-S.histT[i]/m*150).toFixed(1);
+    dt+=(i?"L":"M")+x+","+y;
+  }
+  $("rxline").setAttribute("d",dr);
+  $("txline").setAttribute("d",dt);
+  $("rxarea").setAttribute("d",dr+"L600,170L"+((120-n)*step).toFixed(1)+",170Z");
+  $("dnowrx").textContent=fmtPps(S.histR[n-1]);
+  $("dnowtx").textContent=fmtPps(S.histT[n-1]);
+}
+function dashBars(){
+  var up=[];
+  S.ports.forEach(function(p){if(p.enabled&&p.link>0)up.push(p);});
+  var sig=up.map(function(p){return p.portNum+":"+p.link}).join(",");
+  if(sig!==S.pbSig){
+    S.pbSig=sig;
+    var bx=$("pbars");
+    bx.innerHTML="";
+    up.forEach(function(p){
+      bx.appendChild(h("div",{class:"pbar-row"},[
+        h("span",{class:"pbar-name",text:p.portNum+" · "+(p.isSFP?"SFP":LINKS[p.link])}),
+        h("div",{class:"pbar-track"},[h("div",{class:"pbar-fill frx"}),h("div",{class:"pbar-fill ftx"})]),
+        h("span",{class:"pbar-val",text:"-"}),
+      ]));
+    });
+  }
+  var m=1,vals=[];
+  up.forEach(function(p){
+    var r=S.rates[p.portNum-1],a=r?r.rx:0,b=r?r.tx:0;
+    vals.push([a,b]);
+    if(a>m)m=a;
+    if(b>m)m=b;
+  });
+  var rows=$("pbars").children;
+  for(var i=0;i<rows.length;i++){
+    rows[i].children[1].children[0].style.width=(vals[i][0]/m*100).toFixed(2)+"%";
+    rows[i].children[1].children[1].style.width=(vals[i][1]/m*100).toFixed(2)+"%";
+    rows[i].children[2].textContent="RX "+fmtPps(vals[i][0])+" · TX "+fmtPps(vals[i][1]);
+  }
+}
+function dashSfp(){
+  var p=null;
+  S.ports.forEach(function(q){if(!p&&q.isSFP)p=q;});
+  var card=$("d_sfpcard");
+  if(!p||!p.sfp_vendor){card.style.display="none";return;}
+  card.style.display="";
+  $("dsfpport").textContent=t("c_port")+" "+p.portNum+" · SFP+ DDM";
+  var hd=$("dsfphead");
+  hd.innerHTML="";
+  hd.appendChild(h("span",{class:"badge ok",text:t("d_present")}));
+  hd.appendChild(h("span",{class:"small mono",text:[p.sfp_vendor,p.sfp_model].filter(Boolean).join(" ")}));
+  if(p.sfp_serial)hd.appendChild(h("span",{class:"small mut",text:"S/N "+p.sfp_serial,style:"margin-left:auto"}));
+  var g=$("dsfpgrid");
+  g.innerHTML="";
+  if(!(p.sfp_options&0x40))return;
+  var tx=calSO(pU16(p.sfp_txpower),p.sfp_txpower_cal)/10000;
+  var rx=calRx(pU16(p.sfp_rxpower),p.sfp_rxpower_cal)/10000;
+  [["p_temp",(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256).toFixed(1)+" °C"],
+   ["p_vcc",(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000).toFixed(2)+" V"],
+   ["p_txpower",dBm(tx).toFixed(1)+" dBm"],
+   ["p_rxpower",dBm(rx).toFixed(1)+" dBm"]].forEach(function(s){
+    g.appendChild(h("div",{class:"sens"},[h("div",{class:"sv",text:s[1]}),h("div",{class:"sl",text:t(s[0])})]));
+  });
+}
 function dashStatus(){
   var tb=$("traffic").tBodies[0];
   if(tb.rows.length!==S.n){
@@ -961,6 +1052,10 @@ function dashStatus(){
     r.cells[4].textContent=BigInt(p.txB).toString();
     r.cells[5].textContent=BigInt(p.rxB).toString();
   });
+  dashChips();
+  dashChart();
+  dashBars();
+  dashSfp();
 }
 tabHooks.dash={
   enter:function(){statusPoller.start();pollInfo().catch(function(){})},
