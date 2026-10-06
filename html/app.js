@@ -16,6 +16,9 @@ d_ports:"Ports",d_ports_h:"click a port for details",d_system:"System",d_traffic
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
 d_conn:"connected",d_errs:"errors",d_live:"Live traffic",d_live_h:"packets/s, last 5 min",d_bars:"Per-port throughput",d_bars_h:"packets/s",d_sfp:"Optical module",d_present:"present",
 lag_n:"members",lag_up:"links up",lag_down:"no active links",lacp_off:"LACP is not enabled on any group.",
+lag_members:"Member ports",lag_new:"New aggregation group",lag_max:"All 4 aggregation groups are in use.",
+lag_desc:"Bundle several ports into one logical link for more bandwidth and redundancy. LACP negotiates with the partner; static aggregation must match on both ends.",
+lag_h_spa:"phys port",lag_h_smac:"src MAC",lag_h_dmac:"dst MAC",lag_h_sip:"src IP",lag_h_dip:"dst IP",lag_h_sport:"src port",lag_h_dport:"dst port",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Built",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"State",p_disabled:"disabled",p_up:"up",p_txgb:"TX good / bad",p_rxgb:"RX good / bad",
@@ -137,6 +140,9 @@ d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示"
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 d_conn:"接続済み",d_errs:"エラー",d_live:"リアルタイムトラフィック",d_live_h:"パケット/秒、直近5分",d_bars:"ポート別スループット",d_bars_h:"パケット/秒",d_sfp:"光モジュール",d_present:"在位",
 lag_n:"メンバー",lag_up:"リンク確立",lag_down:"アクティブリンクなし",lacp_off:"LACP はどのグループでも有効ではありません。",
+lag_members:"メンバーポート",lag_new:"リンクアグリゲーションを新規作成",lag_max:"リンクアグリゲーションは 4 グループまでです。",
+lag_desc:"複数ポートを 1 本の論理リンクに束ね、帯域と冗長性を高めます。LACP は対端と自動ネゴシエーションし、静的アグリゲーションは両端で同じ設定が必要です。",
+lag_h_spa:"物理ポート",lag_h_smac:"送信元MAC",lag_h_dmac:"宛先MAC",lag_h_sip:"送信元IP",lag_h_dip:"宛先IP",lag_h_sport:"送信元ポート",lag_h_dport:"宛先ポート",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
 i_built:"ビルド日",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
 p_state:"状態",p_disabled:"無効",p_up:"アップ",p_txgb:"TX 正常 / 異常",p_rxgb:"RX 正常 / 異常",
@@ -238,7 +244,7 @@ fw_timeout:"150 秒経ってもスイッチが復帰しません。電源 / シ�
 },
 zh:{
 nav_dash:"仪表盘",nav_ports:"端口",nav_stp:"生成树",nav_stats:"统计",
-nav_vlan:"VLAN",nav_l2:"MAC 表",nav_mirror:"端口镜像",nav_lag:"LAG",nav_eee:"EEE",
+nav_vlan:"VLAN",nav_l2:"MAC 表",nav_mirror:"端口镜像",nav_lag:"链路聚合",nav_eee:"节能以太网",
 nav_bw:"带宽限制",nav_system:"系统",nav_fw:"固件",
 hdr_dirty:"未保存的更改",hdr_dirty_t:"运行配置与启动配置不同",
 hdr_save:"保存到 Flash",hdr_save_t:"将运行配置写入 Flash",
@@ -252,6 +258,9 @@ d_ports:"端口",d_ports_h:"点击端口查看详情",d_system:"系统",d_traffi
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 d_conn:"已连接",d_errs:"错误",d_live:"实时流量",d_live_h:"包/秒 · 近 5 分钟",d_bars:"每端口吞吐",d_bars_h:"包/秒",d_sfp:"光模块",d_present:"在位",
 lag_n:"成员",lag_up:"链路活动",lag_down:"无活动链路",lacp_off:"LACP 未在任何组上启用。",
+lag_members:"成员端口",lag_new:"新建聚合组",lag_max:"最多只能创建 4 个聚合组。",
+lag_desc:"把多个端口捆绑成一条逻辑链路，带宽叠加并提供冗余。LACP 与对端自动协商；静态聚合要求两端配置完全一致。",
+lag_h_spa:"物理口",lag_h_smac:"源 MAC",lag_h_dmac:"目的 MAC",lag_h_sip:"源 IP",lag_h_dip:"目的 IP",lag_h_sport:"源端口",lag_h_dport:"目的端口",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
 i_built:"构建日期",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"状态",p_disabled:"已禁用",p_up:"已连接",p_txgb:"TX 正常 / 错误",p_rxgb:"RX 正常 / 错误",
@@ -300,7 +309,10 @@ l2_learned:"动态学习",l2_loading:"加载中...",l2_failed:"加载失败",l2_
 l2_del_t:"删除条目",l2_flush_q:"清除所有动态学习的 MAC 条目?",
 m_title:"端口镜像",m_active:"已启用",m_monitor:"镜像目的端口",m_mirror:"镜像",m_both:"双向",
 m_note:"双向 = 将该端口的 RX 和 TX 都镜像到目的端口。",m_none:"请至少选择一个被镜像端口",
-lag_hash:"哈希:",lag_note:"LAG 至少需要一个成员才能保存到启动配置；应用空组将清除该组。",
+lag_hash:"哈希字段",lag_note:"LAG 至少需要一个成员才能保存到启动配置；应用空组将清除该组。",
+lag_mode:"模式",lag_static:"静态聚合",lacp_neg:"协商中",lacp_agg:"聚合器",lacp_members:"活动成员",
+lacp_hint:"LACP:选择候选端口并按「应用」开始协商",lacp_actor:"本端状态",lacp_partner:"对端状态",
+lacp_rxstate:"RX 状态机",lacp_rx:"收到的 LACPDUs",lacp_psys:"对端系统 MAC",
 lag_clear_q:"清除 LAG {n}?",lag_clear_d:"所有成员端口恢复正常工作。",
 e_title:"节能以太网 (EEE)",e_adv:"本端通告",e_lp:"链路伙伴",e_active:"已生效",e_enable:"启用",
 e_note:"按速率显示本端/链路伙伴的通告标志: 100M、1G、2.5G。SFP 端口不支持 EEE。",
@@ -367,6 +379,9 @@ d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_system:"Sistem
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 d_conn:"conectados",d_errs:"errores",d_live:"Tráfico en vivo",d_live_h:"paquetes/s, últimos 5 min",d_bars:"Rendimiento por puerto",d_bars_h:"paquetes/s",d_sfp:"Módulo óptico",d_present:"presente",
 lag_n:"miembros",lag_up:"enlaces activos",lag_down:"sin enlaces activos",lacp_off:"LACP no está habilitado en ningún grupo.",
+lag_members:"Puertos miembros",lag_new:"Nuevo grupo de enlaces",lag_max:"Ya se usan los 4 grupos de enlaces.",
+lag_desc:"Agrupa varios puertos en un enlace lógico para más ancho de banda y redundancia. LACP negocia con el compañero; la agregación estática debe coincidir en ambos extremos.",
+lag_h_spa:"puerto físico",lag_h_smac:"MAC origen",lag_h_dmac:"MAC destino",lag_h_sip:"IP origen",lag_h_dip:"IP destino",lag_h_sport:"puerto origen",lag_h_dport:"puerto destino",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Compilado",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",p_txgb:"TX correctos / erróneos",p_rxgb:"RX correctos / erróneos",
@@ -481,6 +496,9 @@ d_ports:"Ports",d_ports_h:"Cliquer pour le détail du port",d_system:"Système",
 d_traffic_h:"paquets/s, en direct",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX mauvais",d_rxbad:"RX mauvais",
 d_conn:"connectés",d_errs:"erreurs",d_live:"Trafic en direct",d_live_h:"paquets/s, 5 dernières min",d_bars:"Débit par port",d_bars_h:"paquets/s",d_sfp:"Module optique",d_present:"présent",
 lag_n:"membres",lag_up:"liens actifs",lag_down:"aucun lien actif",lacp_off:"LACP n'est activé sur aucun groupe.",
+lag_members:"Ports membres",lag_new:"Nouveau groupe de liens",lag_max:"Les 4 groupes de liens sont déjà utilisés.",
+lag_desc:"Regroupez plusieurs ports en un lien logique pour plus de bande passante et de redondance. LACP négocie avec le partenaire ; l'agrégation statique doit être identique aux deux extrémités.",
+lag_h_spa:"port physique",lag_h_smac:"MAC source",lag_h_dmac:"MAC dest",lag_h_sip:"IP source",lag_h_dip:"IP dest",lag_h_sport:"port source",lag_h_dport:"port dest",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"MAC",i_fw:"Micro logiciel",
 i_built:"Compilé",i_hw:"Matériel",i_flash:"Flash",i_syslog:"Log système",
 p_state:"Etat",p_disabled:"désactivé",p_up:"up",p_txgb:"TX bon / mauvais",p_rxgb:"RX bon / mauvais",
@@ -1702,6 +1720,7 @@ $("moff").addEventListener("click",function(){
 tabHooks.mirror={enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})})}};
 
 var HASHF=["spa","smac","dmac","sip","dip","sport","dport"];
+var lagMasks=[0,0,0,0,0];
 function lagBadge(g){
   var b=$("lgb"+g);
   if(!b||!S.n)return;
@@ -1718,9 +1737,10 @@ function buildLag(){
   var w=$("lagwrap");
   if(w.children.length)return;
   for(var g=1;g<=4;g++)(function(g){
-    var card=h("div",{class:"card"});
+    var card=h("div",{class:"card",style:"display:none"});
     card.appendChild(h("h2",null,[
       h("span",{text:"LAG "+g}),
+      h("span",{class:"badge",id:"lgt"+g,style:"margin-left:8px"}),
       h("span",{class:"badge",id:"lgb"+g,style:"margin-left:auto"}),
     ]));
     var mr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px",class:"small"});
@@ -1734,24 +1754,44 @@ function buildLag(){
     card.appendChild(h("p",{class:"small mono",id:"lgs"+g,style:"margin-bottom:10px"}));
     card.appendChild(h("div",{class:"small mut",style:"margin-bottom:6px",text:t("lag_members")}));
     var pr=h("div",{class:"chipset",style:"margin-bottom:12px"});
-    for(var p=1;p<=S.n;p++)pr.appendChild(h("label",{class:"pchk"},[
+    for(var p=1;p<=S.n;p++)pr.appendChild(h("label",{class:"pchk",title:t("c_port")+" "+p},[
       h("input",{type:"checkbox",id:"lg"+g+"p"+p}),
       h("span",null,[h("i",{id:"lgd"+g+"p"+p}),document.createTextNode(" "+p+" ")]),
     ]));
     card.appendChild(pr);
     card.appendChild(h("div",{class:"small mut",style:"margin-bottom:6px",text:t("lag_hash")}));
-    var hr=h("div",{class:"chipset",style:"margin-bottom:12px"});
+    var hr=h("div",{class:"chipset",style:"margin-bottom:14px"});
     HASHF.forEach(function(f){
-      hr.appendChild(h("label",{class:"pchk"},[
+      hr.appendChild(h("label",{class:"pchk",title:"laghash "+f},[
         h("input",{type:"checkbox",id:"lg"+g+"h"+f}),
-        h("span",{class:"mono",text:f}),
+        h("span",{text:t("lag_h_"+f)}),
       ]));
     });
     card.appendChild(hr);
-    card.appendChild(h("button",{class:"ctl pri",text:t("c_apply"),onclick:function(){lagApply(g)}}));
+    var acts=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap"});
+    acts.appendChild(h("button",{class:"ctl pri",text:t("c_apply"),onclick:function(){lagApply(g)}}));
+    acts.appendChild(h("button",{class:"ctl danger",text:t("c_delete"),onclick:function(){
+      confirmModal(t("lag_clear_q",{n:g}),t("lag_clear_d"),function(){
+        delete card.dataset.dirty;
+        var cmds=lacpCfg[g]?["lag "+g+" lacp off"]:[];
+        postCmds(cmds.concat(["lag "+g+" d"])).then(lagLoad).catch(function(){});
+      });
+    }}));
+    card.appendChild(acts);
     card.addEventListener("change",function(){card.dataset.dirty="1";lagBadge(g);});
     w.appendChild(card);
   })(g);
+  $("lagnew").addEventListener("click",function(){
+    for(var g=1;g<=4;g++){
+      if(lacpCfg[g]||lagMasks[g])continue;
+      var card=$("lgm"+g).closest(".card");
+      card.style.display="";
+      card.dataset.dirty="1";
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+    toast(t("lag_max"),"err");
+  });
 }
 function stDots(hex){
   var v=parseInt(hex,16);
@@ -1778,6 +1818,7 @@ function lagLoad(){
     c.lags.forEach(function(lg,i){
       var g=i+1;
       lacpCfg[g]=parseInt(lg.cfg,16);
+      if(lacpCfg[g])lagMasks[g]=parseInt(lg.members,16);
       if($("lgm"+g).closest(".card").dataset.dirty)return;
       $("lgm"+g).value=lacpCfg[g]?"lacp":"static";
       $("lgs"+g).textContent=lacpCfg[g]?"LACP: "+t("lacp_agg")+" "+(lg.aggValid?lg.agg:"("+t("lacp_neg")+")")+", "+t("lacp_members")+" 0x"+lg.members:"";
@@ -1797,15 +1838,21 @@ function lagLoad(){
   }).then(function(s){
     s.forEach(function(l){
       var g=l.lagNum+1;
+      if(!lacpCfg[g])lagMasks[g]=parseInt(l.members,2);
       if($("lgm"+g).closest(".card").dataset.dirty)return;
-      var members=lacpCfg[g]||parseInt(l.members,2);
+      var members=lacpCfg[g]||lagMasks[g];
       for(var p=1;p<=S.n;p++)
         $("lg"+g+"p"+p).checked=!!((members>>S.physToLog[p-1])&1);
       var hash=parseInt(l.hash,16);
       HASHF.forEach(function(f,i){$("lg"+g+"h"+f).checked=!!((hash>>i)&1)});
     });
     lagDots();
-    for(var g2=1;g2<=4;g2++)lagBadge(g2);
+    for(var g2=1;g2<=4;g2++){
+      var card=$("lgm"+g2).closest(".card");
+      card.style.display=(lacpCfg[g2]||lagMasks[g2]||card.dataset.dirty)?"":"none";
+      $("lgt"+g2).textContent=lacpCfg[g2]?"LACP":(lagMasks[g2]?t("lag_static"):"");
+      lagBadge(g2);
+    }
   });
 }
 function lagApply(g){
