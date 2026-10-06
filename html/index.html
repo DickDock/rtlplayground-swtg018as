@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Switch</title>
+<title>交换机</title>
 <style>
 :root{
   --bg:#f2f5f7;--panel:#ffffff;--panel2:#e9eef2;--bd:#dbe2e8;--fg:#1b2732;--fg2:#5d6b78;
@@ -107,6 +107,8 @@ button.pri:hover{background:color-mix(in srgb,var(--ac) 88%,var(--fg))}
 button.ctl:hover{background:color-mix(in srgb,var(--fg2) 10%,var(--panel2))}
 button.pri:active,button.ctl:active{transform:translateY(1px)}
 button:disabled{opacity:.45;cursor:default;filter:none;transform:none}
+input.in:disabled,select.in:disabled,textarea.in:disabled{opacity:.45;cursor:default}
+input.in:disabled:hover,select.in:disabled:hover{border-color:var(--bd);box-shadow:none}
 main{padding:20px 24px 48px;max-width:1400px;width:100%}
 section.tab{display:none}
 section.tab.act{display:block}

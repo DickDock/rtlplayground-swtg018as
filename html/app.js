@@ -140,6 +140,9 @@ d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示"
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 d_conn:"接続済み",d_errs:"エラー",d_live:"リアルタイムトラフィック",d_live_h:"パケット/秒、直近5分",d_bars:"ポート別スループット",d_bars_h:"パケット/秒",d_sfp:"光モジュール",d_present:"在位",
 lag_n:"メンバー",lag_up:"リンク確立",lag_down:"アクティブリンクなし",lacp_off:"LACP はどのグループでも有効ではありません。",
+lag_mode:"モード",lag_static:"静的リンクアグリゲーション",lacp_neg:"ネゴシエーション中",lacp_agg:"アグリゲータ",lacp_members:"アクティブメンバー",
+lacp_hint:"LACP:候補ポートを選び「適用」を押すとネゴシエーションを開始します",
+sc_err:"ストーム制限は 1-1048575 pps または 1-10000000 kbit/s で指定してください",
 lag_members:"メンバーポート",lag_new:"リンクアグリゲーションを新規作成",lag_max:"リンクアグリゲーションは 4 グループまでです。",
 lag_desc:"複数ポートを 1 本の論理リンクに束ね、帯域と冗長性を高めます。LACP は対端と自動ネゴシエーションし、静的アグリゲーションは両端で同じ設定が必要です。",
 lag_h_spa:"物理ポート",lag_h_smac:"送信元MAC",lag_h_dmac:"宛先MAC",lag_h_sip:"送信元IP",lag_h_dip:"宛先IP",lag_h_sport:"送信元ポート",lag_h_dport:"宛先ポート",
@@ -258,6 +261,9 @@ d_ports:"端口",d_ports_h:"点击端口查看详情",d_system:"系统",d_traffi
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 d_conn:"已连接",d_errs:"错误",d_live:"实时流量",d_live_h:"包/秒 · 近 5 分钟",d_bars:"每端口吞吐",d_bars_h:"包/秒",d_sfp:"光模块",d_present:"在位",
 lag_n:"成员",lag_up:"链路活动",lag_down:"无活动链路",lacp_off:"LACP 未在任何组上启用。",
+sc_title:"风暴控制",sc_h:"按端口和流量类型，留空 = 关闭",sc_bcast:"广播",sc_mcast:"组播",
+sc_ucast:"未知单播",sc_umcast:"未知多播",sc_err:"风暴控制限制必须是 1-1048575 pps 或 1-10000000 kbit/s",
+sc_note:"超过限值的流量在进入交换机的端口上被丢弃。",
 lag_members:"成员端口",lag_new:"新建聚合组",lag_max:"最多只能创建 4 个聚合组。",
 lag_desc:"把多个端口捆绑成一条逻辑链路，带宽叠加并提供冗余。LACP 与对端自动协商；静态聚合要求两端配置完全一致。",
 lag_h_spa:"物理口",lag_h_smac:"源 MAC",lag_h_dmac:"目的 MAC",lag_h_sip:"源 IP",lag_h_dip:"目的 IP",lag_h_sport:"源端口",lag_h_dport:"目的端口",
@@ -379,6 +385,10 @@ d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_system:"Sistem
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 d_conn:"conectados",d_errs:"errores",d_live:"Tráfico en vivo",d_live_h:"paquetes/s, últimos 5 min",d_bars:"Rendimiento por puerto",d_bars_h:"paquetes/s",d_sfp:"Módulo óptico",d_present:"presente",
 lag_n:"miembros",lag_up:"enlaces activos",lag_down:"sin enlaces activos",lacp_off:"LACP no está habilitado en ningún grupo.",
+lag_mode:"Modo",lag_static:"Agregación estática",lacp_neg:"negociando",lacp_agg:"agregador",lacp_members:"miembros activos",
+lacp_hint:"LACP: selecciona puertos candidatos y pulsa Aplicar para iniciar la negociación",
+sc_err:"El límite de tormenta debe ser 1-1048575 pps o 1-10000000 kbit/s",
+cw_longline:"La línea {n} tiene {m} bytes: el conmutador solo reproduce líneas de hasta 126 bytes y la omitiría al arrancar, así que la escritura se rechaza. Acórtala primero.",
 lag_members:"Puertos miembros",lag_new:"Nuevo grupo de enlaces",lag_max:"Ya se usan los 4 grupos de enlaces.",
 lag_desc:"Agrupa varios puertos en un enlace lógico para más ancho de banda y redundancia. LACP negocia con el compañero; la agregación estática debe coincidir en ambos extremos.",
 lag_h_spa:"puerto físico",lag_h_smac:"MAC origen",lag_h_dmac:"MAC destino",lag_h_sip:"IP origen",lag_h_dip:"IP destino",lag_h_sport:"puerto origen",lag_h_dport:"puerto destino",
@@ -496,6 +506,10 @@ d_ports:"Ports",d_ports_h:"Cliquer pour le détail du port",d_system:"Système",
 d_traffic_h:"paquets/s, en direct",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX mauvais",d_rxbad:"RX mauvais",
 d_conn:"connectés",d_errs:"erreurs",d_live:"Trafic en direct",d_live_h:"paquets/s, 5 dernières min",d_bars:"Débit par port",d_bars_h:"paquets/s",d_sfp:"Module optique",d_present:"présent",
 lag_n:"membres",lag_up:"liens actifs",lag_down:"aucun lien actif",lacp_off:"LACP n'est activé sur aucun groupe.",
+lag_mode:"Mode",lag_static:"Agrégation statique",lacp_neg:"négociation",lacp_agg:"agrégateur",lacp_members:"membres actifs",
+lacp_hint:"LACP : sélectionnez les ports candidats et appliquez pour lancer la négociation",
+sc_err:"La limite de tempête doit être 1-1048575 pps ou 1-10000000 kbit/s",
+sy_sesstmo_err:"Le délai de session doit être de 1 à 65535 s",
 lag_members:"Ports membres",lag_new:"Nouveau groupe de liens",lag_max:"Les 4 groupes de liens sont déjà utilisés.",
 lag_desc:"Regroupez plusieurs ports en un lien logique pour plus de bande passante et de redondance. LACP négocie avec le partenaire ; l'agrégation statique doit être identique aux deux extrémités.",
 lag_h_spa:"port physique",lag_h_smac:"MAC source",lag_h_dmac:"MAC dest",lag_h_sip:"IP source",lag_h_dip:"IP dest",lag_h_sport:"port source",lag_h_dport:"port dest",
@@ -961,7 +975,7 @@ function renderInfo(){
     if(v==null||v==="")return;
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
   });
-  if(S.info.hostname)$("brandname").textContent=$("brandname").title=S.info.hostname;
+  if(S.info.hostname){$("brandname").textContent=$("brandname").title=S.info.hostname;document.title=S.info.hostname;}
   if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
 }
 function pollInfo(){
@@ -1940,6 +1954,10 @@ function bwLoad(){
       var ein=h("input",{class:"in sm",id:"bwev"+n,type:"number",min:"0.016",max:"10000",step:"any"});
       if(eOn)ein.value=+eM.toFixed(3);
       tr.insertCell().appendChild(ein);
+      var iup=function(){$("bwiv"+n).disabled=!icb.checked;$("bwm"+n).disabled=!icb.checked};
+      var eup=function(){$("bwev"+n).disabled=!ecb.checked};
+      icb.addEventListener("change",iup);ecb.addEventListener("change",eup);
+      iup();eup();
       tr.insertCell().appendChild(h("button",{class:"ctl",text:t("c_apply"),onclick:function(){bwApply(n)}}));
     });
   });
@@ -1982,7 +2000,7 @@ function scLoad(){
         tr.insertCell().textContent=n;
         SC_TYPES.forEach(function(ty){
           tr.insertCell().appendChild(h("span",{style:"display:flex;gap:4px"},[
-            h("input",{class:"in sm",id:"scv"+ty+n,type:"number",min:"1",step:"1"}),
+            h("input",{class:"in sm",id:"scv"+ty+n,type:"number",min:"1",step:"1",placeholder:"pps"}),
             h("select",{class:"in",id:"scu"+ty+n},[
               h("option",{value:"pps",text:"pps"}),
               h("option",{value:"kbps",text:"kbit/s"}),
