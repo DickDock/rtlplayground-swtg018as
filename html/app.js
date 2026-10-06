@@ -15,6 +15,7 @@ c_full:"full",c_half:"half",c_devices:"devices",c_yes:"yes",c_no:"no",
 d_ports:"Ports",d_ports_h:"click a port for details",d_system:"System",d_traffic:"Traffic",
 d_traffic_h:"packets/s, live",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX bad",d_rxbad:"RX bad",
 d_conn:"connected",d_errs:"errors",d_live:"Live traffic",d_live_h:"packets/s, last 5 min",d_bars:"Per-port throughput",d_bars_h:"packets/s",d_sfp:"Optical module",d_present:"present",
+lag_n:"members",lag_up:"links up",lag_down:"no active links",lacp_off:"LACP is not enabled on any group.",
 i_host:"Hostname",i_ip:"IP address",i_mask:"Netmask",i_gw:"Gateway",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Built",i_hw:"Hardware",i_temp:"Temperature",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"State",p_disabled:"disabled",p_up:"up",p_txgb:"TX good / bad",p_rxgb:"RX good / bad",
@@ -135,6 +136,7 @@ c_full:"全二重",c_half:"半二重",c_devices:"デバイス",c_yes:"はい",c_
 d_ports:"ポート",d_ports_h:"ポートをクリックすると詳細を表示",d_system:"システム",d_traffic:"トラフィック",
 d_traffic_h:"パケット/秒、リアルタイム",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 異常",d_rxbad:"RX 異常",
 d_conn:"接続済み",d_errs:"エラー",d_live:"リアルタイムトラフィック",d_live_h:"パケット/秒、直近5分",d_bars:"ポート別スループット",d_bars_h:"パケット/秒",d_sfp:"光モジュール",d_present:"在位",
+lag_n:"メンバー",lag_up:"リンク確立",lag_down:"アクティブリンクなし",lacp_off:"LACP はどのグループでも有効ではありません。",
 i_host:"ホスト名",i_ip:"IP アドレス",i_mask:"ネットマスク",i_gw:"ゲートウェイ",i_mac:"MAC",i_fw:"ファームウェア",
 i_built:"ビルド日",i_hw:"ハードウェア",i_temp:"温度",i_flash:"フラッシュ",i_syslog:"Syslog",
 p_state:"状態",p_disabled:"無効",p_up:"アップ",p_txgb:"TX 正常 / 異常",p_rxgb:"RX 正常 / 異常",
@@ -249,6 +251,7 @@ c_full:"全双工",c_half:"半双工",c_devices:"台设备",c_yes:"是",c_no:"�
 d_ports:"端口",d_ports_h:"点击端口查看详情",d_system:"系统",d_traffic:"流量",
 d_traffic_h:"包/秒，实时",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX 错误",d_rxbad:"RX 错误",
 d_conn:"已连接",d_errs:"错误",d_live:"实时流量",d_live_h:"包/秒 · 近 5 分钟",d_bars:"每端口吞吐",d_bars_h:"包/秒",d_sfp:"光模块",d_present:"在位",
+lag_n:"成员",lag_up:"链路活动",lag_down:"无活动链路",lacp_off:"LACP 未在任何组上启用。",
 i_host:"主机名",i_ip:"IP 地址",i_mask:"子网掩码",i_gw:"网关",i_mac:"MAC",i_fw:"固件",
 i_built:"构建日期",i_hw:"硬件",i_temp:"温度",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"状态",p_disabled:"已禁用",p_up:"已连接",p_txgb:"TX 正常 / 错误",p_rxgb:"RX 正常 / 错误",
@@ -363,6 +366,7 @@ c_full:"dúplex completo",c_half:"semidúplex",c_devices:"dispositivos",c_yes:"s
 d_ports:"Puertos",d_ports_h:"pulsa un puerto para ver detalles",d_system:"Sistema",d_traffic:"Tráfico",
 d_traffic_h:"paquetes/s, en vivo",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX erróneos",d_rxbad:"RX erróneos",
 d_conn:"conectados",d_errs:"errores",d_live:"Tráfico en vivo",d_live_h:"paquetes/s, últimos 5 min",d_bars:"Rendimiento por puerto",d_bars_h:"paquetes/s",d_sfp:"Módulo óptico",d_present:"presente",
+lag_n:"miembros",lag_up:"enlaces activos",lag_down:"sin enlaces activos",lacp_off:"LACP no está habilitado en ningún grupo.",
 i_host:"Nombre de host",i_ip:"Dirección IP",i_mask:"Máscara de red",i_gw:"Puerta de enlace",i_mac:"MAC",i_fw:"Firmware",
 i_built:"Compilado",i_hw:"Hardware",i_flash:"Flash",i_syslog:"Syslog",
 p_state:"Estado",p_disabled:"deshabilitado",p_up:"activo",p_txgb:"TX correctos / erróneos",p_rxgb:"RX correctos / erróneos",
@@ -476,6 +480,7 @@ c_full:"full",c_half:"half",c_devices:"Equipements",c_yes:"oui",c_no:"non",
 d_ports:"Ports",d_ports_h:"Cliquer pour le détail du port",d_system:"Système",d_traffic:"Trafic",
 d_traffic_h:"paquets/s, en direct",d_txpps:"TX pps",d_rxpps:"RX pps",d_txbad:"TX mauvais",d_rxbad:"RX mauvais",
 d_conn:"connectés",d_errs:"erreurs",d_live:"Trafic en direct",d_live_h:"paquets/s, 5 dernières min",d_bars:"Débit par port",d_bars_h:"paquets/s",d_sfp:"Module optique",d_present:"présent",
+lag_n:"membres",lag_up:"liens actifs",lag_down:"aucun lien actif",lacp_off:"LACP n'est activé sur aucun groupe.",
 i_host:"Nom d'hote",i_ip:"Adresse IP",i_mask:"Masque réseau",i_gw:"Passerelle",i_mac:"MAC",i_fw:"Micro logiciel",
 i_built:"Compilé",i_hw:"Matériel",i_flash:"Flash",i_syslog:"Log système",
 p_state:"Etat",p_disabled:"désactivé",p_up:"up",p_txgb:"TX bon / mauvais",p_rxgb:"RX bon / mauvais",
@@ -1697,12 +1702,27 @@ $("moff").addEventListener("click",function(){
 tabHooks.mirror={enter:function(){needPorts(function(){buildMirror();mirrorLoad().catch(function(){})})}};
 
 var HASHF=["spa","smac","dmac","sip","dip","sport","dport"];
+function lagBadge(g){
+  var b=$("lgb"+g);
+  if(!b||!S.n)return;
+  var n=0,live=0;
+  for(var p=1;p<=S.n;p++)if($("lg"+g+"p"+p)&&$("lg"+g+"p"+p).checked){
+    n++;
+    var q=S.ports[p-1];
+    if(q&&q.portNum===p&&q.enabled&&q.link>0)live++;
+  }
+  b.textContent=n?(n+" "+t("lag_n")+(live?" · "+t("lag_up"):" · "+t("lag_down"))):t("c_off");
+  b.className="badge"+(n&&live?" ok":"");
+}
 function buildLag(){
   var w=$("lagwrap");
   if(w.children.length)return;
   for(var g=1;g<=4;g++)(function(g){
     var card=h("div",{class:"card"});
-    card.appendChild(h("h2",{text:"LAG "+g}));
+    card.appendChild(h("h2",null,[
+      h("span",{text:"LAG "+g}),
+      h("span",{class:"badge",id:"lgb"+g,style:"margin-left:auto"}),
+    ]));
     var mr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px",class:"small"});
     mr.appendChild(h("span",{class:"mut",text:t("lag_mode")}));
     var ms=h("select",{class:"in",id:"lgm"+g});
@@ -1712,27 +1732,49 @@ function buildLag(){
     mr.appendChild(ms);
     card.appendChild(mr);
     card.appendChild(h("p",{class:"small mono",id:"lgs"+g,style:"margin-bottom:10px"}));
-    var pr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"});
-    for(var p=1;p<=S.n;p++)pr.appendChild(h("label",null,[
-      h("input",{type:"checkbox",id:"lg"+g+"p"+p}),document.createTextNode(" "+p+" "),
+    card.appendChild(h("div",{class:"small mut",style:"margin-bottom:6px",text:t("lag_members")}));
+    var pr=h("div",{class:"chipset",style:"margin-bottom:12px"});
+    for(var p=1;p<=S.n;p++)pr.appendChild(h("label",{class:"pchk"},[
+      h("input",{type:"checkbox",id:"lg"+g+"p"+p}),
+      h("span",null,[h("i",{id:"lgd"+g+"p"+p}),document.createTextNode(" "+p+" ")]),
     ]));
     card.appendChild(pr);
-    var hr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px",class:"small"});
-    hr.appendChild(h("span",{class:"mut",text:t("lag_hash")}));
+    card.appendChild(h("div",{class:"small mut",style:"margin-bottom:6px",text:t("lag_hash")}));
+    var hr=h("div",{class:"chipset",style:"margin-bottom:12px"});
     HASHF.forEach(function(f){
-      hr.appendChild(h("label",null,[h("input",{type:"checkbox",id:"lg"+g+"h"+f}),document.createTextNode(" "+f+" ")]));
+      hr.appendChild(h("label",{class:"pchk"},[
+        h("input",{type:"checkbox",id:"lg"+g+"h"+f}),
+        h("span",{class:"mono",text:f}),
+      ]));
     });
     card.appendChild(hr);
     card.appendChild(h("button",{class:"ctl pri",text:t("c_apply"),onclick:function(){lagApply(g)}}));
-    card.addEventListener("change",function(){card.dataset.dirty="1"});
+    card.addEventListener("change",function(){card.dataset.dirty="1";lagBadge(g);});
     w.appendChild(card);
   })(g);
 }
+function stDots(hex){
+  var v=parseInt(hex,16);
+  function d(bit){return h("i",{class:(v&bit)?"on":""})}
+  var w=h("span",{class:"stdots"},[d(8),d(0x10),d(0x20)]);
+  w.title="Sync "+!!(v&8)+" / Coll "+!!(v&0x10)+" / Dist "+!!(v&0x20)+" (0x"+hex+")";
+  return w;
+}
 var lacpCfg=[0,0,0,0,0];
+function lagDots(){
+  S.ports.forEach(function(p){
+    var up=p.enabled&&p.link>0;
+    for(var g=1;g<=4;g++){
+      var d=$("lgd"+g+"p"+p.portNum);
+      if(d)d.classList.toggle("up",!!up);
+    }
+  });
+}
 function lagLoad(){
   return getJSON("/lacp.json").then(function(c){
     var tb=$("lacptbl").tBodies[0];
     tb.innerHTML="";
+    $("lacpempty").style.display=c.on?"none":"";
     c.lags.forEach(function(lg,i){
       var g=i+1;
       lacpCfg[g]=parseInt(lg.cfg,16);
@@ -1743,7 +1785,13 @@ function lagLoad(){
     if(c.on)c.ports.forEach(function(p){
       if(p.lag===255)return;
       var tr=tb.insertRow();
-      [p.p,p.lag+1,p.a,p.pt,p.rs,parseInt(p.rx,16),p.psys].forEach(function(v){tr.insertCell().textContent=v});
+      tr.insertCell().textContent=p.p;
+      tr.insertCell().textContent=p.lag+1;
+      tr.insertCell().appendChild(stDots(p.a));
+      tr.insertCell().appendChild(stDots(p.pt));
+      tr.insertCell().textContent=p.rs;
+      var rx=tr.insertCell();rx.className="num";rx.textContent=parseInt(p.rx,16);
+      var ps=tr.insertCell();ps.className="mono";ps.textContent=p.psys;
     });
     return getJSON("/lag.json");
   }).then(function(s){
@@ -1756,6 +1804,8 @@ function lagLoad(){
       var hash=parseInt(l.hash,16);
       HASHF.forEach(function(f,i){$("lg"+g+"h"+f).checked=!!((hash>>i)&1)});
     });
+    lagDots();
+    for(var g2=1;g2<=4;g2++)lagBadge(g2);
   });
 }
 function lagApply(g){
@@ -1779,11 +1829,13 @@ function lagApply(g){
 var lagPoller=new Poller(function(){return lagLoad().catch(function(){})},3000);
 tabHooks.lag={enter:function(){needPorts(function(){buildLag();lagPoller.start()})},leave:function(){lagPoller.stop()}};
 
-function eeeFlags(bits){
-  var b=parseInt(bits,2);
-  return["100M","1G","2.5G"].map(function(s,i){
-    return(b&(4>>i))?s:null;
-  }).filter(Boolean).join(", ")||"-";
+function spDots(bits){
+  var b=parseInt(bits,2)||0;
+  var w=h("span",{class:"spdots"});
+  ["100M","1G","2.5G"].forEach(function(s,i){
+    w.appendChild(h("span",{class:(b&(4>>i))?"on":"",text:s}));
+  });
+  return w;
 }
 function eeeLoad(){
   return getJSON("/eee.json").then(function(s){
@@ -1792,12 +1844,15 @@ function eeeLoad(){
       var tr=tb.insertRow();
       tr.insertCell().textContent=p.portNum+(p.isSFP?" (SFP)":"");
       if(p.isSFP){
-        for(var c=0;c<3;c++)tr.insertCell().textContent="-";
+        var na1=tr.insertCell(),na2=tr.insertCell();
+        na1.appendChild(spDots("0"));
+        na2.appendChild(spDots("0"));
         tr.insertCell().textContent=t("e_na");
+        var na3=tr.insertCell();
         return;
       }
-      tr.insertCell().textContent=eeeFlags(p.eee);
-      tr.insertCell().textContent=eeeFlags(p.eee_lp);
+      tr.insertCell().appendChild(spDots(p.eee));
+      tr.insertCell().appendChild(spDots(p.eee_lp));
       tr.insertCell().innerHTML=p.active?badge(t("e_active"),"ok"):badge(t("e_idle"));
       var on=parseInt(p.eee,2)!==0;
       var sw=h("label",{class:"switch"},[
