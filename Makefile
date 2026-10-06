@@ -15,7 +15,7 @@ SUBDIRS := tools
 SUBDIRSCLEAN=$(addsuffix clean,$(SUBDIRS))
 
 ifeq ($(MACHINE),)
-	MACHINE:= $(shell grep "^\s*#define MACHINE_" machine.h | sed "s/^\s*#define MACHINE_//")
+	MACHINE:= $(shell grep "^\s*\#define MACHINE_" machine.h | sed "s/^\s*\#define MACHINE_//")
 else
 	CC_FLAGS += -DMACHINE_$(MACHINE)
 endif

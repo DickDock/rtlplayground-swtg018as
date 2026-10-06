@@ -1,3 +1,25 @@
+# rtlplayground-swtg018as
+
+Personal build of [rtl837x-plus](https://github.com/HiroGitea/rtl837x-plus) (LACP/QoS fork of
+[RTLPlayground](https://github.com/logicog/RTLPlayground)) for the **LIANGUO LG-SG8T1 (WEB)** /
+ZX903-SWTGW218AS switch — PCB `SWTG018AS-A-V2.0` (8× 2.5GBit + 1× SFP+).
+
+Preconfigured in this repo:
+
+- `machine.h`: `MACHINE_SWTG018AS_A_V_2_0`
+- `config.txt`: static management IP `192.168.31.3`, gateway `192.168.31.1`
+- `tools/Makefile`, `installer/Makefile`, `Makefile`: macOS (Darwin) build fixes —
+  conditional `-largp`/json-c paths and escaped `#` for GNU make < 4
+
+Build on macOS (SDCC ≥ 4.5, binutils for `objcopy`, json-c, argp-standalone):
+
+    PATH="/opt/homebrew/opt/binutils/bin:$PATH" make
+
+Image lands in `output/SWTG018AS_A_V_2_0/` (512 KiB, web-upgradable via the RTLPlayground
+"固件" page; a SOIC-8 clip + flashrom dump remains the brick-rescue path).
+
+---
+
 # rtl837x-plus
 
 [![Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml/badge.svg)](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml)

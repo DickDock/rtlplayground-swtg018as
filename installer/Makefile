@@ -8,6 +8,14 @@ AFLAGS= -plosgff
 
 BUILDDIR = output
 
+# Linux glibc ships argp in libc; macOS needs brew argp-standalone.
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+ARGP_FLAGS = -I/opt/homebrew/include -L/opt/homebrew/lib -largp
+else
+ARGP_FLAGS =
+endif
+
 SRCS = installer.c
 OBJS = ${SRCS:%.c=$(BUILDDIR)/%.rel}
 
@@ -17,7 +25,7 @@ create_build_dir:
 	mkdir -p $(BUILDDIR)
 
 $(BUILDDIR)/updatebuilder: updatebuilder.c
-	gcc $^ -o $@
+	gcc $^ -o $@ $(ARGP_FLAGS)
 
 $(BUILDDIR)/installer.rel: installer.c
 	$(CC) $(CC_FLAGS) --code-loc ${CODE_LOCATION} -o $@ -c $<
