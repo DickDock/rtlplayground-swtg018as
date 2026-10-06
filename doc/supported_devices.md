@@ -1,4 +1,7 @@
 # Supported Hardware
+
+English | [简体中文](supported_devices.zh-CN.md)
+
 The following devices have been tested and are fully working:
 
 | Brand    | Type            | Managed | PCB                                                                       | Flash | Ports |

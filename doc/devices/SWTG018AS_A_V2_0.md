@@ -1,4 +1,7 @@
 # SWTG018AS-A V2.0
+
+English | [简体中文](SWTG018AS_A_V2_0.zh-CN.md)
+
 ## Brands
 | Brand  | Type             |Managed| PCB              | Flash           | Chip RTL      |
 |--------|------------------|-------|------------------|-----------------|---------------|

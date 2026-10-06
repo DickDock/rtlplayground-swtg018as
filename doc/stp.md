@@ -1,5 +1,7 @@
 # Spanning Tree (STP / RSTP)
 
+English | [简体中文](stp.zh-CN.md)
+
 The switch can take part in a spanning tree (IEEE 802.1D / 802.1w) so that
 redundant links between bridges are blocked instead of forming a loop. The
 implementation elects a root bridge from the BPDUs it receives, promotes ports

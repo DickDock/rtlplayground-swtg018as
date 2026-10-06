@@ -1,5 +1,7 @@
 # The health command
 
+English | [简体中文](health.zh-CN.md)
+
 `health` prints a one-page snapshot of the firmware's vital signs on the
 serial console. It exists for the situations where the switch misbehaves and
 every probe from the network measures the network instead of the device: the

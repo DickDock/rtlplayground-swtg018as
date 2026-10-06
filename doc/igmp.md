@@ -1,4 +1,7 @@
 # IGMP (Internet Group Management Protocol) and MLD (Multicast Listener Discovery)
+
+English | [简体中文](igmp.zh-CN.md)
+
 IGMP (for IPv4) and MLD (for IPv6) are protocols that control the distribution
 of Layer-3 Multicast packets on the LAN, which otherwise would be flooded across the
 entire network. For this to work, IGMP/MLD messages are sent, in particular

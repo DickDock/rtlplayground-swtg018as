@@ -1,5 +1,7 @@
 # TrendNet TEG-S562
 
+English | [简体中文](TEG-S562.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `TEG-S563/EU H/W: V1.0R`.
 
 Original software is running UART on 57600 baud rate. The software does not allow to

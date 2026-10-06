@@ -1,5 +1,7 @@
 Hisource Hi-K0402WS V2
 
+English | [简体中文](PCB-K0402WS-V2.0.zh-CN.md)
+
 RTL8372-based 4×2.5G + 2×SFP+ unmanaged switch.
 
 Using SPI clamp in-board is the only method for initial installation.

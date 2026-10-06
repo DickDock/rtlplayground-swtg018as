@@ -1,5 +1,7 @@
 # rtlplayground-swtg018as
 
+English | [简体中文](README.zh-CN.md)
+
 Personal build of [rtl837x-plus](https://github.com/HiroGitea/rtl837x-plus) (LACP/QoS fork of
 [RTLPlayground](https://github.com/logicog/RTLPlayground)) for the **LIANGUO LG-SG8T1 (WEB)** /
 ZX903-SWTGW218AS switch — PCB `SWTG018AS-A-V2.0` (8× 2.5GBit + 1× SFP+).

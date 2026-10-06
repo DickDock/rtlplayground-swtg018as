@@ -1,5 +1,7 @@
 # 2G040210GSM
 
+English | [简体中文](2M-PCB43-V1.1.zh-CN.md)
+
 The following is a documentation for the managed switch marked as `2G040210GSM`
 and sold by Mokerlink.
 

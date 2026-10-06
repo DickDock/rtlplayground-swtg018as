@@ -1,4 +1,7 @@
 ### SWTG024AS
+
+English | [简体中文](SWTG024AS.zh-CN.md)
+
 SWTG024AS has at least 4 variants that look the same.
 
 Variants are `managed` and a `unmanaged` version.

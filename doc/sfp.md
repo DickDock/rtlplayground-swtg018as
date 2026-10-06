@@ -1,5 +1,7 @@
 # SFP+ Slots
 
+English | [简体中文](sfp.zh-CN.md)
+
 The RTL8372/3 provide support for 1 or 2 SFP+ slots, which support fiber and Ethernet
 module with speeds of 1GBit, 2.5GBit and 10GBit. 5GBit could be possible but is not
 implemented due to the lack of suitable modules.

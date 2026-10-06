@@ -1,5 +1,7 @@
 # PCB-K0402WS-V3.0
 
+English | [简体中文](PCB-K0402WS-V3.0.zh-CN.md)
+
 Following is documentation for a variety of unmanaged switch internally marked as `PCB-K0402WS-V3.0`. They are sold under many brands.
 
 Original software is running UART on 9600 baud rate.

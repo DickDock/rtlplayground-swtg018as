@@ -1,5 +1,7 @@
 # VLAN
 
+English | [简体中文](vlan.zh-CN.md)
+
 The RTL827x provides support for up to 4096 802.1Q VLANs, each port can be
 assigend a PVID.
 

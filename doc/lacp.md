@@ -1,5 +1,7 @@
 # LACP (Link Aggregation Control Protocol, IEEE 802.3ad)
 
+English | [简体中文](lacp.zh-CN.md)
+
 A static link aggregation group works only if both ends agree about it in
 advance. Nothing checks that they do: cable a member to the wrong neighbour and
 the group keeps hashing frames onto a link that goes somewhere else. LACP is the

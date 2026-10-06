@@ -1,5 +1,7 @@
 # ZX310S-4T2XT
 
+English | [简体中文](ZX310S-4T2XT.zh-CN.md)
+
 The following is a documentation for the managed switch marked as
 `ZX310S-4T2XT` and sold by Horaco.
 

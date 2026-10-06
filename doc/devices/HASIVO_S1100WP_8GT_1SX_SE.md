@@ -1,5 +1,7 @@
 # Hasivo S1100WP-8GT-1SX-SE
 
+English | [简体中文](HASIVO_S1100WP_8GT_1SX_SE.zh-CN.md)
+
 RTL8373-based 8×2.5G PoE + 1×SFP switch.
 
 ### Label specifications

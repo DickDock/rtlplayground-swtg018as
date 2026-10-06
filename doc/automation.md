@@ -1,5 +1,7 @@
 # Automation
 
+English | [简体中文](automation.zh-CN.md)
+
 ## Upload
 
 You can automate upload of the firmware via WEB with curl:

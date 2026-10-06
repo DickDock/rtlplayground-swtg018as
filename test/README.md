@@ -1,5 +1,7 @@
 # Host unit-test harness
 
+English | [简体中文](README.zh-CN.md)
+
 Compile and test individual firmware translation units on the build host with
 **gcc + AddressSanitizer + UBSan** — no SDCC, no flashing, no hardware. This is
 the fast inner loop for the logic-level bugs in `../../NOTES/08-findings.md`

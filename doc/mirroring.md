@@ -1,5 +1,7 @@
 # Mirroring
 
+English | [简体中文](mirroring.zh-CN.md)
+
 The RTL827x provides support to mirror packages from a number of ports to a mirroring
 ports. For each mirrored port it is possible to define whether received, transmitted
 or both types of packages are being mirrored.

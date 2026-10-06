@@ -1,5 +1,7 @@
 # MokerLink POE-2G080110GS
 
+English | [简体中文](2M-PCB51-ML-V1_1.zh-CN.md)
+
 The `POE-2G080110GS` is an unmanaged 8x2.5G RJ45 and 1xSFP+ PoE switch sold by Mokerlink. There is also a `POE-2G080110GSM` managed version of the switch which may be similar but this has not been verified on actual hardware.
 
 ## Brands

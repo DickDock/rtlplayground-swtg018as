@@ -1,5 +1,7 @@
 # FG-8GT-1SX
 
+English | [简体中文](FG-8GT-1SX.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `FG-8GT-1SX`.
 
 Original software is running UART on 9600 baud rate.

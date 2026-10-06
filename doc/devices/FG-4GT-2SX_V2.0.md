@@ -1,5 +1,7 @@
 # FG-4GT-2SX_V2.0
 
+English | [简体中文](FG-4GT-2SX_V2.0.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `FG-4GT-2SX_V2.0`.
 
 Original software is running UART on 9600 baud rate.

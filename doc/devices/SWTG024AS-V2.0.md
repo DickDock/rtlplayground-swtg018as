@@ -1,5 +1,7 @@
 ### SWTG024AS-V2.0
 
+English | [简体中文](SWTG024AS-V2.0.zh-CN.md)
+
 ## Brands
 |Brand|Type|Managed|PCB|Flash|Chip RTL|
 |---|---|---|---|---|---|

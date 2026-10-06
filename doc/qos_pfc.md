@@ -1,4 +1,7 @@
 # QoS, Flow Control and Priority Flow Control
+
+English | [简体中文](qos_pfc.zh-CN.md)
+
 The RTL8372/3 decides an internal priority 0-7 for every packet, maps it to one of
 8 egress queues per port and schedules the queues strictly or by weight. Pause
 frames (IEEE 802.3x) can be sent and honoured on every port. The two 10G MACs

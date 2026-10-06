@@ -1,5 +1,7 @@
 # Compressing the Web UI Assets
 
+English | [简体中文](webui-compression.zh-CN.md)
+
 The Web UI (all files under `html/`) is embedded into the flash image and
 served over HTTP.  Two build-time steps keep it small: a safe minifier and
 gzip compression of the embedded files.

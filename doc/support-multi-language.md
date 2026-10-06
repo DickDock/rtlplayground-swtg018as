@@ -1,5 +1,7 @@
 # Supporting Multiple Languages in the Web UI
 
+English | [简体中文](support-multi-language.zh-CN.md)
+
 The firmware uses a client-side i18n approach: all translations are stored
 in one JavaScript dictionary embedded in the firmware. No server-side
 changes are needed.

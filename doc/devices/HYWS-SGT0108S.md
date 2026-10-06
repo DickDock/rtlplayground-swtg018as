@@ -1,5 +1,7 @@
 # Lianguo HYWS-SGT0108S
 
+English | [简体中文](HYWS-SGT0108S.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `HYWS-SGT0108S`.
 
 Original software is running UART on 9600 baud rate. Output is very minimal.

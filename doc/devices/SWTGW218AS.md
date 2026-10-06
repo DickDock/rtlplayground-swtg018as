@@ -1,5 +1,7 @@
 ### ZX-SWTGW218AS
 
+English | [简体中文](SWTGW218AS.zh-CN.md)
+
 ## Brands
 |Brand|Type|Managed|PCB|Flash|Chip RTL|
 |---|---|---|---|---|---|

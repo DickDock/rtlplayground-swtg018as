@@ -1,5 +1,7 @@
 # Hisource Hi-K0801WS
 
+English | [简体中文](HI-K0801WS.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `Hi-K0801WS`.
 
 Using SPI clamp in-board is the only method for initial installation.

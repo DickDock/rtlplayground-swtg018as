@@ -1,4 +1,7 @@
 # Understanding the image using ghidra
+
+English | [简体中文](ghidra.zh-CN.md)
+
 Start ghidra, load file starting from offset 0x0002 into
 memory starting at 0x0000. The lengthe is 0x10000. Select generic 8051, big
 endian.

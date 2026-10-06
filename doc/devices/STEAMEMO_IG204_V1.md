@@ -1,5 +1,7 @@
 # Steamemo IG204-V1
 
+English | [简体中文](STEAMEMO_IG204_V1.zh-CN.md)
+
 Following is documentation for unmanaged switch marked as `IG204-V1`.
 
 Using SPI clamp in-board is the only method for initial installation.

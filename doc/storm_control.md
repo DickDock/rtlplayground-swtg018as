@@ -1,4 +1,7 @@
 # Storm Control
+
+English | [简体中文](storm_control.zh-CN.md)
+
 Storm control limits the rate at which a port admits broadcast, multicast,
 unknown unicast and unknown multicast frames. Frames of a type above its limit
 are dropped at ingress, so a loop or a misbehaving host cannot flood the rest

@@ -1,5 +1,7 @@
 # The CPU Port
 
+English | [简体中文](CpuPort.zh-CN.md)
+
 The RTL827x provide a CPU Port for a NIC on the 8051 side of the SoC.
 
 ## Receiving packets
