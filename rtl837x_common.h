@@ -103,6 +103,7 @@ struct vlan_tag {
 // install it, carrying the user configuration over to the new location.
 #define DEFAULT_CONFIG_START 0x6f000
 #define CONFIG_START 0x70000
+#define NEW_CONFIG_START 0xff000
 #else
 #define DEFAULT_CONFIG_START 0xfe000
 #define CONFIG_START 0xff000
