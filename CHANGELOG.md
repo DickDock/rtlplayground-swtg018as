@@ -17,6 +17,9 @@
 
 ## Changed
 
+- Default address
+  - The compiled-in fallback address (used when no valid configuration is stored) moves
+    from 192.168.2.2 to 192.168.31.3, gateway 192.168.31.1.
 - Version string
   - The firmware version shortens from `v0.1.0-7aebfef-dirty` to `v0.1.0+7aebfef`
     (semver build-metadata style); a dirty tree now appends a single `~`
@@ -39,6 +42,11 @@
     messages printed garbage; code and literals now share one bank and a CI check
     (`tools/check_banking.py`) rejects cross-bank plain calls and literal mismatches.
 - Tools and CI
+  - The bridge-era config "recovery" in the update installer checked 0x170000 — an address
+    inside the upload staging area — so installing any 1 MB image found image bytes there
+    and copied 4 KiB of code over the active configuration sector (observed as the board
+    booting with factory defaults after an upgrade).  The recovery served a migration that
+    is long complete and is now removed entirely.
   - fileadder compressed the web files with gzip in place but left the raw tail past the
     compressed stream in the image, shipping ~50 KiB of plaintext residue behind the HTML
     slot; the tail is now wiped after compression.

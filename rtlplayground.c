@@ -81,8 +81,8 @@ void crc16_bank1(__xdata uint8_t *v) __naked;
 
 __xdata uint8_t idle_ready;
 
-__code const uint8_t ownIP[] = { 192, 168, 2, 2 };
-__code const uint8_t gatewayIP[] = { 192, 168, 2, 22};
+__code const uint8_t ownIP[] = { 192, 168, 31, 3 };
+__code const uint8_t gatewayIP[] = { 192, 168, 31, 1 };
 __code const uint8_t netmask[] = { 255, 255, 255, 0};
 
 __xdata struct uip_eth_addr uip_ethaddr;
@@ -1582,30 +1582,6 @@ void check_and_flash_update_image(void)
 	uint16_t blocks;
 
 	flash_read_jedecid(); // This initializes also __xdata flash_size variable
-
-	// One-shot recovery for the first 1MB-architecture bridge build: its
-	// migration injected the old config copy at 0x170000 (wrong offset)
-	// and the 1MB install then covered the active config sector with the
-	// factory template.  If that copy is still in the staging area,
-	// restore it to the active slot and wipe the stray sector.
-	flash_region.addr = 0x170000;
-	flash_region.len = 0x100;
-	flash_read_bulk(flash_buf);
-	if (flash_buf[0] != 0xff) {
-		flash_region.addr = CONFIG_START;
-		flash_sector_erase();
-		for (i = 0; i < CONFIG_LEN/FLASH_BUF_SIZE; i++) {
-			flash_region.addr = 0x170000 + (uint32_t)i*FLASH_BUF_SIZE;
-			flash_region.len = FLASH_BUF_SIZE;
-			flash_read_bulk(flash_buf);
-			flash_region.addr = CONFIG_START + (uint32_t)i*FLASH_BUF_SIZE;
-			flash_region.len = FLASH_BUF_SIZE;
-			flash_write_bytes(flash_buf);
-		}
-		flash_region.addr = 0x170000;
-		flash_sector_erase();
-		print_string("Configuration restored from the migration copy\n");
-	}
 
 	print_string(get_flash_size_str()); print_string(" flash size detected. (2 MB are needed for image updating)\n");
 	if (flash_size < FIRMWARE_UPLOAD_START*2) {
