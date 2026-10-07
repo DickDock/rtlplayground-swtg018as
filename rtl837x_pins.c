@@ -96,6 +96,23 @@ void gpio_output_setup(uint8_t pin, __xdata uint8_t initial_val) __banked{
 }
 
 
+extern volatile __xdata uint32_t ticks;
+
+static bool i2c_wait_idle(void) __reentrant
+{
+	uint8_t start = (uint8_t)ticks;
+	uint16_t guard = 0;
+	do {
+		reg_read(RTL837X_REG_I2C_CTRL);
+		if (!(SFR_DATA_0 & 0x1))
+			return true;
+		/* 100 ms 上限；中断不推进时仍以轮询预算退出，不猜控制器复位位。 */
+		if ((uint8_t)((uint8_t)ticks - start) >= SYS_TICK_HZ / 10)
+			return false;
+	} while (++guard);
+	return false;
+}
+
 /*
  * Read up to 16 consecutive registers of the EEPROM via I2C into sfp_buf
  */
@@ -105,7 +122,7 @@ bool sfp_read_block(uint8_t slot, uint8_t reg, uint8_t len) __banked __reentrant
 	uint8_t val;
 
 	len--;
-	if (len > 15)
+	if (slot >= machine.n_sfp || len > 15 || !i2c_wait_idle())
 		return false;
 
 	dev = (reg & 0x80) ? 0x51 : 0x50;	// 0x51 holds the diagnostics, 0x50 the module data
@@ -118,11 +135,7 @@ bool sfp_read_block(uint8_t slot, uint8_t reg, uint8_t len) __banked __reentrant
 		  (dev >> 5) | machine.sfp_port[slot].i2c,
 		  ((dev << 3) & 0xff) | 0x1);
 
-	do {
-		reg_read(RTL837X_REG_I2C_CTRL);
-	} while (SFR_DATA_0 & 0x1);
-
-	if (SFR_DATA_0 & 0x2)
+	if (!i2c_wait_idle() || (SFR_DATA_0 & 0x2))
 		return false;
 
 	for (uint8_t i = 0; i <= len; i++) {

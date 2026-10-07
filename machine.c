@@ -374,9 +374,9 @@ __code const struct machine machine = {
 	.high_leds = { .mux = LED_27 | LED_29, .enable = LED_28_SYS | LED_29 },
 	.port_led_set = { 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	.led_sets = {
-		{   /* RJ45: First LED, yellow, second LED: green */
+		{   /* 实机确认：LEDID0 是绿灯，LEDID1 是黄灯；LINK 是亮灯触发位。 */
 			LEDS_2G5 | LEDS_LINK,
-            LEDS_2G5 | LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK | LEDS_ACT,
+			LEDS_1G | LEDS_100M | LEDS_10M | LEDS_LINK,
 			0,
 			0,
 		}, { /* SFP PORT, SINGLE GREEN LED */

@@ -32,9 +32,18 @@
 #include "html_data.h"
 
 /* Private to uip.c, and the client needs them to build segments. */
+#define TCP_FIN 0x01
 #define TCP_SYN 0x02
+#define TCP_RST 0x04
 #define TCP_PSH 0x08
 #define TCP_ACK 0x10
+
+/* Private HTTP states; the bench observes the real application's transitions. */
+#define TSTATE_NONE 0
+#define TSTATE_TX 1
+#define TSTATE_ACKED 2
+#define TSTATE_CLOSED 3
+#define TSTATE_POSTBODY 6
 
 #define TCPH		((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -158,12 +167,17 @@ extern uint8_t authenticated;
 /* uip.c defines the listen table but no header declares it; the bench reads it
  * to confirm the port httpd_init() asked for is the one uIP is watching. */
 extern u16_t uip_listenports[UIP_LISTENPORTS];
+extern u16_t uip_slen;
 
 /* ---- the simulated client ----------------------------------------------- */
 
 static uint32_t cli_seq;	/* next sequence number we send */
 static uint32_t cli_rcv_nxt;	/* next sequence number we expect */
 static uint16_t cli_window;	/* what we advertise */
+static uint16_t cli_port;
+static unsigned tx_packets, tx_fins;
+static uint8_t tx_flags;
+static uint32_t tx_seq;
 
 static uint8_t stream[STREAM_MAX];	/* bytes accepted from the server */
 static int stream_len;
@@ -211,6 +225,11 @@ static int harvest(void)
 		return -1;
 
 	seq = rd32(TCPH->seqno);
+	tx_packets++;
+	tx_flags = TCPH->flags;
+	tx_seq = seq;
+	if (tx_flags & TCP_FIN)
+		tx_fins++;
 	/* The SYNACK carries the MSS option, so the header is not always 20 B. */
 	hlen = (TCPH->tcpoffset >> 4) * 4;
 	payload = &uip_buf[UIP_LLH_LEN + 20 + hlen];
@@ -262,7 +281,7 @@ static void client_send(uint8_t flags, const char *payload, int plen)
 	TCPH->ipchksum = 0;
 	TCPH->srcipaddr[0] = hton16(0x0a00); TCPH->srcipaddr[1] = hton16(0x0002);
 	TCPH->destipaddr[0] = hton16(0x0a00); TCPH->destipaddr[1] = hton16(0x0001);
-	TCPH->srcport = hton16(40000);
+	TCPH->srcport = hton16(cli_port);
 	TCPH->destport = hton16(80);
 	wr32(TCPH->seqno, cli_seq);
 	wr32(TCPH->ackno, cli_rcv_nxt);
@@ -285,7 +304,7 @@ static void client_send(uint8_t flags, const char *payload, int plen)
 	uip_input();
 	trace("input");
 	cli_seq += plen;
-	if (flags & TCP_SYN)
+	if (flags & (TCP_SYN | TCP_FIN))
 		cli_seq++;
 	harvest();
 }
@@ -305,6 +324,16 @@ static void run_periodic(int rounds)
 	}
 }
 
+/* The 5 ms path must exercise UIP_POLL_REQUEST, not masquerade as a timer. */
+static void run_poll(int rounds)
+{
+	for (int i = 0; i < rounds; i++) {
+		uip_poll_conn(&uip_conns[0]);
+		trace("poll");
+		harvest();
+	}
+}
+
 static void session_start(uint16_t window)
 {
 	uip_init();
@@ -314,8 +343,12 @@ static void session_start(uint16_t window)
 	cli_seq = 1000;
 	cli_rcv_nxt = 0;
 	cli_window = window;
+	cli_port = 40000;
 	stream_len = 0;
 	last_tx_len = 0;
+	tx_packets = tx_fins = 0;
+	tx_flags = 0;
+	ticks = 0;
 
 	client_send(TCP_SYN, NULL, 0);
 	client_ack(window);
@@ -334,7 +367,7 @@ static void drain(uint16_t window)
 {
 	for (int i = 0; i < 20 && stream_len < STREAM_MAX; i++) {
 		client_ack(window);
-		run_periodic(1);
+		run_poll(1);
 	}
 }
 
@@ -459,6 +492,288 @@ static void scenario_rexmit_after_shrink(void)
 	CHECK(same, "retransmission: the repeat carries the same bytes");
 }
 
+static void scenario_poll_outstanding(void)
+{
+	uint8_t timer, nrtx;
+	unsigned packets;
+	int len;
+
+	session_start(MSS_FULL);
+	request_file(MSS_FULL);
+	timer = uip_conns[0].timer;
+	nrtx = uip_conns[0].nrtx;
+	len = uip_conns[0].len;
+	packets = tx_packets;
+	/* Leave both lengths dirty as they can be after RX or UDP processing. */
+	uip_len = 80;
+	uip_slen = 40;
+	run_poll(400);
+	CHECK(len > 0 && uip_conns[0].len == len,
+	      "fast poll: outstanding payload remains outstanding");
+	CHECK(uip_conns[0].timer == timer && uip_conns[0].nrtx == nrtx,
+	      "fast poll: 400 polls do not consume the retransmission timer");
+	CHECK(tx_packets == packets,
+	      "fast poll: outstanding data is not retransmitted");
+	CHECK(uip_len == 0 && uip_slen == 0,
+	      "fast poll: outstanding branch clears both stale lengths");
+}
+
+static void scenario_poll_no_output(void)
+{
+	unsigned packets;
+
+	session_start(MSS_FULL);
+	client_ack(MSS_FULL); /* establish a zero idle-age baseline */
+	packets = tx_packets;
+	uip_len = 90;
+	uip_slen = 24;
+	memset(&uip_buf[UIP_LLH_LEN + 40], 0xaa, 24);
+	run_poll(1);
+	CHECK(tx_packets == packets && uip_conns[0].len == 0,
+	      "fast poll: silent httpd cannot send stale payload");
+	CHECK(uip_len == 0 && uip_slen == 0,
+	      "fast poll: no-output appcall clears both lengths");
+}
+
+static void scenario_rexmit_fourth_pulse(void)
+{
+	uip_stats_t rexmit;
+	unsigned packets;
+
+	/* Do not ACK the SYNACK: its original RTO is exactly UIP_RTO. HTTP data
+	 * has an RTT-derived RTO after the handshake, tested separately below. */
+	session_start(MSS_FULL);
+	client_send(TCP_RST, NULL, 0);
+	cli_seq = 2000;
+	cli_rcv_nxt = 0;
+	client_send(TCP_SYN, NULL, 0);
+	rexmit = uip_stat.tcp.rexmit;
+	packets = tx_packets;
+	CHECK(UIP_RTO == 3 && uip_conns[0].timer == 3,
+	      "RTO: classic initial timer remains three slow pulses");
+	for (int i = 0; i < 3; i++) {
+		run_poll(99);
+		run_periodic(1);
+	}
+	CHECK(tx_packets == packets && uip_stat.tcp.rexmit == rexmit,
+	      "RTO: no retransmission on the first three 0.5 s pulses");
+	CHECK(uip_conns[0].timer == 0,
+	      "RTO: the third slow pulse reaches zero");
+	run_poll(99);
+	run_periodic(1);
+	CHECK(tx_packets == packets + 1 && uip_stat.tcp.rexmit == rexmit + 1 &&
+	      tx_flags == (TCP_SYN | TCP_ACK) && uip_conns[0].nrtx == 1,
+	      "RTO: first SYNACK retransmission is the fourth slow pulse");
+}
+
+static void scenario_ack_pipeline_and_fin(void)
+{
+	int off, previous;
+	uint8_t rto;
+
+	session_start(MSS_FULL);
+	request_file(MSS_FULL);
+	off = body_offset();
+	previous = stream_len;
+	client_ack(MSS_FULL);
+	CHECK(stream_len > previous && uip_conns[0].len > 0,
+	      "ACK pipeline: the ACK itself sends the next HTTP segment");
+	for (int i = 0; i < 20 && stream_len < off + FILE_LEN; i++)
+		client_ack(MSS_FULL);
+	CHECK(off >= 0 && stream_len == off + FILE_LEN && first_body_mismatch() == -1,
+	      "ACK pipeline: whole file arrives without any timer or poll");
+	client_ack(MSS_FULL);
+	CHECK(uip_conns[0].appstate.tstate == TSTATE_ACKED && uip_conns[0].len == 0 &&
+	      tx_fins == 0,
+	      "FIN: final payload ACK leaves HTTP ready to close");
+	rto = uip_conns[0].rto;
+	run_poll(1);
+	CHECK(tx_fins == 1 && tx_flags == (TCP_FIN | TCP_ACK) &&
+	      uip_conns[0].tcpstateflags == UIP_FIN_WAIT_1,
+	      "FIN: the next fast poll sends FIN, not a slow-timer delay");
+	CHECK(uip_conns[0].len == 1 && uip_conns[0].timer == rto,
+	      "FIN: legitimate appsend loads RTO on the fast poll");
+}
+
+static void scenario_idle_timeout(void)
+{
+	unsigned packets;
+
+	session_start(MSS_FULL);
+	CHECK(uip_conns[0].timer == 0,
+	      "idle: a completed handshake starts idle age at zero");
+	/* A valid packet starts a fresh idle interval. Polling must not reset it. */
+	client_ack(MSS_FULL);
+	packets = tx_packets;
+	for (int i = 0; i < 59; i++) {
+		run_poll(99);
+		run_periodic(1);
+	}
+	CHECK(uip_conns[0].tcpstateflags == UIP_ESTABLISHED &&
+	      uip_conns[0].timer == 29 && tx_packets == packets,
+	      "idle: 59 slow pulses / 29.5 s keep the connection open");
+	run_poll(99);
+	run_periodic(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_CLOSED && tx_packets == packets + 1 &&
+	      tx_flags == (TCP_RST | TCP_ACK) &&
+	      uip_conns[0].appstate.tstate == TSTATE_CLOSED,
+	      "idle: the 60th slow pulse / 30 s aborts the silent peer");
+}
+
+static void scenario_init_idle_prescaler(void)
+{
+	/* End on an odd pulse, then re-init: XDATA startup does not zero these
+	 * static counters on the target, and previous sessions must not leak in. */
+	uip_init();
+	run_periodic(1);
+	session_start(MSS_FULL);
+	client_ack(MSS_FULL);
+	run_periodic(1);
+	CHECK(uip_conns[0].timer == 0,
+	      "init: first slow pulse after uip_init does not age idle state");
+	run_periodic(1);
+	CHECK(uip_conns[0].timer == 1,
+	      "init: idle prescaler restarts with two slow pulses per second");
+}
+
+static void enter_time_wait(void)
+{
+	session_start(MSS_FULL);
+	request_file(MSS_FULL);
+	drain(MSS_FULL);
+	/* The simulated client has now received FIN; acknowledge it and close. */
+	cli_rcv_nxt = tx_seq + 1;
+	client_send(TCP_ACK | TCP_FIN, NULL, 0);
+}
+
+static void scenario_time_wait(void)
+{
+	unsigned packets;
+
+	CHECK(UIP_CONNS == 1 && UIP_TIME_WAIT_TIMEOUT == 120,
+	      "TIME_WAIT: single slot and classic 120 slow-pulse limit stay unchanged");
+	enter_time_wait();
+	CHECK(uip_conns[0].tcpstateflags == UIP_TIME_WAIT,
+	      "TIME_WAIT: real HTTP FIN exchange enters TIME_WAIT");
+	packets = tx_packets;
+	run_poll(1000);
+	CHECK(uip_conns[0].timer == 0 && tx_packets == packets,
+	      "TIME_WAIT: fast polling does not age or transmit");
+	run_periodic(119);
+	CHECK(uip_conns[0].tcpstateflags == UIP_TIME_WAIT && uip_conns[0].timer == 119,
+	      "TIME_WAIT: 119 slow pulses / 59.5 s keep the state");
+	run_periodic(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_CLOSED,
+	      "TIME_WAIT: 120 slow pulses / 60 s release the slot");
+
+	enter_time_wait();
+	run_periodic(1);
+	packets = tx_packets;
+	cli_port++; /* A browser opens a new four-tuple, not the old socket. */
+	cli_seq = 9000;
+	cli_rcv_nxt = 0;
+	stream_len = last_tx_len = 0;
+	client_send(TCP_SYN, NULL, 0);
+	CHECK(tx_packets == packets + 1 && tx_flags == (TCP_SYN | TCP_ACK) &&
+	      uip_conns[0].tcpstateflags == UIP_SYN_RCVD,
+	      "TIME_WAIT: a new SYN immediately reuses the single occupied slot");
+	client_ack(MSS_FULL);
+	request_file(MSS_FULL);
+	drain(MSS_FULL);
+	CHECK(first_body_mismatch() == -1 && stream_len == body_offset() + FILE_LEN,
+	      "TIME_WAIT: the reused slot serves a complete new HTTP response");
+}
+
+static void scenario_fin_wait_timeout(void)
+{
+	unsigned packets;
+
+	session_start(MSS_FULL);
+	request_file(MSS_FULL);
+	drain(MSS_FULL);
+	CHECK(tx_flags == (TCP_FIN | TCP_ACK) &&
+	      uip_conns[0].tcpstateflags == UIP_FIN_WAIT_1,
+	      "FIN_WAIT_2: real HTTP response ends in a fast-poll FIN");
+	/* A half-closing peer ACKs our FIN but never sends its own FIN. */
+	cli_rcv_nxt = tx_seq + 1;
+	client_ack(MSS_FULL);
+	CHECK(uip_conns[0].tcpstateflags == UIP_FIN_WAIT_2 && uip_conns[0].len == 0 &&
+	      uip_conns[0].timer == 0,
+	      "FIN_WAIT_2: ACK-only starts the half-close age at zero");
+	packets = tx_packets;
+	run_poll(6000);
+	CHECK(uip_conns[0].timer == 0 && tx_packets == packets,
+	      "FIN_WAIT_2: fast polls neither age nor retransmit the half-close");
+	run_periodic(59);
+	CHECK(uip_conns[0].tcpstateflags == UIP_FIN_WAIT_2 && uip_conns[0].timer == 59,
+	      "FIN_WAIT_2: 59 slow pulses / 29.5 s still permit the peer's FIN");
+	run_periodic(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_CLOSED && tx_packets == packets,
+	      "FIN_WAIT_2: the 60th slow pulse / 30 s releases the silent slot");
+	cli_port++;
+	cli_seq = 9500;
+	cli_rcv_nxt = 0;
+	stream_len = last_tx_len = 0;
+	client_send(TCP_SYN, NULL, 0);
+	CHECK(tx_packets == packets + 1 && tx_flags == (TCP_SYN | TCP_ACK) &&
+	      uip_conns[0].tcpstateflags == UIP_SYN_RCVD,
+	      "FIN_WAIT_2: the released slot accepts a new SYN");
+	client_ack(MSS_FULL);
+	request_file(MSS_FULL);
+	drain(MSS_FULL);
+	CHECK(first_body_mismatch() == -1 && stream_len == body_offset() + FILE_LEN,
+	      "FIN_WAIT_2: a new connection serves the complete HTTP response");
+}
+
+static void request_partial_post(void)
+{
+	static const char post[] = "POST /login HTTP/1.1\r\nHost: sw\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"Content-Length: 8\r\n\r\np";
+
+	client_send(TCP_ACK | TCP_PSH, post, (int)strlen(post));
+}
+
+static void scenario_post_timeout(void)
+{
+	unsigned packets;
+
+	session_start(MSS_FULL);
+	ticks = 100;
+	request_partial_post();
+	CHECK(uip_conns[0].appstate.tstate == TSTATE_POSTBODY && uip_conns[0].len == 0,
+	      "POST: a partial login body waits without outstanding payload");
+	packets = tx_packets;
+	run_poll(4000);
+	CHECK(uip_conns[0].appstate.tstate == TSTATE_POSTBODY && tx_packets == packets,
+	      "POST: repeated fast polls alone do not advance wall-clock timeout");
+	ticks += 5 * SYS_TICK_HZ;
+	run_poll(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_ESTABLISHED && tx_packets == packets,
+	      "POST: timeout keeps the existing strict greater-than-five-seconds boundary");
+	ticks++;
+	run_poll(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_CLOSED && tx_flags == (TCP_RST | TCP_ACK),
+	      "POST: first fast poll after five seconds aborts the incomplete body");
+
+	session_start(MSS_FULL);
+	ticks = 0xfffe;
+	request_partial_post();
+	packets = tx_packets;
+	ticks += 2;
+	run_poll(1);
+	CHECK(uip_conns[0].appstate.tstate == TSTATE_POSTBODY && tx_packets == packets,
+	      "POST: 16-bit tick wrap does not trigger an early timeout");
+	ticks += 5 * SYS_TICK_HZ - 2;
+	run_poll(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_ESTABLISHED && tx_packets == packets,
+	      "POST: five-second boundary also holds across tick wrap");
+	ticks++;
+	run_poll(1);
+	CHECK(uip_conns[0].tcpstateflags == UIP_CLOSED && tx_flags == (TCP_RST | TCP_ACK),
+	      "POST: wrapped timeout aborts on the first tick past five seconds");
+}
+
 static void scenario_bad_l4_checksum(void)
 {
 	uip_stats_t chkerr_before;
@@ -501,6 +816,15 @@ int main(int argc, char **argv)
 	scenario_shrinking_window();
 	scenario_growing_window();
 	scenario_rexmit_after_shrink();
+	scenario_poll_outstanding();
+	scenario_poll_no_output();
+	scenario_rexmit_fourth_pulse();
+	scenario_ack_pipeline_and_fin();
+	scenario_idle_timeout();
+	scenario_init_idle_prescaler();
+	scenario_time_wait();
+	scenario_fin_wait_timeout();
+	scenario_post_timeout();
 	scenario_bad_l4_checksum();
 
 	printf("\n%s (%d failure%s)\n",

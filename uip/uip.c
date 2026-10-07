@@ -381,6 +381,11 @@ uip_udpchksum(void)
 void
 uip_init(void) __banked
 {
+#if UIP_IDLE_TIMEOUT
+  /* XDATA 不由启动代码清零；每次初始化都重置空闲计时相位。 */
+  uip_idle_prescale = 0;
+  uip_idle_age = 0;
+#endif /* UIP_IDLE_TIMEOUT */
   for(uint8_t c = 0; c < UIP_LISTENPORTS; c++) {
     uip_listenports[c] = 0;
   }
@@ -697,6 +702,9 @@ uip_process(u8_t flag) __banked
   /* Check if we were invoked because of a poll request for a
      particular connection. */
   if(flag == UIP_POLL_REQUEST) {
+    /* 快 poll 没有入站数据；不能把上次 RX/TX/UDP 的长度当作新 payload。 */
+    uip_len = 0;
+    uip_slen = 0;
     if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED &&
        !uip_outstanding(uip_connr)) {
 	uip_flags = UIP_POLL;
@@ -743,7 +751,8 @@ uip_process(u8_t flag) __banked
     if(uip_connr->tcpstateflags == UIP_TIME_WAIT ||
        uip_connr->tcpstateflags == UIP_FIN_WAIT_2) {
       ++(uip_connr->timer);
-      if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
+      if(uip_connr->timer == (uip_connr->tcpstateflags == UIP_FIN_WAIT_2 ?
+			     UIP_FIN_WAIT_TIMEOUT : UIP_TIME_WAIT_TIMEOUT)) {
 	uip_connr->tcpstateflags = UIP_CLOSED;
       }
     } else if(uip_connr->tcpstateflags != UIP_CLOSED) {
@@ -1509,6 +1518,10 @@ uip_process(u8_t flag) __banked
       uip_connr->tcpstateflags = UIP_ESTABLISHED;
       uip_flags = UIP_CONNECTED;
       uip_connr->len = 0;
+#if UIP_IDLE_TIMEOUT
+      /* 握手完成后空闲年龄从零开始，而不是沿用 SYNACK 的 RTO。 */
+      uip_connr->timer = 0;
+#endif /* UIP_IDLE_TIMEOUT */
       if(uip_len > 0) {
         uip_flags |= UIP_NEWDATA;
         uip_add_rcv_nxt(uip_len);
@@ -1567,6 +1580,9 @@ uip_process(u8_t flag) __banked
       uip_add_rcv_nxt(1);
       uip_flags = UIP_CONNECTED | UIP_NEWDATA;
       uip_connr->len = 0;
+#if UIP_IDLE_TIMEOUT
+      uip_connr->timer = 0;
+#endif /* UIP_IDLE_TIMEOUT */
       uip_len = 0;
       uip_slen = 0;
       dbg_char('H');
@@ -1808,6 +1824,7 @@ uip_process(u8_t flag) __banked
       goto tcp_send_ack;
     } else if(uip_flags & UIP_ACKDATA) {
       uip_connr->tcpstateflags = UIP_FIN_WAIT_2;
+      uip_connr->timer = 0; /* 半关闭年龄不能沿用刚被 ACK 重装的 RTO。 */
       uip_connr->len = 0;
       goto drop;
     }

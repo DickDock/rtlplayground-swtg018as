@@ -102,14 +102,16 @@ typedef unsigned short uip_stats_t;
  * single connection slot it would hold the web UI until the next power
  * cycle, so it is aged out instead.
  *
- * uip_periodic() runs from idle() once per system tick; interrupt
- * wake-ups only add sweeps, so the timeout can fire early but never
- * late.
+ * uip_periodic() 每半秒运行一次；5 ms 的快 poll 不推进 TCP 计时器。
+ * 两次慢脉冲计一个空闲秒；长停顿跳过漏掉的脉冲，超时只会推迟。
  *
  * \hideinitializer
  */
-#define UIP_CONF_IDLE_PERIODS 200
+#define UIP_CONF_IDLE_PERIODS 2
 #define UIP_CONF_IDLE_TIMEOUT 30
+
+/* 对端只 ACK 本端 FIN、却不发 FIN 时，半关闭最多占用单槽 30 秒。 */
+#define UIP_CONF_FIN_WAIT_TIMEOUT 60
 
 /**
  * Maximum number of listening TCP ports. TODO: increase this!

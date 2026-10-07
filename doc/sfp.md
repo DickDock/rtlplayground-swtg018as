@@ -13,11 +13,33 @@ resources is [here](https://www.sfptransceiver.com/product_pdf/SFP/SFP%20Design%
 The SoC
 detects the insertion because the MOD-DEF0 line is pulled low by the module. The
 corresponding bit in RTL837X_REG_GPIO_B or RTL837X_REG_GPIO_C will transition from
-1 to 0. At that point, the code waits for some 100ms in order for the module to power
+1 to 0. At that point, the code waits for 100 system ticks (500 ms at 200 Hz) for the module to power
 up and then reads the EEPROM of the module to get the type of module and in particular
 the bit-rate. The EEPROM can be read via the MOD-DEF1 and MOD-DEF2 lines which
 provide a standard I2C interface to the standard 24C-EEPROM. The SoCs contain a simple
 I2C controller for reading such EEPROMs so that interfacing is very simple.
+
+## Administrative state and removal
+
+`port <physical-port> off` disables the SFP slot's host SerDes; `port <physical-port> on`
+re-enables it through the usual delayed module initialization. Administrative state is
+independent of module presence. Inserting or replacing a module, or changing its
+configured speed with `sfp <slot> <speed>`, does not override an administrative disable.
+The configured auto/forced speed is retained across off/on and removal. Existing startup
+configuration commands can replay this state; the Web UI still does not automatically
+persist SFP speed changes.
+
+Removal switches only that slot's SerDes to `SDS_OFF` and invalidates cached module
+information. An unsupported EEPROM rate is not passed to the SerDes configuration;
+the host interface remains off until a supported forced speed or replacement module is
+selected. `/status.json` reports administrative permission in `enabled`, including an
+empty enabled slot; module identity and diagnostics are separate and appear only when
+valid. A failed diagnostic read is unavailable, not a zero measurement.
+
+This is **not module power control**. In particular, SWTG018AS-A V2.0 has no mapped
+TX_DISABLE pin, so disabling the host interface does not promise to switch off module
+power or the laser. This firmware does not add TX_DISABLE writes for targets whose pin
+mapping is unknown.
 
 ## I2C Controller
 
@@ -28,7 +50,14 @@ in the RTL837X_REG_I2C_CTRL register. Then set the EEPROM-register's addresss to
 read in RTL837X_REG_I2C_IN (least-significant byte). The I2C transfer is started
 by setting the 0-bit of RTL837X_REG_I2C_CTRL. When this bit is cleared by the
 ASIC-side of the SoC, the resulting value can be read in the LSB of RTL837X_REG_I2C_OUT.
-This is the code:
+The older single-byte example below illustrates the register protocol. The current
+`sfp_read_block()` implementation in `rtl837x_pins.c` reads up to 16 bytes and bounds both
+the preflight and completion busy waits: a 100 ms tick deadline, with a finite polling
+budget if ticks stop. Failure returns `false` without consuming old output or overwriting
+a still-busy transaction; retry waits for the controller to become idle. This does not
+recover a fault in the underlying SFR register-access engine, and no undocumented reset
+bits are written.
+
 ```
 uint8_t sfp_read_reg(uint8_t slot, uint8_t reg)
 {

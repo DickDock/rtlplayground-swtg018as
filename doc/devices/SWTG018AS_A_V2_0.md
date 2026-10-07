@@ -33,7 +33,7 @@ These can be programed independently by using said switch - so it is e.g. possib
 The device is fully supported:
 - All 8 2.5GBASE-T RJ45 ports work at 10/100/1000/2500 Mbps
 - The SFP+ port supports 1G, 2.5G and 10G modules 
-- LEDs work with the same indiciations as the OEM firmware
+- RJ45 LEDs separate speeds by color: green (LEDID0) indicates 2.5G, yellow (LEDID1) indicates 10M/100M/1G, both gated by the LINK trigger and verified on the hardware; no activity blinking is configured on these two LEDs. The SFP and system LED modes are unchanged.
 
 ### PCB overview
 

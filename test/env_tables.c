@@ -17,6 +17,8 @@
 #include "rtl837x_phy.h"
 #include "support.h"
 #include "rtl837x_lacp.h"
+#include "hw_mock.h"
+#include "rtl837x_sfr.h"
 
 /* ---- console: everything lands in out_buf (support.c) ---- */
 void print_byte(uint8_t v)
@@ -64,6 +66,7 @@ const struct machine machine = {
 	.n_sfp = 0,
 	.log_to_phys_port = { 1, 2, 3, 4, 5, 6, 7, 8, 9 },
 	.phys_to_log_port = { 0, 1, 2, 3, 4, 5, 6, 7, 8 },
+	.is_sfp = { [8] = 1 },
 };
 struct machine_runtime machine_detected = { .isRTL8373 = 1 };
 
@@ -76,6 +79,8 @@ uint32_t cont_addr;
 uint8_t  vlan_names[VLAN_NAMES_SIZE];
 uint16_t vlan_ptr;
 uint8_t  sfp_pins_last = 0xff;
+uint8_t  sfp_admin_disabled;
+uint8_t  sfp_wake_pending[2];
 uint8_t  sfp_options[2];
 char     sfp_module_vendor[2][17];
 char     sfp_module_model[2][17];
@@ -94,9 +99,9 @@ void     flash_read_bulk(uint8_t *dst) { (void)dst; }
 const char *get_flash_size_str(void) { return "2M"; }
 uint8_t  sfp_read_reg(uint8_t slot, uint8_t reg) { (void)slot; (void)reg; return 0; }
 bool     gpio_pin_test(uint8_t pin) { (void)pin; return false; }
-void     phy_read(uint8_t phy_id, uint8_t dev_id, uint16_t reg) { (void)phy_id; (void)dev_id; (void)reg; }
-void     phy_write(uint8_t phy_id, uint8_t dev_id, uint16_t reg, uint16_t val) { (void)phy_id; (void)dev_id; (void)reg; (void)val; }
-void     phy_reset(uint8_t port) { (void)port; }
+void     phy_read(uint8_t phy_id, uint8_t dev_id, uint16_t reg) { SFR_DATA_U16 = hw_phy_get(phy_id, dev_id, reg); }
+void     phy_write(uint8_t phy_id, uint8_t dev_id, uint16_t reg, uint16_t val) { hw_phy_write(phy_id, dev_id, reg, val); }
+void     phy_reset(uint8_t port) { hw_phy_reset(port); }
 uint8_t  stp_port_role(uint8_t port) { (void)port; return 0; }
 uint8_t  stp_port_state(uint8_t port) { (void)port; return 3; }
 

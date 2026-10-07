@@ -891,7 +891,7 @@ void httpd_appcall(void)
 			uip_close();
 			s->tstate = TSTATE_CLOSED;
 		} else if (s->tstate == TSTATE_POSTBODY
-			   && (uint16_t)ticks - postbody_start > POSTBODY_TIMEOUT) {
+			   && (uint16_t)((uint16_t)ticks - postbody_start) > POSTBODY_TIMEOUT) {
 			dbg_string("Body never arrived\n");
 			uip_abort();
 			s->tstate = TSTATE_CLOSED;

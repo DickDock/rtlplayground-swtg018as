@@ -3,7 +3,7 @@
 English | [简体中文](README.zh-CN.md)
 
 Compile and test individual firmware translation units on the build host with
-**gcc + AddressSanitizer + UBSan** — no SDCC, no flashing, no hardware. This is
+**gcc + AddressSanitizer + UBSan**, plus **Node.js** for Web lifecycle tests — no SDCC, no flashing, no hardware. This is
 the fast inner loop for the logic-level bugs in `../../NOTES/08-findings.md`
 (parser, line editor, HTTP header, DHCP): edit → `make` → see red/green in
 seconds instead of a minutes-long flash-and-reboot cycle.
@@ -47,11 +47,16 @@ fires — so it drops straight into CI.
 | Test binary | TU under test | Findings exercised |
 |-------------|---------------|--------------------|
 | `test_cmd_editor` | `cmd_editor.c` | **C4** — full-line hang + `cmd_buffer` 1-byte overflow; basic entry & backspace regressions |
-| `test_port_tables` | `rtl837x_port.c` | VLAN entry layout and round trip, PVID register sharing, static multicast and management entries, per-port flush, trunk membership and hash seed |
+| `test_port_tables` | `rtl837x_port.c` | VLAN/L2/PVID/trunk round trips; EEE advertisement replacement at every speed, NORESET, SFP rejection and default copper-port coverage |
 | `test_page_json` | `httpd/page_impl.c` + `rtl837x_port.c` | `/vlan.json`, `/vlanlist`, `/l2.json` (walk, wrap marker, paging inside `outbuf`), 64-bit counters in `/status.json` and `/counters.json` |
-| `test_httpd_tx` | `httpd/httpd.c` + `uip/uip.c` | a GET of a static file against a client that moves its receive window: ACK accounting, continuation chunks out of flash, retransmission |
+| `test_httpd_tx` | `httpd/httpd.c` + `uip/uip.c` | window changes, ACK/FIN progression, fast-poll stale-length protection, slow RTO/idle/TIME_WAIT and POST timeout/wrap |
+| `test_tick_gate` | actual `tcp_tick_gate.h`; simulated outer loop | fast/slow cadence, phase, 16-bit wrap, stalled-loop no-burst behavior; unchanged STP catch-up |
 | `lacp/` | `rtl837x_lacp.c` | state machines against a simulated 802.3ad partner: convergence, mis-cabling, expiry, re-election, two groups, LACPDU containment entries |
 | `port_hash/` | `port_lag_members_set()` | a LAG seeds its own hash register |
+| `test_i2c` | `rtl837x_pins.c` | normal/NACK reads, preflight and completion busy deadlines, frozen ticks, retry without overwriting a busy transaction, recovery |
+| `test_machine_leds` | actual `machine.c` + `rtl837x_leds.c` over `hw_mock` | hardware-confirmed green/yellow speed masks both gated by LINK, real `leds_setup()` packing (`0x00740041`), port-set/MUX/IO-EN/RLDP/SFP/system values unchanged; not the ASIC's physical LED behavior |
+| `sfp/` | `sfp.c`, `page_impl.c`, CLI extracted from `cmd_parser.c` | single/dual-slot admin off/on, hot removal, pending/retry/ready state, unsupported rates, speed retention, command order and JSON |
+| `test_web_pollers.cjs` | actual definitions extracted from `html/app.js` | single-chain polling across stop/start, delayed LAG entry, all modal cleanup paths, hidden/idle suppression and unavailable DDM values |
 
 ## Adding a test for another module
 1. Write `test_<module>.c` with `main()` driving the module's entry points and

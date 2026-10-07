@@ -754,15 +754,21 @@ function toast(msg,cls){
   setTimeout(function(){el.style.opacity="0";el.style.transition="opacity .3s";},3400);
   setTimeout(function(){el.remove()},3800);
 }
-function modal(title,bodyEl,buttons){
-  S.detail=null;
+function modal(title,bodyEl,buttons,cleanup){
+  closeModal();
+  S.modalCleanup=cleanup||null;
   $("mtitle").textContent=title;
   var b=$("mbody");b.innerHTML="";b.appendChild(bodyEl);
   var f=$("mfoot");f.innerHTML="";
   (buttons||[]).forEach(function(bt){f.appendChild(bt)});
   $("mback").classList.add("show");
 }
-function closeModal(){S.detail=null;$("mback").classList.remove("show")}
+function closeModal(){
+  var cleanup=S.modalCleanup;
+  S.modalCleanup=null;S.detail=null;
+  $("mback").classList.remove("show");
+  if(cleanup)cleanup();
+}
 $("mx").addEventListener("click",closeModal);
 $("mback").addEventListener("click",function(e){if(e.target===this)closeModal()});
 function confirmModal(title,detail,onok){
@@ -791,6 +797,7 @@ var TABS=[
 var curTab="dash";
 var tabHooks={};
 function showTab(id){
+  closeModal();
   var old=tabHooks[curTab];
   if(old&&old.leave)old.leave();
   curTab=id;
@@ -816,15 +823,23 @@ var IDLE_STOP_MS=600000,lastInput=Date.now();
 ["mousemove","mousedown","keydown","touchstart","wheel"].forEach(function(ev){
   addEventListener(ev,function(){lastInput=Date.now()},{passive:true});
 });
-function Poller(fn,ms){this.fn=fn;this.ms=ms;this.on=false;this.t=null}
-Poller.prototype.start=function(){if(this.on)return;this.on=true;this.tick()};
-Poller.prototype.stop=function(){this.on=false;clearTimeout(this.t)};
-Poller.prototype.tick=function(){
+function Poller(fn,ms){this.fn=fn;this.ms=ms;this.on=false;this.t=null;this.gen=0;this.busy=false}
+Poller.prototype.start=function(){if(this.on)return;this.on=true;this.gen++;this.tick()};
+Poller.prototype.stop=function(){if(!this.on)return;this.on=false;this.gen++;clearTimeout(this.t);this.t=null};
+Poller.prototype.tick=function(gen){
   var self=this;
-  if(!self.on)return;
-  var quiet=document.hidden||Date.now()-lastInput>IDLE_STOP_MS;
-  var run=quiet?Promise.resolve():Promise.resolve().then(self.fn).catch(function(){});
-  run.then(function(){ if(self.on)self.t=setTimeout(function(){self.tick()},self.ms); });
+  if(gen==null)gen=self.gen;
+  if(!self.on||gen!==self.gen||self.busy)return;
+  clearTimeout(self.t);self.t=null;self.busy=true;
+  // 停止使旧微任务失效；已发请求不取消，重启只在它结束后接管一次。
+  Promise.resolve().then(function(){
+    if(self.on&&gen===self.gen&&!document.hidden&&Date.now()-lastInput<=IDLE_STOP_MS)return self.fn();
+  }).catch(function(){}).then(function(){
+    self.busy=false;
+    if(!self.on)return;
+    if(gen!==self.gen){self.tick();return;}
+    self.t=setTimeout(function(){if(self.on&&gen===self.gen){self.t=null;self.tick(gen)}},self.ms);
+  });
 };
 
 function byPort(a){return a.sort(function(x,y){return x.portNum-y.portNum})}
@@ -900,18 +915,20 @@ function updateStrip(){
   if(S.detail!=null){var b=$("mbody");b.innerHTML="";b.appendChild(detailTable(S.ports[S.detail]));}
 }
 
-function pU16(v){return parseInt(v,16)&0xffff}
-function pI16(v){var x=parseInt(v,16),n=x&0x7fff;return(x&0x8000)?n-0x8000:n}
+// DDM 读取失败可能只返回 "0x"，不能用位运算把 NaN 变成有效零读数。
+function pU16(v){return /^(0x)?[0-9a-f]{1,4}$/i.test(v)?parseInt(v,16):NaN}
+function pI16(v){var x=pU16(v);return x>=0x8000?x-0x10000:x}
+function ddmFmt(v,n,unit){return isFinite(v)?v.toFixed(n)+unit:"-"}
 function calSO(val,cal){
   if(typeof cal!=="string")return val;
   if(cal.slice(0,2)==="0x")cal=cal.slice(2);
-  if(cal.length!==8)return val;
+  if(!/^[0-9a-f]{8}$/i.test(cal))return NaN;
   return(pU16(cal.slice(0,4))/256)*val+pI16(cal.slice(4,8));
 }
 function calRx(val,cal){
   if(typeof cal!=="string")return val;
   if(cal.slice(0,2)==="0x")cal=cal.slice(2);
-  if(cal.length!==40)return val;
+  if(!/^[0-9a-f]{40}$/i.test(cal))return NaN;
   var b=cal.match(/.{2}/g).map(function(x){return parseInt(x,16)});
   var v=new DataView(new Uint8Array(b).buffer);
   return v.getFloat32(0)*Math.pow(val,4)+v.getFloat32(4)*Math.pow(val,3)
@@ -926,20 +943,20 @@ function portRows(p){
   rows.push([t("p_rxgb"),BigInt(p.rxG)+" / "+BigInt(p.rxB)+" "+t("p_pkts")]);
   if(p.isSFP){
     if(p.sfp_vendor)rows.push([t("p_module"),[p.sfp_vendor,p.sfp_model,p.sfp_serial].filter(Boolean).join(" / ")]);
-    var ext=p.sfp_options&0x40;
+    var ext=p.sfp_options&0x40,state=pU16(p.sfp_state);
     if(ext){
       var tx=calSO(pU16(p.sfp_txpower),p.sfp_txpower_cal)/10000;
       var rx=calRx(pU16(p.sfp_rxpower),p.sfp_rxpower_cal)/10000;
-      rows.push([t("p_temp"),(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256).toFixed(1)+" \u00b0C"]);
-      rows.push([t("p_vcc"),(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000).toFixed(2)+" V"]);
-      rows.push([t("p_txbias"),(calSO(pU16(p.sfp_txbias),p.sfp_txbias_cal)/500).toFixed(1)+" mA"]);
-      rows.push([t("p_txpower"),tx.toFixed(3)+" mW / "+dBm(tx).toFixed(2)+" dBm"]);
-      rows.push([t("p_rxpower"),rx.toFixed(3)+" mW / "+dBm(rx).toFixed(2)+" dBm"]);
-      rows.push([t("p_txfault"),t((Number(p.sfp_state)&0x4)?"c_yes":"c_no")]);
-      rows.push([t("p_txdis"),t((Number(p.sfp_state)&0x80)?"c_yes":"c_no")]);
+      rows.push([t("p_temp"),ddmFmt(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256,1," \u00b0C")]);
+      rows.push([t("p_vcc"),ddmFmt(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000,2," V")]);
+      rows.push([t("p_txbias"),ddmFmt(calSO(pU16(p.sfp_txbias),p.sfp_txbias_cal)/500,1," mA")]);
+      rows.push([t("p_txpower"),isFinite(tx)?ddmFmt(tx,3," mW / ")+ddmFmt(dBm(tx),2," dBm"):"-"]);
+      rows.push([t("p_rxpower"),isFinite(rx)?ddmFmt(rx,3," mW / ")+ddmFmt(dBm(rx),2," dBm"):"-"]);
+      rows.push([t("p_txfault"),isFinite(state)?t((state&0x4)?"c_yes":"c_no"):"-"]);
+      rows.push([t("p_txdis"),isFinite(state)?t((state&0x80)?"c_yes":"c_no"):"-"]);
     }
     var losPin=(p.sfp_los!=null)?!!Number(p.sfp_los):null;
-    var losMod=ext?!!(Number(p.sfp_state)&0x2):null;
+    var losMod=ext&&isFinite(state)?!!(state&0x2):null;
     if(losPin!=null||losMod!=null){
       var v=(losMod!=null&&losPin!=null&&losMod!==losPin)
         ?("pin="+losPin+" mod="+losMod+" !"):t((losMod!=null?losMod:losPin)?"c_yes":"c_no");
@@ -1062,10 +1079,10 @@ function dashSfp(){
   if(!(p.sfp_options&0x40))return;
   var tx=calSO(pU16(p.sfp_txpower),p.sfp_txpower_cal)/10000;
   var rx=calRx(pU16(p.sfp_rxpower),p.sfp_rxpower_cal)/10000;
-  [["p_temp",(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256).toFixed(1)+" °C"],
-   ["p_vcc",(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000).toFixed(2)+" V"],
-   ["p_txpower",dBm(tx).toFixed(1)+" dBm"],
-   ["p_rxpower",dBm(rx).toFixed(1)+" dBm"]].forEach(function(s){
+  [["p_temp",ddmFmt(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256,1," °C")],
+   ["p_vcc",ddmFmt(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000,2," V")],
+   ["p_txpower",ddmFmt(dBm(tx),1," dBm")],
+   ["p_rxpower",ddmFmt(dBm(rx),1," dBm")]].forEach(function(s){
     g.appendChild(h("div",{class:"sens"},[h("div",{class:"sv",text:s[1]}),h("div",{class:"sl",text:t(s[0])})]));
   });
 }
@@ -1406,7 +1423,9 @@ function showCounters(i){
   var wrap=h("div",{class:"scrollx"});
   body.appendChild(bar);body.appendChild(wrap);
   function load(){
+    if(ctrPoll!==poll)return Promise.resolve();
     return getJSON("/counters.json?port="+(i+1)).then(function(s){
+      if(ctrPoll!==poll)return;
       var rows=decodeCounters(s);
       var tb=h("table",{class:"t"});
       tb.appendChild(h("tr",null,[h("th",{text:t("st_counter")}),h("th",{class:"num",text:t("st_value")})]));
@@ -1418,13 +1437,14 @@ function showCounters(i){
     });
   }
   nz.addEventListener("change",load);
-  if(ctrPoll)ctrPoll.stop();
-  ctrPoll=new Poller(function(){return auto.checked?load():Promise.resolve()},2500);
-  ctrPoll.start();
-  load().catch(function(){wrap.textContent=t("st_fail")});
+  var poll=new Poller(function(){return auto.checked?load():Promise.resolve()},2500);
+  // modal 先清理旧 owner，再注册并启动此实例，不能通过全局引用误停新实例。
   modal(t("c_port")+" "+(i+1)+": "+t("st_counters"),body,
     [h("button",{class:"ctl",text:t("c_refresh"),onclick:function(){load()}}),
-     h("button",{class:"ctl pri",text:t("c_close"),onclick:function(){ctrPoll.stop();closeModal()}})]);
+     h("button",{class:"ctl pri",text:t("c_close"),onclick:closeModal})],
+    function(){poll.stop();if(ctrPoll===poll)ctrPoll=null});
+  ctrPoll=poll;poll.start();
+  load().catch(function(){if(ctrPoll===poll)wrap.textContent=t("st_fail")});
 }
 function statsStatus(){
   var tb=$("stable").tBodies[0];
@@ -1450,7 +1470,7 @@ function statsStatus(){
 }
 tabHooks.stats={
   enter:function(){statusPoller.start()},
-  leave:function(){statusPoller.stop();if(ctrPoll)ctrPoll.stop()},
+  leave:function(){statusPoller.stop()},
   status:statsStatus,
 };
 
@@ -1887,8 +1907,11 @@ function lagApply(g){
   if(nh)cmds.push(hcmd);
   postCmds(cmds).then(lagLoad).catch(function(){});
 }
-var lagPoller=new Poller(function(){return lagLoad().catch(function(){})},3000);
-tabHooks.lag={enter:function(){needPorts(function(){buildLag();lagPoller.start()})},leave:function(){lagPoller.stop()}};
+var lagGen=0,lagPoller=new Poller(function(){return lagLoad().catch(function(){})},3000);
+tabHooks.lag={
+  enter:function(){var gen=++lagGen;needPorts(function(){if(gen!==lagGen||curTab!=="lag")return;buildLag();lagPoller.start()})},
+  leave:function(){lagGen++;lagPoller.stop()},
+};
 
 function spDots(bits){
   var b=parseInt(bits,2)||0;

@@ -15,6 +15,7 @@
 #include "machine.h"
 #include "support.h"
 #include "hw_mock.h"
+#include "phy.h"
 
 extern struct machine_runtime machine_detected;
 
@@ -166,6 +167,45 @@ static void t_lag(void)
 	CHECK((hw_reg_get(RTL837X_TRK_HASH_CTRL_BASE + 8) & 0xff) == 0x06, "a hash already set is kept");
 }
 
+static void t_eee(void)
+{
+	printf("[test] EEE 每次限速完整替换旧通告\n");
+	hw_reset();
+	port_eee_enable(0, EEE_2G5 | EEE_NORESET);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV) == (PHY_EEE_BIT_100M | PHY_EEE_BIT_1G), "默认低速 EEE 通告完整");
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == PHY_EEE_BIT_2G5, "默认通告 2.5G EEE");
+	CHECK(hw_reg_get(RTL837X_EEE_CTRL_BASE) == (EEE_RX_ENABLE | EEE_TX_ENABLE), "MAC RX/TX EEE 开启");
+	CHECK(hw_phy_resets == 0, "NORESET 不触发链路重置");
+
+	port_eee_enable(1, EEE_10G | EEE_NORESET);
+	port_eee_enable(0, EEE_100);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV) == PHY_EEE_BIT_100M, "100M 不保留 1G 通告");
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == 0, "100M 清除先前 2.5G 通告");
+	CHECK(hw_phy_get(1, PHY_MMD_AN, PHY_EEE_ADV2) == (PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G), "相邻端口不变");
+	CHECK(hw_phy_resets == 1, "设置只重置目标端口一次");
+
+	port_eee_enable(0, EEE_10G | EEE_NORESET);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV) == (PHY_EEE_BIT_100M | PHY_EEE_BIT_1G | PHY_EEE_BIT_10G), "10G 通告及低速保留");
+	port_eee_enable(0, EEE_1000 | EEE_NORESET);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == 0, "1G 清除高速通告");
+	CHECK(hw_phy_resets == 1, "后续 NORESET 不增加重置");
+	port_eee_enable(0, EEE_5G | EEE_NORESET);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == (PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G), "5G 包含 2.5G 通告");
+	port_eee_enable(0, EEE_100 | EEE_2G5 | EEE_NORESET);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == 0, "多档标志保持原先低档优先语义");
+
+	port_eee_disable(0);
+	CHECK(hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV) == 0 && hw_phy_get(0, PHY_MMD_AN, PHY_EEE_ADV2) == 0, "关闭清除全部通告");
+	CHECK(hw_reg_get(RTL837X_EEE_CTRL_BASE) == 0, "关闭 MAC EEE");
+	unsigned writes = hw_phy_writes, resets = hw_phy_resets;
+	port_eee_enable(8, EEE_2G5);
+	port_eee_disable(8);
+	CHECK(hw_phy_writes == writes && hw_phy_resets == resets, "SFP 不写 PHY 或重置");
+	CHECK(hw_reg_get(RTL837X_EEE_CTRL_BASE + (8 << 8)) == 0, "SFP MAC EEE 不变");
+	port_eee_enable_all(EEE_2G5 | EEE_NORESET);
+	CHECK(hw_phy_get(7, PHY_MMD_AN, PHY_EEE_ADV2) == PHY_EEE_BIT_2G5 && hw_phy_get(8, PHY_MMD_AN, PHY_EEE_ADV2) == 0, "默认遍历覆盖八个铜口且跳过 SFP");
+}
+
 int main(void)
 {
 	printf("== rtl837x_port.c table tests ==\n");
@@ -176,6 +216,7 @@ int main(void)
 	t_static_mgmt();
 	t_flush();
 	t_lag();
+	t_eee();
 	printf("\n%d checks, %d failed\n", tests_run, tests_failed);
 	return tests_failed ? 1 : 0;
 }

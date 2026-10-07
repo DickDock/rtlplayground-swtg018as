@@ -40,6 +40,8 @@ static uint32_t      regfile[0x10000];
 static uint32_t      vlan_tbl[4096];
 static struct hw_l2  l2[HW_L2_MAX];
 static uint64_t      counters[16][64];
+static uint16_t      eee_adv[16][2];
+unsigned hw_phy_writes, hw_phy_resets;
 
 void hw_reset(void)
 {
@@ -47,14 +49,36 @@ void hw_reset(void)
 	memset(vlan_tbl, 0, sizeof(vlan_tbl));
 	memset(l2, 0, sizeof(l2));
 	memset(counters, 0, sizeof(counters));
+	memset(eee_adv, 0, sizeof(eee_adv));
 	memset(sfr_data, 0, sizeof(sfr_data));
 	hw_reads = hw_writes = 0;
+	hw_phy_writes = hw_phy_resets = 0;
 }
 
 void     hw_reg_set(uint16_t addr, uint32_t v) { regfile[addr] = v; }
 uint32_t hw_reg_get(uint16_t addr)             { return regfile[addr]; }
 uint32_t hw_vlan_word(uint16_t vid)            { return vlan_tbl[vid & 0xfff]; }
 void     hw_counter_set(uint8_t port, uint8_t counter, uint64_t value) { counters[port & 0xf][counter & 0x3f] = value; }
+
+uint16_t hw_phy_get(uint8_t port, uint8_t dev, uint16_t reg)
+{
+	if (dev != 7 || (reg != 0x3c && reg != 0x3e))
+		return 0;
+	return eee_adv[port & 0xf][reg == 0x3e];
+}
+
+void hw_phy_write(uint8_t port, uint8_t dev, uint16_t reg, uint16_t value)
+{
+	hw_phy_writes++;
+	if (dev == 7 && (reg == 0x3c || reg == 0x3e))
+		eee_adv[port & 0xf][reg == 0x3e] = value;
+}
+
+void hw_phy_reset(uint8_t port)
+{
+	(void)port;
+	hw_phy_resets++;
+}
 
 /* ---- L2 table -------------------------------------------------------- */
 
@@ -291,6 +315,9 @@ static uint32_t sfr_word(void)
 static void sfr_load(uint32_t v)
 {
 	SFR_DATA_24 = v >> 24; SFR_DATA_16 = v >> 16; SFR_DATA_8 = v >> 8; SFR_DATA_0 = v;
+	/* 主机 shim 的 8/16 位 SFR 是不同变量，显式模拟真实硬件的别名。 */
+	SFR_DATA_U16 = v;
+	SFR_DATA_U16_UPPER = v >> 16;
 }
 
 void reg_read(uint16_t addr)

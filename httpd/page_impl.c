@@ -16,6 +16,7 @@
 #include "rtl837x_stp.h"
 #include "rtl837x_lacp.h"
 #include "page_impl.h"
+#include "sfp.h"
 #include "syslog.h"
 
 // #define DEBUG
@@ -228,6 +229,9 @@ void counter_to_html(void)
 
 void send_sfp_info(uint8_t sfp)
 {
+	if ((sfp_pins_last & (0x1 << (sfp << 2)))
+	    || !(sfp_wake_pending[sfp] & SFP_WAKE_READY))
+		return;
 	// This loops over the Vendor-name, Vendor OUI, Vendor PN and Vendor rev ASCII fields
 	for (uint8_t i = 16; i < 64; i++) {
 		if (!(i & 0xf) && !sfp_read_block(sfp, i, 16))
@@ -978,8 +982,9 @@ void send_status(void)
 		if (machine.is_sfp[i]) {
 			uint8_t sfp = machine.is_sfp[i] - 1;
 			slen += strtox(outbuf + slen, ",\"isSFP\":1,\"enabled\":");
-			if (!(sfp_pins_last & (0x1 << (sfp << 2)))) {
-				bool_to_html(1);
+			bool_to_html(!(sfp_admin_disabled & (1 << sfp)));
+			if (!(sfp_pins_last & (0x1 << (sfp << 2)))
+			    && (sfp_wake_pending[sfp] & SFP_WAKE_READY)) {
 				slen += strtox(outbuf + slen,",\"sfp_options\":\"0x");
 				byte_to_html(sfp_options[sfp]);
 				if (sfp_options[sfp] & 0x40) {
@@ -1021,8 +1026,6 @@ void send_status(void)
 				} else {
 					bool_to_html(sfp_pins_last & (0x2 << (sfp << 2)));
 				}
-			} else {
-				bool_to_html(0);
 			}
 		} else {
 			slen += strtox(outbuf + slen, ",\"isSFP\":0,\"enabled\":");

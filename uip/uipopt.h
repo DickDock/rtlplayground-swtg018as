@@ -324,6 +324,13 @@
  */
 #define UIP_TIME_WAIT_TIMEOUT 120
 
+/* 等待对端 FIN 的慢脉冲上限；未配置时保持经典 TIME_WAIT 上限。 */
+#ifndef UIP_CONF_FIN_WAIT_TIMEOUT
+#define UIP_FIN_WAIT_TIMEOUT UIP_TIME_WAIT_TIMEOUT
+#else /* UIP_CONF_FIN_WAIT_TIMEOUT */
+#define UIP_FIN_WAIT_TIMEOUT UIP_CONF_FIN_WAIT_TIMEOUT
+#endif /* UIP_CONF_FIN_WAIT_TIMEOUT */
+
 /**
  * The number of UIP_TIMER sweeps that make one idle-aging period,
  * i.e. how many times uip_periodic() runs per second in this project.

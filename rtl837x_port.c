@@ -617,56 +617,31 @@ void port_eee_enable(__xdata uint8_t port,__xdata uint8_t speed) __banked
 
 	REG_SET(RTL837X_EEE_CTRL_BASE + (port << 8), EEE_RX_ENABLE | EEE_TX_ENABLE);
 	print_string("EEE on for "); print_phys_port(port); print_string(" speed "); 
-	// Enable all speeds up to the specified speed
+	uint8_t adv = PHY_EEE_BIT_1G | PHY_EEE_BIT_100M;
+	uint8_t adv2 = 0;
+	// 保持低档优先；每次完整替换两份通告，避免降档残留高速 EEE。
 	if (speed & EEE_100) {
-			print_string("100m\n");
-			// Enable EEE advertisement for 100BASE-T via EEE Advertisement Reg
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, PHY_EEE_BIT_100M);
-			if (!(speed & EEE_NORESET))
-				phy_reset(port);
-			return;
+		print_string("100m\n");
+		adv = PHY_EEE_BIT_100M;
+	} else if (speed & EEE_1000) {
+		print_string("1g\n");
+	} else if (speed & EEE_2G5) {
+		print_string("2g5\n");
+		adv2 = PHY_EEE_BIT_2G5;
+	} else if (speed & EEE_5G) {
+		print_string("5g\n");
+		adv2 = PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G;
+	} else if (speed & EEE_10G) {
+		print_string("10g\n");
+		adv |= PHY_EEE_BIT_10G;
+		adv2 = PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G;
+	} else {
+		return;
 	}
-	if (speed & EEE_1000) {
-			print_string("1g\n");
-			// Disable EEE advertisement for 2.5GBASE-T via EEE Advertisement Reg 2
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV2, 0);
-			// Enable EEE advertisement for 100/1000BASE-T via EEE Advertisement Reg
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, PHY_EEE_BIT_1G | PHY_EEE_BIT_100M);
-			if (!(speed & EEE_NORESET))
-				phy_reset(port);
-			return;
-	}
-	if (speed & EEE_2G5) {
-			print_string("2g5\n");
-			// Enable EEE advertisement for 100/1000BASE-T via EEE Advertisement Reg
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, PHY_EEE_BIT_1G | PHY_EEE_BIT_100M);
-			// Enable EEE advertisement for 2.5GBASE-T via EEE Advertisement Reg 2
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV2, PHY_EEE_BIT_2G5);
-			if (!(speed & EEE_NORESET))
-				phy_reset(port);
-			return;
-	}
-	if (speed & EEE_5G) {
-			print_string("5g\n");
-			// Enable EEE advertisement for 100/1000BASE-T via EEE Advertisement Reg
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, PHY_EEE_BIT_1G | PHY_EEE_BIT_100M);
-			// Enable EEE advertisement for 2.5GBASE-T via EEE Advertisement Reg 2
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV2, PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G);
-			if (!(speed & EEE_NORESET))
-				phy_reset(port);
-			return;
-	}
-	if (speed & EEE_10G) {
-			print_string("10g\n");
-			// Enable EEE advertisement for 100/1000BASE-T via EEE Advertisement Reg
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, PHY_EEE_BIT_10G | PHY_EEE_BIT_1G | PHY_EEE_BIT_100M);
-			// Enable EEE advertisement for 2.5GBASE-T via EEE Advertisement Reg 2
-			phy_write(port, PHY_MMD_AN, PHY_EEE_ADV2, PHY_EEE_BIT_2G5 | PHY_EEE_BIT_5G);
-			if (!(speed & EEE_NORESET))
-				phy_reset(port);
-			return;
-	}
-
+	phy_write(port, PHY_MMD_AN, PHY_EEE_ADV2, adv2);
+	phy_write(port, PHY_MMD_AN, PHY_EEE_ADV, adv);
+	if (!(speed & EEE_NORESET))
+		phy_reset(port);
 }
 
 

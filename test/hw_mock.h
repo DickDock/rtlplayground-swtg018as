@@ -56,4 +56,10 @@ void hw_l2_decode(const struct hw_l2 *e, uint8_t mac[6], uint16_t *vid, uint16_t
 /* MIB counter the next STAT_GET for (port, counter) returns */
 void hw_counter_set(uint8_t port, uint8_t counter, uint64_t value);
 
+/* EEE 用到的两个 PHY 通告寄存器及写入/复位计数。 */
+uint16_t hw_phy_get(uint8_t port, uint8_t dev, uint16_t reg);
+void hw_phy_write(uint8_t port, uint8_t dev, uint16_t reg, uint16_t value);
+void hw_phy_reset(uint8_t port);
+extern unsigned hw_phy_writes, hw_phy_resets;
+
 #endif /* TEST_HW_MOCK_H */

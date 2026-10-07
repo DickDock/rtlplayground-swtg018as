@@ -928,7 +928,10 @@ void parse_port(void)
 		print_string_x(port_names[phy_settings.port]);
 		print_string("\"\n");
 	} else if (machine.is_sfp[phy_settings.port]) {
-		print_string(" is SFP no PHY information available.\n");
+		if (cmd_compare(2, "off") || cmd_compare(2, "on"))
+			sfp_set_enabled(machine.is_sfp[phy_settings.port] - 1, cmd_compare(2, "on"));
+		else
+			print_string(" is SFP no PHY information available.\n");
 	} else if (cmd_compare(2, "10m")) {
 		print_string(" 10M\n");
 		phy_settings.speed = PHY_SPEED_10M;
@@ -1083,6 +1086,11 @@ void parse_sfp(void)
 		return;
 	}
 
+	if (cmd_compare(2, "off") || cmd_compare(2, "on")) {
+		sfp_set_enabled(slot, cmd_compare(2, "on"));
+		return;
+	}
+
 	if (cmd_compare(2, "10g")) {
 		print_string(" 10G\n");
 		sfp_speed[slot] = SFP_SPEED_10G;
@@ -1101,11 +1109,10 @@ void parse_sfp(void)
 	} else {
 		goto err;
 	}
-	sfp_pins_last |= 0x1 << (slot << 2);
-	handle_sfp();
+	sfp_schedule(slot);
 	return;
 err:
-	cmd_error("\nUsage:\n\tsfp\n\tsfp [1|2] [1g|2g5|10g]\n");
+	cmd_error("\nUsage:\n\tsfp\n\tsfp [1|2] [on|off|auto|100m|1g|2g5|10g]\n");
 }
 
 

@@ -23,6 +23,7 @@ extern __code const struct machine machine;
 extern volatile __xdata uint32_t ticks;
 
 __xdata uint8_t sfp_pins_last;
+__xdata uint8_t sfp_admin_disabled;
 __xdata char sfp_module_vendor[2][17];
 __xdata char sfp_module_model[2][17];
 __xdata char sfp_module_serial[2][17];
@@ -143,10 +144,64 @@ void sfp_apply_quirks(uint8_t sfp) __banked __reentrant
 }
 
 
+/* 清除未就绪或已移除模块的数据，不改变管理状态和强制速率。 */
+static void sfp_clear_info(uint8_t sfp)
+{
+	sfp_module_vendor[sfp][0] = NUL;
+	sfp_module_model[sfp][0] = NUL;
+	sfp_module_serial[sfp][0] = NUL;
+	sfp_options[sfp] = 0;
+	sfp_quirks[sfp] = 0;
+}
+
+/* 启动代码不自动清 XDATA，所有状态必须显式初始化。 */
+void sfp_init(void) __banked
+{
+	sfp_pins_last = 0x33;
+	sfp_admin_disabled = 0;
+	for (uint8_t sfp = 0; sfp < 2; sfp++) {
+		sfp_wake_at[sfp] = 0;
+		sfp_wake_pending[sfp] = 0;
+		sfp_speed[sfp] = SFP_SPEED_AUTO;
+		sfp_clear_info(sfp);
+	}
+}
+
+/* 重新读取模块前关闭旧模式；只有真实在位且管理允许才安排唤醒。 */
+void sfp_schedule(__xdata uint8_t sfp) __banked
+{
+	if (sfp >= machine.n_sfp)
+		return;
+	sfp_wake_pending[sfp] = 0;
+	sfp_clear_info(sfp);
+	sds_config_mac(machine.sfp_port[sfp].sds, SDS_OFF);
+	if (!(sfp_admin_disabled & (1 << sfp))
+	    && !gpio_pin_test(machine.sfp_port[sfp].pin_detect)) {
+		sfp_wake_at[sfp] = (uint8_t)ticks;
+		sfp_wake_pending[sfp] = SFP_WAKE_PENDING;
+	}
+}
+
+/* 禁用只关闭 MAC 侧 SerDes 模式，不操作模块 TX_DISABLE 或电源。 */
+void sfp_set_enabled(uint8_t sfp, __xdata bool enabled) __banked
+{
+	if (sfp >= machine.n_sfp)
+		return;
+	if (enabled) {
+		sfp_admin_disabled &= ~(1 << sfp);
+		sfp_schedule(sfp);
+	} else {
+		sfp_admin_disabled |= 1 << sfp;
+		sfp_wake_pending[sfp] &= SFP_WAKE_READY;
+		sfp_wake_at[sfp] = 0;
+		sds_config_mac(machine.sfp_port[sfp].sds, SDS_OFF);
+	}
+}
+
 /* Inititalize SFP GPIOs */
 void setup_sfp_gpio(void) __banked
 {
-	for (uint8_t sfp = 0; sfp < machine.n_sfp; sfp++) {
+	for (__xdata uint8_t sfp = 0; sfp < machine.n_sfp; sfp++) {
 		gpio_input_setup(machine.sfp_port[sfp].pin_detect);
 		gpio_input_setup(machine.sfp_port[sfp].pin_los);
 		gpio_output_setup(machine.sfp_port[sfp].pin_tx_disable, 0);
@@ -173,12 +228,8 @@ static bool sfp_module_read(uint8_t sfp)
 		rate = 0x19;
 	else if (sfp_speed[sfp] == SFP_SPEED_10G)
 		rate = 0x69;
-	print_string("  Rate: "); print_byte(rate);  // Normally 1, but 0 for DAC, can be ignored?
-	print_string("  Encoding: "); print_byte(sfp_buf[0]);
-	print_string("  Module: ");
-	if (!sfp_print_info(sfp))
-		return false;
-	print_string("\n");
+	/* 后续读取会覆盖 scratch，只保留已解析的模式。 */
+	rate = sfp_rate_to_sds_config(rate);
 
 	if (!sfp_read_block(sfp, 92, 1))
 		return false;
@@ -187,7 +238,18 @@ static bool sfp_module_read(uint8_t sfp)
 		return false;
 
 	sfp_apply_quirks(sfp);
-	sds_config(machine.sfp_port[sfp].sds, sfp_rate_to_sds_config(rate));
+	/* EEPROM 读取期间可能被拔出，不能启用刚移除模块的旧模式。 */
+	if (gpio_pin_test(machine.sfp_port[sfp].pin_detect))
+		return false;
+	if (!(sfp_admin_disabled & (1 << sfp))) {
+		/* ff 会越过模式位宽并污染相邻 SDS，未知速率保持 OFF。 */
+		if (rate == 0xff) {
+			sds_config_mac(machine.sfp_port[sfp].sds, SDS_OFF);
+			print_string("SFP: unsupported rate\n");
+		} else {
+			sds_config(machine.sfp_port[sfp].sds, rate);
+		}
+	}
 
 	return true;
 }
@@ -197,25 +259,31 @@ static bool sfp_module_read(uint8_t sfp)
 
 void handle_sfp(void) __banked
 {
-	for (uint8_t sfp = 0; sfp < machine.n_sfp; sfp++) {
+	for (__xdata uint8_t sfp = 0; sfp < machine.n_sfp; sfp++) {
 		if (!gpio_pin_test(machine.sfp_port[sfp].pin_detect)) {
 			if (sfp_pins_last & (0x1 << (sfp << 2))) {
 				sfp_pins_last &= ~(0x01 << (sfp << 2));
 				print_string("\n<MODULE INSERTED>  Slot: "); write_char('1' + sfp);
-				sfp_wake_at[sfp] = ticks;
-				sfp_wake_pending[sfp] = 1;
-			} else if (sfp_wake_pending[sfp]
+				sfp_schedule(sfp);
+			} else if ((sfp_wake_pending[sfp] & SFP_WAKE_PENDING)
+				   && !(sfp_admin_disabled & (1 << sfp))
 				   && (uint8_t)((uint8_t)ticks - sfp_wake_at[sfp]) >= SFP_WAKE_TICKS) {
-				sfp_wake_pending[sfp] = 0;
-				if (!sfp_module_read(sfp)) {
-					print_string("SFP: an I2C read failed, retrying on the next poll\n");
-					sfp_pins_last |= 0x01 << (sfp << 2);
+				if (sfp_module_read(sfp)) {
+					sfp_wake_pending[sfp] = SFP_WAKE_READY;
+				} else {
+					/* I2C 失败不改变真实 presence；清部分数据并延后重试。 */
+					sfp_clear_info(sfp);
+					sfp_wake_at[sfp] = (uint8_t)ticks;
+					print_string("SFP: I2C read failed\n");
 				}
 			}
 		} else {
 			if (!(sfp_pins_last & (0x1 << (sfp << 2)))) {
 				sfp_pins_last |= 0x01 << (sfp << 2);
 				sfp_wake_pending[sfp] = 0;
+				sfp_wake_at[sfp] = 0;
+				sfp_clear_info(sfp);
+				sds_config_mac(machine.sfp_port[sfp].sds, SDS_OFF);
 				print_string("\n<MODULE REMOVED>  Slot: "); write_char('1' + sfp); write_char('\n');
 			}
 		}

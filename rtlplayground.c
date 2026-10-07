@@ -29,6 +29,7 @@
 #include "httpd/page_impl.h"
 #include "boot.h"
 #include "sfp.h"
+#include "tcp_tick_gate.h"
 
 extern __code const struct machine machine;
 extern __xdata uint32_t flash_size;
@@ -90,6 +91,7 @@ volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t sec_counter;
 volatile __xdata uint16_t sleep_ticks;
 __xdata uint8_t stp_tick_last;
+__xdata uint16_t tcp_tick_last;
 __xdata uint8_t arp_age_secs;
 extern __xdata struct dhcp_state dhcp_state;
 
@@ -1091,8 +1093,20 @@ void handle_rx(void)
 
 void handle_tx(void)
 {
+	uint16_t now;
+	__xdata bool ea = EA;
+	__xdata bool slow;
+
+	// 8051 的 16 位读取非原子；保留 EA，只暂停读取 tick 快照所需的中断。
+	EA = 0;
+	now = (uint16_t)ticks;
+	EA = ea;
+	slow = tcp_tick_due(now, &tcp_tick_last);
 	for(uint8_t i = 0; i < UIP_CONNS; i++) {
-		uip_periodic(i);
+		if (slow)
+			uip_periodic(i);
+		else
+			uip_poll_conn(&uip_conns[i]);
 		if(uip_len > 0) {
 #ifdef RXTXDBG
 			write_char('.'); print_short(i);
@@ -1641,6 +1655,7 @@ void check_and_flash_update_image(void)
 void main(void)
 {
 	ticks = 0;
+	tcp_tick_last = 0; // XDATA 不由启动代码清零。
 	stp_tick_last = (uint8_t)ticks;
 	sfp_tick_last = (uint8_t)ticks;
 	dhcp_state.state = DHCP_OFF;
@@ -1671,8 +1686,8 @@ void main(void)
 	print_string("\nInitializing Flash controller\n");
 	flash_init(1);
 
-	// Set default for SFP pins so we can start up a module already inserted
-	sfp_pins_last = 0x33; // signal LOS and no module inserted (for both slots, even if only 1 present)
+	// 显式清除 SFP 的 XDATA 状态，再回放配置。
+	sfp_init();
 	// We have not detected any link
 	linkbits_last[0] = linkbits_last[1] = linkbits_last[2] = linkbits_last[3] = linkbits_last_p89 = 0;
 
@@ -1705,8 +1720,6 @@ void main(void)
 	// Print SW version
 	print_sw_version();
 
-	// Set AUTONEG for SFP ports
-	sfp_speed[0] = sfp_speed[1] = SFP_SPEED_AUTO;
 	// Reset NIC
 	reg_bit_set(RTL837X_REG_RESET, RESET_NIC_BIT);
 	do {
