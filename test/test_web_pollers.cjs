@@ -6,7 +6,12 @@ const fs=require("node:fs");
 const path=require("node:path");
 const test=require("node:test");
 const vm=require("node:vm");
-const source=fs.readFileSync(path.join(__dirname,"../html/app.js"),"utf8");
+// app.js 由 html/app/*.js 按文件名顺序拼接而成,测试直接读分片源文件。
+const appDir=path.join(__dirname,"../html/app");
+const source=fs.readdirSync(appDir).sort()
+  .filter(f=>f.endsWith(".js"))
+  .map(f=>fs.readFileSync(path.join(appDir,f),"utf8"))
+  .join("");
 
 function section(start,end){
   const a=source.indexOf(start),b=source.indexOf(end,a);

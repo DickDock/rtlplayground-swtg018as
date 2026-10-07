@@ -105,12 +105,20 @@ HTML := $(shell find html -name '*.js' -or -name '*.html' -or -name '*.svg' -or 
 # Minified copy of the web UI sources, used as the fileadder input.
 # The raw html/ sources stay untouched for development; the minified
 # copy is a build artifact under output/.
+# html/app/*.js are the authored sources of the single app.js script;
+# they are concatenated (filename order) and minified as one file.
+APP_SRCS := $(sort $(wildcard html/app/*.js))
+HTML_TOP := $(filter-out html/app/%,$(HTML))
 HTML_MIN := output/html_min
 .PHONY: html_min
-html_min: $(HTML)
+html_min: $(HTML_TOP) $(APP_SRCS)
 	rm -rf $(HTML_MIN)
 	mkdir -p $(HTML_MIN)
-	@for f in $(HTML); do python3 tools/minify.py $$f $(HTML_MIN)/$$(basename $$f) || exit 1; done
+	@test -n "$(APP_SRCS)" || { echo "error: html/app/ contains no JS sources" >&2; exit 1; }
+	cat $(APP_SRCS) > output/app.concat.js
+	python3 tools/minify.py output/app.concat.js $(HTML_MIN)/app.js
+	rm -f output/app.concat.js
+	@for f in $(HTML_TOP); do python3 tools/minify.py $$f $(HTML_MIN)/$$(basename $$f) || exit 1; done
 
 html_data.c html_data.h &: $(HTML) | tools html_min
 	tools/output/fileadder -a $(HTML_LOCATION) -s $(IMAGESIZE) -b BANK1 -z -d $(HTML_MIN) -p html_data

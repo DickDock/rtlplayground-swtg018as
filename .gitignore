@@ -13,3 +13,5 @@ tools/fileadder
 !test/stub/version.h
 .DS_Store
 test/build/
+# generated: concatenated from html/app/*.js by the html_min target
+html/app.js
