@@ -23,14 +23,15 @@ function pollStatus(){
         if(q)S.rates[p.portNum-1]={
           tx:Number(BigInt(p.txG)-BigInt(q.txG))/dt,
           rx:Number(BigInt(p.rxG)-BigInt(q.rxG))/dt,
+          err:(Number(BigInt(p.txB)-BigInt(q.txB))+Number(BigInt(p.rxB)-BigInt(q.rxB)))/dt,
         };
       });
     }
     S.prev=s;S.prevT=now;S.ports=s;
-    var sr=0,sx=0;
-    S.rates.forEach(function(r){if(r){sr+=r.rx;sx+=r.tx;}});
-    S.histR.push(sr);S.histT.push(sx);
-    if(S.histR.length>120){S.histR.shift();S.histT.shift();}
+    var sr=0,sx=0,se=0;
+    S.rates.forEach(function(r){if(r){sr+=r.rx;sx+=r.tx;se+=r.err||0;}});
+    S.histR.push(sr);S.histT.push(sx);S.histE.push(se);
+    if(S.histR.length>HIST_MAX){S.histR.shift();S.histT.shift();S.histE.shift();}
     updateStrip();
     var hk=tabHooks[curTab];
     if(hk&&hk.status)hk.status();
@@ -81,7 +82,9 @@ function renderInfo(){
     tb.appendChild(h("tr",null,[h("td",{class:"mut",text:t(r[0])}),h("td",{class:"mono",text:String(v)})]));
   });
   if(S.info.hostname){$("brandname").textContent=$("brandname").title=S.info.hostname;document.title=S.info.hostname;}
-  if(S.info.sw_ver)$("fver").textContent="RTLPlayground "+S.info.sw_ver;
+  /* Footer: just the firmware version, in the v<ver>+<hash> form the
+   * images are named with. */
+  if(S.info.sw_ver)$("fver").textContent=S.info.sw_ver;
 }
 function pollInfo(){
   return getJSON("/information.json").then(function(j){S.info=j;renderInfo()});

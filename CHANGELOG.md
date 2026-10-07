@@ -14,6 +14,14 @@
     priority to queue map and strict or weighted queue scheduling.
   - `fc` command: forced 802.3x pause per port, pause thresholds and threshold sets, buffer page counters.
   - `pfc` command: Priority Flow Control (802.1Qbb) on the two 10G ports. See doc/qos_pfc.md.
+- Syslog
+  - Every datagram now carries an uptime stamp, `<14>[up 0d 00:00:00] host message`; the
+    counters are bumped once a second by the tick handler, so the packet builder needs no
+    32-bit divide.
+  - Runtime events reach the feed, not just command output: per-port link up/down (read from
+    the per-port carrier bits in REG_LINKS_STS), web logins (success and failure, with the
+    peer address), session expiry, configuration saves from the web UI and the command text
+    of every command run over HTTP.
 
 ## Changed
 
@@ -30,6 +38,16 @@
     sectors to 0xFE000/0xFF000.  Web upgrading now requires a 2 MB flash part (the staging
     area is the second half); boards with smaller flashes keep working but can only be
     reflashed through the SOIC-8 fixture or the serial installer.
+- Web UI
+  - Login page redesigned: a glassmorphism card over a glowing perspective grid ("network
+    horizon"), password visibility toggle, spinner while submitting and a shake on a wrong
+    password, in both light and dark themes.
+  - Dashboard: the per-port throughput bar list is removed (the traffic table already carries
+    the numbers).  The live chart gains an error-rate line, Y-axis tick labels, a 2m/5m/15m
+    window selector and a crosshair tooltip; the SFP DDM cards keep their own fluid grid,
+    which also fixes the collapsed gap above the traffic table.
+  - The nav footer shows just the firmware version in the `v<ver>+<hash>` form the images
+    are named with, instead of the prefixed "RTLPlayground <version>".
   - Bridge firmware (`make BRIDGE=1`, `-bridge` images): a 512 KiB build running in the
     legacy layout that installs the 1 MB image and migrates the configuration to its new
     location.  Upgrade path for devices still on the old firmware: flash the bridge, then

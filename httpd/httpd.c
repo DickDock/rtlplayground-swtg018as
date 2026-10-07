@@ -348,6 +348,11 @@ __xdata uint8_t *scan_header(__xdata uint8_t * __xdata p)
 	if (session && session_id[0]) {
 		if (now - last_session_use > session_timeout) {
 			dbg_string("Session expired\n");
+			print_string("Web session expired\n");
+			/* Clearing the pointer stops the next request from hitting
+			 * this branch again, so the log gets one line, not one per
+			 * request while the stale cookie keeps arriving. */
+			session = 0;
 		} else {
 			if (is_word_x(session, session_id)) {
 				authenticated = 1;
@@ -606,6 +611,7 @@ static void handle_config_fragment(__xdata uint8_t *p)
 		send_bad_request();
 		return;
 	}
+	print_string("Configuration saved from web\n");
 	send_ok();
 }
 
@@ -656,6 +662,11 @@ static void run_cmd_body(__xdata uint8_t *body)
 	uint16_t hdr_len = strtox(outbuf, HTTP_RESPONCE_TXT);
 
 	slen = hdr_len;
+	/* Audit line before the capture opens, so the command text lands in
+	 * the console and the syslog feed but not twice in the response. */
+	print_string("Web cmd: ");
+	print_string_x((__xdata char *)body);
+	write_char('\n');
 	cmd_capture = 1;
 	execute_commands(body);
 	if (cmd_capture == 2)
@@ -679,10 +690,25 @@ static void run_cmd_body(__xdata uint8_t *body)
 }
 
 
+/* Print the peer address of the current connection as dotted decimal.
+ * ripaddr is stored in network byte order, so the memory layout is a.b.c.d. */
+static void print_peer_ip(void)
+{
+	__xdata uint8_t *ia = (__xdata uint8_t *)&uip_conn->ripaddr;
+
+	itoa(ia[0]); write_char('.');
+	itoa(ia[1]); write_char('.');
+	itoa(ia[2]); write_char('.');
+	itoa(ia[3]);
+	write_char('\n');
+}
+
 static void run_login_body(__xdata uint8_t *body)
 {
 	if (strstart(body, "pwd=") && is_url_word_x(body + 4, passwd)) {
 		dbg_string("Password accepted!\n");
+		print_string("Web login OK from ");
+		print_peer_ip();
 		read_reg_timer(&last_session_use);
 		gen_random_hex_chars(session_id, SESSION_ID_LENGTH);
 		session_id[SESSION_ID_LENGTH] = NUL;
@@ -693,6 +719,8 @@ static void run_login_body(__xdata uint8_t *body)
 		slen += strtox(outbuf + slen, "; SameSite=Strict\r\n\r\n");
 	} else {
 		dbg_string("Password invalid!\n");
+		print_string("Web login FAILED from ");
+		print_peer_ip();
 		slen = strtox(outbuf, "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: login.html\r\n\r\n");
 	}
 }

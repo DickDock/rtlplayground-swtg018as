@@ -27,6 +27,18 @@ $("mx").addEventListener("click",closeModal);
 $("mback").addEventListener("click",function(e){if(e.target===this)closeModal()});
 $("saveBtn").addEventListener("click",saveRun);
 
+// Live chart: span selector and the crosshair readout.
+$("chartspan").addEventListener("click",function(e){
+  var b=e.target.closest("button");
+  if(!b)return;
+  S.chartSpan=Number(b.dataset.n)||120;
+  this.querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b)});
+  chartLeave();
+  dashChart();
+});
+$("chartbox").addEventListener("mousemove",chartHover);
+$("chartbox").addEventListener("mouseleave",chartLeave);
+
 // Old bookmarks pointed at the pre-merge tabs; map them so nothing 404s.
 var OLD_TABS={stp:"links",lag:"links",eee:"ports",stats:"ports",bw:"flows",mirror:"flows",fw:"system"};
 window.addEventListener("hashchange",function(){

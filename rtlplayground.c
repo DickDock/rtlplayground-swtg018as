@@ -90,6 +90,14 @@ __xdata struct uip_eth_addr uip_ethaddr;
 volatile __xdata uint32_t ticks;
 volatile __xdata uint8_t sec_counter;
 volatile __xdata uint16_t sleep_ticks;
+
+/* Wall-clock style uptime, kept as separate counters so that printing a
+ * timestamp never needs a 32-bit divide: handle_tick() bumps them once a
+ * second and the syslog packet builder reads them in place. */
+__xdata uint16_t uptime_days;
+__xdata uint8_t uptime_hours;
+__xdata uint8_t uptime_mins;
+__xdata uint8_t uptime_secs;
 __xdata uint8_t stp_tick_last;
 __xdata uint16_t tcp_tick_last;
 __xdata uint8_t arp_age_secs;
@@ -1206,6 +1214,9 @@ void handle_button(void)
 	}
 }
 
+/* Carrier bits from the previous check_links() pass, one bit per port. */
+static __xdata uint16_t link_sts_last;
+
 void check_links(void)
 {
 	reg_read_m(RTL837X_REG_LINKS_89);
@@ -1240,6 +1251,26 @@ void check_links(void)
 			cpy_4(linkbits_last, sfr_data);
 		}
 	}
+
+	/* Readable per-port carrier events for the console and the syslog feed.
+	 * REG_LINKS_STS carries one plain carrier bit per port, unlike the
+	 * packed speed fields in REG_LINKS above, so a bit change means exactly
+	 * one port came up or went down. The first pass after boot reports the
+	 * ports that are already up, which is what you want in the log. */
+	reg_read_m(RTL837X_REG_LINKS_STS);
+	{
+		uint16_t now = (uint16_t)sfr_data[1] | ((uint16_t)sfr_data[2] << 8);
+		uint16_t diff = now ^ link_sts_last;
+		link_sts_last = now;
+		for (uint8_t p = machine.min_port; diff && p <= machine.max_port; p++) {
+			if (!((diff >> p) & 1))
+				continue;
+			print_string("Port ");
+			print_phys_port(p);
+			print_string(" link ");
+			print_string(((now >> p) & 1) ? "up\n" : "down\n");
+		}
+	}
 }
 
 
@@ -1250,6 +1281,16 @@ static void handle_tick(void)
 {
 	if (sec_counter >= SYS_TICK_HZ) {
 		sec_counter -= SYS_TICK_HZ;
+		if (++uptime_secs >= 60) {
+			uptime_secs = 0;
+			if (++uptime_mins >= 60) {
+				uptime_mins = 0;
+				if (++uptime_hours >= 24) {
+					uptime_hours = 0;
+					uptime_days++;
+				}
+			}
+		}
 		reg_read_m(RTL837X_REG_SEC_COUNTER);
 		uint8_t v = sfr_data[3];
 #ifdef DEBUG

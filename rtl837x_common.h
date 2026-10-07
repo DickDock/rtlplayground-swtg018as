@@ -184,6 +184,13 @@ void delay(uint16_t t);
 void write_char_no_syslog(char c);
 void write_char(char c);
 void print_reg(uint16_t reg);
+/* Uptime, bumped once a second in handle_tick() and read by the syslog
+ * packet builder. Kept as pre-divided counters: printing them costs no
+ * 32-bit division. */
+extern __xdata uint16_t uptime_days;
+extern __xdata uint8_t uptime_hours;
+extern __xdata uint8_t uptime_mins;
+extern __xdata uint8_t uptime_secs;
 bool sfp_read_block(uint8_t slot, uint8_t reg, uint8_t len) __banked __reentrant;
 extern __xdata uint8_t sfp_buf[16];
 void reg_bit_set(uint16_t reg_addr, char bit);

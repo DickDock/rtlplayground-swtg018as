@@ -57,7 +57,7 @@ a{color:var(--ac);text-decoration:none}
 #navlist li:hover{background:color-mix(in srgb,var(--ac) 6%,transparent);color:var(--fg)}
 #navlist li.act{background:var(--sel);color:var(--ac)}
 #navlist li.act::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:2px;background:var(--ac)}
-#navfoot{padding:10px 16px;border-top:1px solid var(--bd);font-size:11px;color:var(--fg2)}
+#navfoot{padding:10px 16px;border-top:1px solid var(--bd);font-size:11px;color:var(--fg2);word-break:break-word;line-height:1.5}
 #wrap{flex:1;min-width:0;display:flex;flex-direction:column}
 #top{
   display:flex;align-items:center;gap:10px;padding:10px 22px;
@@ -196,22 +196,41 @@ input[type=file]::file-selector-button{
 .chipset{display:flex;gap:6px;flex-wrap:wrap}
 .dashgrid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start;margin-bottom:18px}
 .dashgrid .card{margin-bottom:0}
-.chartbox{position:relative;height:190px;margin:6px 0 4px}
+/* SFP DDM cards take a fluid grid of their own; :empty keeps the reserved
+ * gap from showing when no module reports DDM data. */
+#dsfpcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start;margin-bottom:18px}
+#dsfpcards:empty{display:none}
+#dsfpcards .card{margin-bottom:0}
+.chartwrap{display:flex;gap:8px;margin:6px 0 2px}
+.yaxis{position:relative;width:38px;flex:none}
+.yaxis span{
+  position:absolute;right:0;transform:translateY(-50%);
+  font-size:10.5px;line-height:1;color:var(--fg2);font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.yaxis span:nth-child(1){top:2.9%}
+.yaxis span:nth-child(2){top:50%}
+.yaxis span:nth-child(3){top:97.1%}
+.chartbox{position:relative;flex:1;height:190px}
 .chartbox svg{width:100%;height:100%;display:block}
 .chartbox .gl{stroke:var(--bd);stroke-width:1;opacity:.55;vector-effect:non-scaling-stroke;fill:none}
 .chartbox .ln{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 #rxline{stroke:var(--ac)}
 #txline{stroke:var(--s5g)}
+#errline{stroke:var(--bad);stroke-dasharray:5 4;stroke-width:1.5;opacity:.85}
 #grx stop{stop-color:var(--ac)}
+#gtx stop{stop-color:var(--s5g)}
+.xcross{stroke:var(--fg2);stroke-width:1;stroke-dasharray:3 3;opacity:.6;vector-effect:non-scaling-stroke;pointer-events:none}
+.tip{
+  position:absolute;top:6px;z-index:2;pointer-events:none;white-space:nowrap;
+  background:var(--panel);border:1px solid var(--bd);border-radius:var(--r-s);
+  padding:6px 9px;font-size:11.5px;line-height:1.6;box-shadow:var(--shadow-pop);
+}
+.tip .tt{color:var(--fg2);font-size:10.5px}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.tip b{font-variant-numeric:tabular-nums;float:right;margin-left:12px}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--fg2);align-items:center}
 .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
-.pbar-row{display:grid;grid-template-columns:92px 1fr 128px;gap:10px;align-items:center;padding:4px 0}
-.pbar-name{font-size:12px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pbar-track{position:relative;height:16px;border-radius:4px;background:var(--panel2);overflow:hidden}
-.pbar-fill{position:absolute;top:0;bottom:0;left:0;border-radius:4px;transition:width .6s var(--ease)}
-.pbar-fill.frx{background:var(--ac)}
-.pbar-fill.ftx{background:var(--s5g);top:4px;bottom:4px}
-.pbar-val{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg2);white-space:nowrap}
+.chartfoot{justify-content:flex-end;gap:14px}
 .sensgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
 .sens{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-s);padding:10px 12px}
 .sens .sv{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -276,7 +295,6 @@ label.pchk span i.up{background:var(--ok)}
   #dirty{padding:2px 7px}
   main{padding:12px 10px 40px}
   .dashgrid{grid-template-columns:1fr}
-  .pbar-row{grid-template-columns:76px 1fr 100px}
 }
 </style>
 <script>
@@ -324,30 +342,43 @@ label.pchk span i.up{background:var(--ok)}
         <div id="strip"></div>
       </div>
       <div class="dashgrid">
-        <div class="card"><h2><span data-i18n="d_live">Live traffic</span> <span class="hint" data-i18n="d_live_h">packets/s, last 5 min</span>
-            <span class="legend" style="margin-left:auto"><span><i style="background:var(--ac)"></i>RX</span><span><i style="background:var(--s5g)"></i>TX</span></span></h2>
-          <div class="chartbox"><svg viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true">
-            <defs><linearGradient id="grx" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#888888" stop-opacity=".22"/>
-              <stop offset="1" stop-color="#888888" stop-opacity="0"/>
-            </linearGradient></defs>
-            <line class="gl" x1="0" y1="42.5" x2="600" y2="42.5"/>
-            <line class="gl" x1="0" y1="85" x2="600" y2="85"/>
-            <line class="gl" x1="0" y1="127.5" x2="600" y2="127.5"/>
-            <path id="rxarea" fill="url(#grx)" d=""/>
-            <path id="rxline" class="ln" d=""/>
-            <path id="txline" class="ln" d=""/>
-          </svg></div>
-          <div class="legend" style="justify-content:flex-end"><span>RX <b class="mono" id="dnowrx">-</b></span><span>TX <b class="mono" id="dnowtx">-</b></span></div>
+        <div class="card"><h2><span data-i18n="d_live">Live traffic</span> <span class="hint" data-i18n="d_live_h">packets/s</span>
+            <span class="seg" id="chartspan" style="margin-left:auto">
+              <button type="button" data-n="48">2m</button><button type="button" data-n="120" class="on">5m</button><button type="button" data-n="360">15m</button>
+            </span></h2>
+          <div class="chartwrap">
+            <div class="yaxis" aria-hidden="true"><span id="ytop">-</span><span id="ymid">-</span><span>0</span></div>
+            <div class="chartbox" id="chartbox"><svg viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="grx" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#888888" stop-opacity=".22"/>
+                  <stop offset="1" stop-color="#888888" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="gtx" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#888888" stop-opacity=".12"/>
+                  <stop offset="1" stop-color="#888888" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line class="gl" x1="0" y1="5" x2="600" y2="5"/>
+              <line class="gl" x1="0" y1="85" x2="600" y2="85"/>
+              <line class="gl" x1="0" y1="165" x2="600" y2="165"/>
+              <path id="rxarea" fill="url(#grx)" d=""/>
+              <path id="txarea" fill="url(#gtx)" d=""/>
+              <path id="rxline" class="ln" d=""/>
+              <path id="txline" class="ln" d=""/>
+              <path id="errline" class="ln" d=""/>
+              <line id="xcross" class="xcross" x1="0" y1="0" x2="0" y2="170" style="display:none"/>
+            </svg><div class="tip" id="charttip" style="display:none"></div></div>
+          </div>
+          <div class="legend chartfoot">
+            <span><i style="background:var(--ac)"></i>RX <b class="mono" id="dnowrx">-</b></span>
+            <span><i style="background:var(--s5g)"></i>TX <b class="mono" id="dnowtx">-</b></span>
+            <span><i style="background:var(--bad)"></i><span data-i18n="d_errs">errors</span> <b class="mono" id="dnowerr">-</b></span>
+          </div>
         </div>
         <div class="card"><h2 data-i18n="d_system">System</h2><table class="t" id="sysinfo"></table></div>
       </div>
-      <div class="grid2">
-        <div class="card"><h2><span data-i18n="d_bars">Per-port throughput</span> <span class="hint" data-i18n="d_bars_h">packets/s</span></h2>
-          <div id="pbars"></div>
-        </div>
-        <div id="dsfpcards"></div>
-      </div>
+      <div id="dsfpcards"></div>
       <div class="card"><h2><span data-i18n="d_traffic">Traffic</span> <span class="hint" data-i18n="d_traffic_h">packets/s, live</span></h2>
         <div class="scrollx"><table class="t" id="traffic">
           <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_link">Link</th><th class="num" data-i18n="d_txpps">TX pps</th><th class="num" data-i18n="d_rxpps">RX pps</th><th class="num" data-i18n="d_txbad">TX bad</th><th class="num" data-i18n="d_rxbad">RX bad</th></tr></thead>

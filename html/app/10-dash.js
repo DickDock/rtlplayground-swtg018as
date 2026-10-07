@@ -1,7 +1,11 @@
 "use strict";
-// Dashboard tab: front panel, overview chips, live chart, per-port
-// throughput, one DDM card per SFP module and the traffic table.
+// Dashboard tab: front panel, overview chips, the live traffic chart
+// (RX/TX/error lines, span selector, crosshair), one DDM card per SFP
+// module and the traffic table.
 // Part of app.js: files in html/app/ are concatenated in filename order.
+// HIST_MAX/HIST_DT (history size and sample period) live in 01-core.js.
+function chartSpan(){return S.chartSpan||120}
+
 function dashChips(){
   var c=0,e=0,sr=0,st=0;
   S.ports.forEach(function(p){
@@ -15,56 +19,75 @@ function dashChips(){
   $("dtottx").textContent=fmtPps(st);
   $("derrs").textContent=String(e);
 }
+function fmtRel(s){
+  if(s<60)return s+"s";
+  var m=Math.floor(s/60),r=Math.round(s%60);
+  if(m<60)return r?m+"m "+r+"s":m+"m";
+  return Math.floor(m/60)+"h "+(m%60)+"m";
+}
+function chartMax(R,T,n){
+  var m=1,i;
+  for(i=0;i<n;i++){
+    if(R[i]>m)m=R[i];
+    if(T[i]>m)m=T[i];
+  }
+  // Headroom so the peak does not ride on the top gridline.
+  return m*1.1;
+}
 function dashChart(){
   var n=S.histR.length;
   if(!n)return;
-  var m=1,i,x,y,step=600/119,dr="",dt="";
-  for(i=0;i<n;i++){
-    if(S.histR[i]>m)m=S.histR[i];
-    if(S.histT[i]>m)m=S.histT[i];
+  var span=chartSpan();
+  if(span>n)span=n;
+  var m=chartMax(S.histR,S.histT,span),i,x,y,step=600/(HIST_MAX-1),off=n-span;
+  var dr="",dt="",de="";
+  for(i=0;i<span;i++){
+    x=((off+i)*step).toFixed(1);
+    y=(165-S.histR[off+i]/m*150).toFixed(1); dr+=(i?"L":"M")+x+","+y;
+    y=(165-S.histT[off+i]/m*150).toFixed(1); dt+=(i?"L":"M")+x+","+y;
+    y=(165-S.histE[off+i]/m*150).toFixed(1); de+=(i?"L":"M")+x+","+y;
   }
-  for(i=0;i<n;i++){
-    x=((i+120-n)*step).toFixed(1);
-    y=(165-S.histR[i]/m*150).toFixed(1);
-    dr+=(i?"L":"M")+x+","+y;
-    y=(165-S.histT[i]/m*150).toFixed(1);
-    dt+=(i?"L":"M")+x+","+y;
-  }
+  $("ytop").textContent=fmtPps(m);
+  $("ymid").textContent=fmtPps(m/2);
   $("rxline").setAttribute("d",dr);
   $("txline").setAttribute("d",dt);
-  $("rxarea").setAttribute("d",dr+"L600,170L"+((120-n)*step).toFixed(1)+",170Z");
+  $("errline").setAttribute("d",de);
+  $("rxarea").setAttribute("d",dr+"L"+((n-1)*step).toFixed(1)+",170L"+(off*step).toFixed(1)+",170Z");
+  $("txarea").setAttribute("d",dt+"L"+((n-1)*step).toFixed(1)+",170L"+(off*step).toFixed(1)+",170Z");
   $("dnowrx").textContent=fmtPps(S.histR[n-1]);
   $("dnowtx").textContent=fmtPps(S.histT[n-1]);
+  $("dnowerr").textContent=fmtPps(S.histE[n-1]);
 }
-function dashBars(){
-  var up=[];
-  S.ports.forEach(function(p){if(p.enabled&&p.link>0)up.push(p);});
-  var sig=up.map(function(p){return p.portNum+":"+p.link}).join(",");
-  if(sig!==S.pbSig){
-    S.pbSig=sig;
-    var bx=$("pbars");
-    bx.innerHTML="";
-    up.forEach(function(p){
-      bx.appendChild(h("div",{class:"pbar-row"},[
-        h("span",{class:"pbar-name",text:p.portNum+" · "+(p.isSFP?"SFP":LINKS[p.link])}),
-        h("div",{class:"pbar-track"},[h("div",{class:"pbar-fill frx"}),h("div",{class:"pbar-fill ftx"})]),
-        h("span",{class:"pbar-val",text:"-"}),
-      ]));
-    });
-  }
-  var m=1,vals=[];
-  up.forEach(function(p){
-    var r=S.rates[p.portNum-1],a=r?r.rx:0,b=r?r.tx:0;
-    vals.push([a,b]);
-    if(a>m)m=a;
-    if(b>m)m=b;
-  });
-  var rows=$("pbars").children;
-  for(var i=0;i<rows.length;i++){
-    rows[i].children[1].children[0].style.width=(vals[i][0]/m*100).toFixed(2)+"%";
-    rows[i].children[1].children[1].style.width=(vals[i][1]/m*100).toFixed(2)+"%";
-    rows[i].children[2].textContent="RX "+fmtPps(vals[i][0])+" · TX "+fmtPps(vals[i][1]);
-  }
+function chartHover(ev){
+  var n=S.histR.length;
+  if(!n)return;
+  var span=chartSpan();
+  if(span>n)span=n;
+  var box=$("chartbox"),r=box.getBoundingClientRect();
+  if(!r.width)return;
+  var step=600/(HIST_MAX-1),startx=(n-span)*step;
+  var idx=Math.round(((ev.clientX-r.left)/r.width*600-startx)/step);
+  if(idx<0)idx=0;
+  if(idx>span-1)idx=span-1;
+  var j=n-span+idx,xv=(startx+idx*step).toFixed(1);
+  var cross=$("xcross"),tip=$("charttip");
+  cross.style.display="";
+  cross.setAttribute("x1",xv);
+  cross.setAttribute("x2",xv);
+  var age=Math.round((span-1-idx)*HIST_DT);
+  var rows='<div class="tt">'+(age?fmtRel(age)+" "+t("d_chart_ago"):t("d_chart_now"))+"</div>"
+    +'<div><i style="background:var(--ac)"></i>RX <b>'+fmtPps(S.histR[j])+"</b></div>"
+    +'<div><i style="background:var(--s5g)"></i>TX <b>'+fmtPps(S.histT[j])+"</b></div>"
+    +'<div><i style="background:var(--bad)"></i>'+t("d_errs")+" <b>"+fmtPps(S.histE[j])+"</b></div>";
+  tip.innerHTML=rows;
+  tip.style.display="";
+  var lx=(ev.clientX-r.left)+12;
+  if(lx+tip.offsetWidth>r.width-2)lx=(ev.clientX-r.left)-tip.offsetWidth-12;
+  tip.style.left=Math.max(0,lx)+"px";
+}
+function chartLeave(){
+  $("xcross").style.display="none";
+  $("charttip").style.display="none";
 }
 function dashSfp(){
   var box=$("dsfpcards");
@@ -91,7 +114,6 @@ function dashSfp(){
     card.appendChild(hd);card.appendChild(g);
     box.appendChild(card);
   });
-  box.style.display=box.children.length?"":"none";
 }
 function h2card(label,hint){
   var e=h("h2");
@@ -121,11 +143,10 @@ function dashStatus(){
   });
   dashChips();
   dashChart();
-  dashBars();
   dashSfp();
 }
 tabHooks.dash={
   enter:function(){statusPoller.start();pollInfo().catch(function(){})},
-  leave:function(){statusPoller.stop()},
+  leave:function(){statusPoller.stop();chartLeave()},
   status:dashStatus,
 };

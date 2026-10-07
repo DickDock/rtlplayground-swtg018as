@@ -425,7 +425,9 @@ test("SFP: enabled 仅代表 admin，metadata 未 ready 不冒充 module present
   assert.equal(rows.find(r=>r[0]===ctx.t("p_state"))[1],ctx.t("c_down"));
   assert.equal(rows.some(r=>r[0]===ctx.t("p_module")||r[0]===ctx.t("p_temp")),false);
   ctx.S.ports=[sfpPort()];assert.equal(dashSfpVals(ctx,el).length,4);
-  ctx.S.ports=[p];ctx.dashSfp();assert.equal(el("dsfpcards").style.display,"none");
+  /* Visibility of an empty card list is CSS (:empty) now; assert the data
+   * side: nothing gets appended for a port without ready metadata. */
+  ctx.S.ports=[p];ctx.dashSfp();assert.equal(el("dsfpcards").children.length,0);
 });
 test("SFP: vendor 有而 options 缺失不读取 DDM",()=>{
   const {ctx,el}=harness({},[...CORE,"03-sfp.js","10-dash.js"]);

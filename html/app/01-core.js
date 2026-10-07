@@ -4,8 +4,13 @@
 // No DOM side effects at top level; boot wiring lives in 99-boot.js.
 var S={
   ports:[],n:0,physToLog:[],logToPhys:[],sfpSlot:[],info:{},detail:null,
-  dirty:false,prev:null,prevT:0,rates:[],mtu:[],histR:[],histT:[],pbSig:"",
+  dirty:false,prev:null,prevT:0,rates:[],mtu:[],histR:[],histT:[],histE:[],
+  chartSpan:120,
 };
+// Traffic history: up to HIST_MAX samples of HIST_DT seconds each. Lives
+// here, not in 10-dash.js, because pollStatus (04-status.js) trims the
+// ring and runs in harnesses that never load the dashboard file.
+var HIST_MAX=360,HIST_DT=2.5;
 var LINKS=["Down","10M","100M","1000M","500M","10G","2.5G","5G"];
 var LINKC=[null,"--s10","--s100","--s1g","--s5g","--s10g","--s2g5","--s5g"];
 var $=function(id){return document.getElementById(id)};

@@ -3,56 +3,162 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Switch Login</title>
+<meta name="color-scheme" content="light dark">
+<title>Sign in</title>
 <style>
 :root{
-  --bg:#f5f6f8;--panel:#ffffff;--bd:#dfe3e9;--bd2:#cbd2db;--fg:#181d25;--fg2:#626c7a;
-  --ac:#2e6fd8;--ac2:#1e5bc0;--acfg:#ffffff;--bad:#cf4437;
-  --sel:rgba(46,111,216,.11);
-  --shadow-pop:0 2px 6px rgba(15,21,30,.08),0 16px 44px rgba(15,21,30,.16);
-  --r:10px;--r-l:14px;
+  --bg0:#eef1f6;--bg1:#e4e9f2;
+  --panel:#ffffff;--bd:#dfe3e9;--bd2:#c6cdd9;--fg:#181d25;--fg2:#5f6a79;
+  --ac:#2e6fd8;--ac2:#4f8ceb;--ac3:#1e5bc0;--acfg:#ffffff;--bad:#cf4437;
+  --sel:rgba(46,111,216,.12);
+  --cardbd:rgba(24,29,37,.09);
+  --grid:rgba(46,111,216,.12);
+  --glow:rgba(46,111,216,.17);
+  --halo:rgba(46,111,216,.28);
+  --shadow:0 24px 70px rgba(24,29,37,.16),0 4px 16px rgba(24,29,37,.07);
+  --r:12px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,
          "PingFang SC","Hiragino Sans","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
-  --t1:.14s;--ease:cubic-bezier(.4,0,.2,1);
+  --t1:.16s;--t2:.3s;--ease:cubic-bezier(.4,0,.2,1);
 }
 :root[data-theme="dark"]{
-  --bg:#0e1217;--panel:#161c24;--bd:#28303c;--bd2:#3a4553;--fg:#dfe6ee;--fg2:#8b98a7;
-  --ac:#5b9bf0;--ac2:#7db3f5;--acfg:#07203f;--bad:#ef7166;
-  --sel:rgba(91,155,240,.16);
-  --shadow-pop:0 2px 6px rgba(0,0,0,.5),0 16px 44px rgba(0,0,0,.55);
+  --bg0:#0a0e14;--bg1:#0e141d;
+  --panel:#151b24;--bd:#28303c;--bd2:#435062;--fg:#dfe6ee;--fg2:#8b98a7;
+  --ac:#5b9bf0;--ac2:#7db3f5;--ac3:#3f7fe0;--acfg:#07203f;--bad:#ef7166;
+  --sel:rgba(91,155,240,.17);
+  --cardbd:rgba(223,230,238,.09);
+  --grid:rgba(91,155,240,.14);
+  --glow:rgba(91,155,240,.16);
+  --halo:rgba(91,155,240,.4);
+  --shadow:0 30px 90px rgba(0,0,0,.55),0 6px 22px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box;margin:0}
+html{height:100%}
 body{
-  font:15px/1.5 var(--font);color:var(--fg);
-  background:radial-gradient(1200px 800px at 50% -10%,color-mix(in srgb,var(--ac) 8%,var(--bg)),var(--bg));
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  font:15px/1.5 var(--font);color:var(--fg);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(900px 520px at 78% -12%,var(--glow),transparent 65%),
+    linear-gradient(180deg,var(--bg0),var(--bg1));
+  overflow:hidden;
 }
+/* --- backdrop: glowing horizon over a perspective wireframe floor --- */
+.scene{position:fixed;inset:0;pointer-events:none}
+.floor{
+  position:absolute;left:-45%;right:-45%;bottom:-16vh;height:62vh;
+  background:
+    repeating-linear-gradient(90deg,var(--grid) 0 1px,transparent 1px 64px),
+    repeating-linear-gradient(0deg,var(--grid) 0 1px,transparent 1px 52px);
+  transform:perspective(560px) rotateX(63deg);
+  transform-origin:50% 0;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 30%,#000 62%,transparent 92%);
+  mask-image:linear-gradient(180deg,transparent,#000 30%,#000 62%,transparent 92%);
+  animation:flow 5s linear infinite;
+}
+@keyframes flow{to{background-position:0 52px,0 52px}}
+.horizon{
+  position:absolute;left:50%;bottom:calc(30vh - 40px);width:160vw;height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ac) 55%,transparent),transparent);
+  opacity:.7;
+}
+.glow{
+  position:absolute;left:50%;bottom:calc(30vh - 130px);width:120vw;height:230px;
+  transform:translateX(-50%);
+  background:radial-gradient(46% 58% at 50% 42%,var(--glow),transparent 72%);
+  animation:breathe 7s var(--ease) infinite alternate;
+}
+@keyframes breathe{from{opacity:.75}to{opacity:1.1}}
+/* --- card --- */
 .card{
-  background:var(--panel);border:1px solid var(--bd);border-radius:var(--r-l);
-  padding:38px 34px;width:min(360px,92vw);box-shadow:var(--shadow-pop);
+  position:relative;z-index:1;
+  width:min(360px,94vw);
+  background:color-mix(in srgb,var(--panel) 78%,transparent);
+  backdrop-filter:blur(20px) saturate(1.25);
+  -webkit-backdrop-filter:blur(20px) saturate(1.25);
+  border:1px solid var(--cardbd);
+  border-radius:20px;
+  padding:40px 36px 32px;
+  box-shadow:var(--shadow);
+  animation:cardin .5s var(--ease) both;
 }
-.logo{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.logo svg{flex:none;stroke:var(--ac);background:var(--sel);border-radius:10px;padding:6px;box-sizing:content-box}
-h1{font-size:19px;font-weight:600;letter-spacing:-.01em}
-p.sub{color:var(--fg2);font-size:13px;margin-bottom:24px}
-label{display:block;font-size:13px;color:var(--fg2);margin-bottom:6px}
-input[type=password]{
-  width:100%;padding:10px 12px;font-size:15px;color:var(--fg);
-  background:var(--panel);border:1px solid var(--bd2);border-radius:var(--r);outline:none;
-  transition:border-color var(--t1) var(--ease),box-shadow var(--t1) var(--ease);
+/* hairline accent on the top edge */
+.card::before{
+  content:"";position:absolute;top:-1px;left:12%;right:12%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--halo),transparent);
 }
-input[type=password]:hover{border-color:color-mix(in srgb,var(--fg2) 45%,var(--bd2))}
-input[type=password]:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--sel)}
-button{
-  width:100%;margin-top:18px;padding:10px;font-size:15px;font-weight:600;
-  color:var(--acfg);background:var(--ac);border:0;border-radius:var(--r);cursor:pointer;
-  transition:background var(--t1) var(--ease),transform var(--t1) var(--ease);
+@keyframes cardin{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.icon{
+  position:relative;width:52px;height:52px;margin:0 auto 18px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 20%,transparent),color-mix(in srgb,var(--ac) 7%,transparent));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 26%,transparent);
 }
-button:hover{background:var(--ac2)}
-button:active{transform:translateY(1px)}
-button:disabled{opacity:.6;cursor:default}
-button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-#err{color:var(--bad);font-size:13px;font-weight:600;min-height:20px;margin-top:14px;text-align:center}
+.icon::after{
+  content:"";position:absolute;inset:-7px;border-radius:21px;
+  border:1px solid color-mix(in srgb,var(--ac) 22%,transparent);
+  animation:halo 3.4s var(--ease) infinite alternate;
+}
+@keyframes halo{from{opacity:.25;transform:scale(.96)}to{opacity:.8;transform:scale(1.04)}}
+.icon svg{stroke:var(--ac)}
+h1{font-size:20px;font-weight:650;letter-spacing:-.015em;text-align:center}
+p.sub{color:var(--fg2);font-size:13px;text-align:center;margin:5px 0 26px}
+.pw{position:relative}
+input[type=password],input[type=text]{
+  width:100%;height:46px;padding:0 46px 0 14px;font-size:15px;color:var(--fg);
+  background:color-mix(in srgb,var(--panel) 55%,transparent);
+  border:1px solid var(--bd2);border-radius:var(--r);outline:none;
+  transition:border-color var(--t1) var(--ease),box-shadow var(--t1) var(--ease),background var(--t1) var(--ease);
+}
+input:hover{border-color:color-mix(in srgb,var(--ac) 38%,var(--bd2))}
+input:focus{border-color:var(--ac);background:var(--panel);box-shadow:0 0 0 4px var(--sel)}
+#eye{
+  position:absolute;top:1px;right:1px;bottom:1px;width:42px;
+  background:none;border:0;cursor:pointer;color:var(--fg2);
+  display:flex;align-items:center;justify-content:center;border-radius:0 11px 11px 0;
+  transition:color var(--t1) var(--ease);
+}
+#eye:hover{color:var(--ac)}
+button[type=submit]{
+  width:100%;height:46px;margin-top:16px;font-size:15px;font-weight:600;
+  color:var(--acfg);border:0;border-radius:var(--r);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,var(--ac2),var(--ac) 45%,var(--ac3));
+  box-shadow:0 10px 26px color-mix(in srgb,var(--ac) 32%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.22);
+  transition:filter var(--t1) var(--ease),transform var(--t1) var(--ease),box-shadow var(--t1) var(--ease);
+}
+button[type=submit]:hover{
+  filter:brightness(1.07);
+  box-shadow:0 12px 32px color-mix(in srgb,var(--ac) 42%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.22);
+}
+button[type=submit]:active{transform:translateY(1px)}
+button[type=submit]:disabled{opacity:.7;cursor:default;transform:none;filter:none}
+button[type=submit]:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.spin{
+  width:14px;height:14px;flex:none;border-radius:50%;
+  border:2px solid color-mix(in srgb,var(--acfg) 40%,transparent);
+  border-top-color:var(--acfg);
+  animation:rot .7s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+#err{
+  color:var(--bad);font-size:13px;font-weight:600;min-height:20px;
+  margin-top:13px;text-align:center;
+}
+#err.shake{animation:shake .4s var(--ease)}
+@keyframes shake{
+  20%{transform:translateX(-6px)}40%{transform:translateX(5px)}
+  60%{transform:translateX(-4px)}80%{transform:translateX(3px)}
+}
+@media (max-width:520px){
+  body{padding:16px}
+  .card{padding:32px 24px 26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 <script>
 (function(){
@@ -65,28 +171,44 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 </script>
 </head>
 <body>
-<div class="card">
-  <div class="logo">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2">
-      <rect x="2" y="7" width="20" height="10" rx="2"/>
-      <path d="M6 11v2M10 11v2M14 11v2M18 11v2"/>
-    </svg>
-    <h1 id="hn">Switch Login</h1>
-  </div>
-  <p class="sub" id="sub">RTLPlayground management interface</p>
-  <form id="lf" method="post" action="login">
-    <label for="pwd" id="lp">Password</label>
-    <input id="pwd" name="pwd" type="password" autocomplete="current-password" autofocus required
-           oninput="document.getElementById('err').textContent=''">
-    <button type="submit" id="lb">Sign in</button>
-    <div id="err"></div>
-  </form>
+<div class="scene" aria-hidden="true">
+  <div class="floor"></div>
+  <div class="horizon"></div>
+  <div class="glow"></div>
 </div>
+<form class="card" id="lf" method="post" action="login">
+  <div class="icon" aria-hidden="true">
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+      <rect x="4" y="10.5" width="16" height="10" rx="2.5"/>
+      <path d="M8 10.5V7a4 4 0 018 0v3.5"/>
+      <circle cx="12" cy="15.5" r="1.4" fill="currentColor" stroke="none"/>
+    </svg>
+  </div>
+  <h1 id="hn">Sign in</h1>
+  <p class="sub" id="sub">Enter the admin password</p>
+  <div class="pw">
+    <input id="pwd" name="pwd" type="password" autocomplete="current-password" autofocus required
+           oninput="var e=document.getElementById('err');e.textContent='';e.classList.remove('shake')">
+    <button type="button" id="eye" tabindex="-1" aria-label="Show password">
+      <svg id="eyeon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="2.8"/>
+      </svg>
+      <svg id="eyeoff" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+        <path d="M4 4l16 16"/>
+        <path d="M9.9 5.8A10.7 10.7 0 0112 5.5c6.5 0 10 6.5 10 6.5a17.6 17.6 0 01-3.2 3.9M6.1 6.8A16.4 16.4 0 002 12s3.5 6.5 10 6.5a10 10 0 003.4-.6"/>
+        <path d="M9.9 9.9a2.9 2.9 0 004.1 4.1"/>
+      </svg>
+    </button>
+  </div>
+  <button type="submit" id="lb"><span id="lbt">Sign in</span></button>
+  <div id="err"></div>
+</form>
 <script>
 (function(){
   var L={
-    en:["Switch Login","RTLPlayground management interface","Password","Sign in","Wrong password, try again."],
-    zh:["交换机登录","RTLPlayground 管理界面","密码","登录","密码错误，请重试。"]
+    en:["Sign in","Enter the admin password","Password","Sign in","Wrong password, try again.","Signing in…","Show password","Hide password"],
+    zh:["登录","请输入管理密码","密码","登录","密码错误，请重试。","登录中…","显示密码","隐藏密码"]
   };
   var lang="en";
   try{
@@ -106,30 +228,57 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
   document.title=S[0];
   document.getElementById("hn").textContent=S[0];
   document.getElementById("sub").textContent=S[1];
-  document.getElementById("lp").textContent=S[2];
-  document.getElementById("lb").textContent=S[3];
-  document.getElementById("err").textContent=document.referrer.endsWith("login.html")?S[4]:"";
+  document.getElementById("lbt").textContent=S[3];
+  var err=document.getElementById("err"),btn=document.getElementById("lb"),
+      eye=document.getElementById("eye"),pwd=document.getElementById("pwd");
+  eye.title=S[6];
+  err.textContent=document.referrer.endsWith("login.html")?S[4]:"";
+
+  eye.addEventListener("click",function(){
+    var show=pwd.type==="password";
+    pwd.type=show?"text":"password";
+    document.getElementById("eyeon").style.display=show?"none":"";
+    document.getElementById("eyeoff").style.display=show?"":"none";
+    eye.title=show?S[7]:S[6];
+    pwd.focus();
+  });
+
   document.getElementById("lf").addEventListener("submit",function(e){
     e.preventDefault();
-    var err=document.getElementById("err"),btn=document.getElementById("lb");
-    btn.disabled=true;err.textContent="";
+    btn.disabled=true;err.textContent="";err.classList.remove("shake");
+    document.getElementById("lbt").textContent=S[5];
+    var sp=document.createElement("span");
+    sp.className="spin";
+    btn.prepend(sp);
     /* Content-Type must be set explicitly: left to the fetch default it
      * becomes "application/x-www-form-urlencoded;charset=UTF-8", and the
      * firmware's is_word() does not treat ';' as a separator, so the
      * login is rejected as a bad request. */
     fetch("/login",{method:"POST",
       headers:{"Content-Type":"application/x-www-form-urlencoded"},
-      body:new URLSearchParams({pwd:document.getElementById("pwd").value})})
+      body:new URLSearchParams({pwd:pwd.value})})
       .then(function(r){
         var p=new URL(r.url,location.href).pathname;
         if(r.redirected&&/login\.html$/.test(p)){
-          err.textContent=S[4];btn.disabled=false;return;
+          fail();return;
         }
-        if(!r.ok&&!r.redirected){err.textContent=S[4];btn.disabled=false;return;}
+        if(!r.ok&&!r.redirected){fail();return;}
         location.replace("/");
       })
-      .catch(function(){err.textContent=S[4];btn.disabled=false;});
+      .catch(function(){fail();});
   });
+  function fail(){
+    var btn=document.getElementById("lb");
+    btn.disabled=false;
+    var sp=btn.querySelector(".spin");
+    if(sp)sp.remove();
+    document.getElementById("lbt").textContent=S[3];
+    var err=document.getElementById("err");
+    err.textContent=S[4];
+    err.classList.remove("shake");
+    void err.offsetWidth;   /* restart the animation on repeated failures */
+    err.classList.add("shake");
+  }
 })();
 </script>
 </body>

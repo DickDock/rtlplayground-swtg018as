@@ -108,6 +108,8 @@ void delay(uint16_t t) { (void)t; }
 void write_char(char c) { (void)c; }
 void write_char_no_syslog(char c) { (void)c; }
 void print_string(const char *p) { (void)p; }
+void print_string_x(char *p) { (void)p; }
+void itoa(uint8_t v) { (void)v; }
 void print_string_newline_no_syslog(const char *p) { (void)p; }
 void set_sys_led_state(uint8_t state) { (void)state; }
 void cmd_parser(void) { }
