@@ -741,14 +741,14 @@ void launch(struct Server *server)
 				if (i > 1)
 					inptr = fopen(&buffer[5], "rb");
 				else
-					inptr = fopen("/index.html", "rb");
+					inptr = fopen("index.html", "rb");
 				if (inptr == NULL) {
 					printf("Cannot open input file %s\n", &buffer[5]);
 					send_not_found(new_socket);
 					goto done;
 				}
 
-				mime = getMime(&buffer[5]);
+				mime = getMime(i > 1 ? &buffer[5] : "/index.html");
 				printf("MIME type: %s\n", mime);
 
 				fseek(inptr, 0L, SEEK_END);
@@ -805,6 +805,9 @@ void launch(struct Server *server)
 					char *response;
 					if (is_word(p, PASSWORD)) {
 						printf("Password accepted!\n");
+						// The session clock only ticks on authenticated page hits,
+						// so arm it here or the first request is always "expired".
+						last_session_use = time(NULL);
 						response = "HTTP/1.1 302 Found\r\n"
 							   "Location: index.html\r\n"
 							   "Set-Cookie: session=" SESSION_ID "; Path=/; SameSite=Strict\r\n"
@@ -907,10 +910,16 @@ bad_request:
 }
 
 
-int main()
+int main(int argc, char **argv)
 {
 	// Make sure we can handle writes to a dead client without a signal handler
 	signal(SIGPIPE, SIG_IGN);
+
+	// Optional: serve from a directory (html/ or output/html_min/).
+	if (argc > 1 && chdir(argv[1]) != 0) {
+		perror("chdir");
+		return 1;
+	}
 
 	struct Server server = serverConstructor(8080, launch);
 	server.launch(&server);

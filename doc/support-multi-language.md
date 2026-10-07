@@ -8,29 +8,32 @@ changes are needed.
 
 ## Architecture
 
-All translation logic lives at the top of `html/app.js`:
+All translation logic lives in `html/app/00-i18n.js`:
 
-- A `LANG` object with one sub-object per language (`en`, `ja`, `zh`)
-- Language auto-detection (browser language, overridden by the
-  `rtl_lang` key in `localStorage`, which the language selector in the
-  System section writes)
+- A `LANG` object with one sub-object per language (`en`, `zh`)
+- Language auto-detection: the `rtl_lang` key in `localStorage` wins
+  (written by the language selector in System → Display), then the
+  browser's `navigator.languages` are matched exactly and by prefix,
+  then English
 - `t(key, vars)` looks up a translated string; `{name}` placeholders in
   the string are replaced from `vars`, e.g. `t("v_del_q", {n: vid})`
 - `i18nApply()` applies the dictionary to the static markup once at load
 
 Translation keys are flat strings. The English entry is the fallback when
 a key is missing in another language, and the key itself is the fallback
-when it is missing everywhere.
+when it is missing everywhere. The host tests assert that the `en` and
+`zh` key sets stay identical.
 
 Changing the language stores the choice and reloads the page, so every
 dynamically built table is rebuilt in the new language.
 
 `login.html` is served before authentication and does not load `app.js`;
-it carries its own five strings per language in an inline table.
+it carries its own five strings per language in an inline table and
+repeats the same detection rule.
 
 ## How to Add a New Language
 
-### 1. Add a dictionary entry in `html/app.js`
+### 1. Add a dictionary entry in `html/app/00-i18n.js`
 
 Append a sub-object to `LANG`. Every key from `LANG.en` should be present:
 
@@ -50,9 +53,8 @@ nav_dash:"...",
 ### 2. Add the language to the selector in `html/index.html`
 
 ```html
-<select class="ctl" id="langSel" data-i18n-t="sy_lang">
+<select class="in" id="langSel">
   <option value="en">English</option>
-  <option value="ja">日本語</option>
   <option value="zh">中文</option>
   <option value="LANGCODE">Native name</option>
 </select>
@@ -65,8 +67,9 @@ password label, button label, wrong-password message.
 
 ### 4. Verify auto-detection
 
-The detection normalises `navigator.language` to its first two
-characters and selects that language if `LANG` has it, otherwise English.
+The detection walks `navigator.languages` (falling back to
+`navigator.language`) and picks the first entry that matches a `LANG`
+key exactly or by its `xx-YY` prefix, otherwise English.
 
 ## Two Translation Mechanisms
 
@@ -97,11 +100,11 @@ Strings that are identical in every language (`10M`, `2.5G`, `MAC`,
 
 ## Size Considerations
 
-- Each language adds roughly 3 KB to `app.js` before compression; the
-  build gzips the file, so the flash cost of a language is closer to 1 KB
+- Each language adds roughly 12 KB to `app.js` before compression; the
+  build gzips the file, so the flash cost of a language is closer to 3 KB
 - The largest embedded file must stay below 64 KB after compression
-  (`uint16_t` length in the file table); `app.js` with three languages
-  is about 29 KB compressed
+  (`uint16_t` length in the file table); `app.js` with two languages
+  is about 30 KB compressed — see `webui-compression.md` for the budget
 
 ## Build
 

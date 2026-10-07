@@ -1,3 +1,4 @@
+"use strict";
 // MAC address table tab.
 // Part of app.js: files in html/app/ are concatenated in filename order.
 var l2Rows=[],l2SortCol="pport",l2SortDir=1,l2Gen=0;
@@ -49,7 +50,7 @@ function l2Render(){
     return((x>y)-(x<y))*l2SortDir||((a.mac>b.mac)-(a.mac<b.mac));
   });
   $("l2table").querySelectorAll("th[data-sort]").forEach(function(th){
-    th.querySelector(".arrow").textContent=th.dataset.sort===l2SortCol?(l2SortDir>0?" \u25b2":" \u25bc"):"";
+    th.querySelector(".arrow").textContent=th.dataset.sort===l2SortCol?(l2SortDir>0?" ▲":" ▼"):"";
   });
   var shown=0;
   rows.forEach(function(e){
@@ -63,7 +64,7 @@ function l2Render(){
     tr.insertCell().textContent=e.vlan;
     tr.insertCell().textContent=ty;
     var dc=tr.insertCell();
-    if(e.pport!=="CPU")dc.appendChild(h("button",{class:"ctl",text:"\u2715",title:t("l2_del_t"),onclick:function(){
+    if(e.pport!=="CPU")dc.appendChild(h("button",{class:"ctl",text:"✕",title:t("l2_del_t"),onclick:function(){
       getJSON("/l2_del.json?idx="+e.idx).then(function(){
         l2Rows=l2Rows.filter(function(x){return x!==e});
         l2Render();
@@ -72,20 +73,21 @@ function l2Render(){
   });
   $("l2count").textContent=shown+" / "+l2Rows.length+" "+t("l2_entries");
 }
-$("l2table").querySelectorAll("th[data-sort]").forEach(function(th){
-  th.addEventListener("click",function(){
-    var c=th.dataset.sort;
-    l2SortDir=(c===l2SortCol)?-l2SortDir:1;
-    l2SortCol=c;
-    l2Render();
-  });
-});
-$("l2filter").addEventListener("input",l2Render);
-$("l2refresh").addEventListener("click",function(){l2Fetch()});
-$("l2flush").addEventListener("click",function(){
+function l2SortClick(){
+  var c=this.dataset.sort;
+  l2SortDir=(c===l2SortCol)?-l2SortDir:1;
+  l2SortCol=c;
+  l2Render();
+}
+function l2Flush(){
   confirmModal(t("l2_flush_q"),"",function(){
     postCmd("l2 forget").then(function(){setTimeout(l2Fetch,500)}).catch(function(){});
   });
-});
+}
 tabHooks.l2={enter:function(){needPorts(function(){l2Fetch()})},leave:function(){l2Gen++}};
-
+$("l2table").querySelectorAll("th[data-sort]").forEach(function(th){
+  th.addEventListener("click",l2SortClick);
+});
+$("l2filter").addEventListener("input",l2Render);
+$("l2refresh").addEventListener("click",function(){l2Fetch()});
+$("l2flush").addEventListener("click",l2Flush);

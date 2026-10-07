@@ -122,7 +122,7 @@ for the flash chip.
 If you don't want to open your device, you can use the project's code to learn about the
 devices by looking at the image using e.g. Ghidra. If you want to contribute to the
 design of the web-interface or get a feeling for the interface first, a standalone
-device simulator is provided, which runs entirely under Linux as a local webserver.
+device simulator is provided, which runs as a local webserver on Linux and macOS.
 
 ## (0) Compiling Requirements
 
@@ -166,11 +166,12 @@ Build host tools only:
 docker run --rm -v $(pwd):/workspace rtlplayground-dev make -C tools
 ```
 
-Run the web-interface simulator locally:
+Run the web-interface simulator locally (build the UI assets first with
+`make html_min`, it serves port 8080):
 
 ```
 docker run --rm -p 8080:8080 -v $(pwd):/workspace rtlplayground-dev \
-  tools/output/httpd_sim /workspace/html
+  tools/output/httpd_sim /workspace/output/html_min
 ```
 
 Edit `machine.h` or `config.txt` on your host, then re-run `make` — the

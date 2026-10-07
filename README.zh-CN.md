@@ -127,11 +127,11 @@ docker run --rm -v $(pwd):/workspace rtlplayground-dev make MACHINE=DEFAULT_8C_1
 docker run --rm -v $(pwd):/workspace rtlplayground-dev make -C tools
 ```
 
-在本地运行 Web 界面模拟器:
+在本地运行 Web 界面模拟器(先用 `make html_min` 构建 UI 资源,监听 8080 端口):
 
 ```
 docker run --rm -p 8080:8080 -v $(pwd):/workspace rtlplayground-dev \
-  tools/output/httpd_sim /workspace/html
+  tools/output/httpd_sim /workspace/output/html_min
 ```
 
 在宿主机上编辑 `machine.h` 或 `config.txt`,然后重新运行 `make` — 源码目录被挂载进容器,更改会立即生效。要为其他机型构建,传入 `MACHINE=...` 即可。

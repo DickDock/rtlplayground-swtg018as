@@ -1,4 +1,6 @@
-// Dashboard tab.
+"use strict";
+// Dashboard tab: front panel, overview chips, live chart, per-port
+// throughput, one DDM card per SFP module and the traffic table.
 // Part of app.js: files in html/app/ are concatenated in filename order.
 function dashChips(){
   var c=0,e=0,sr=0,st=0;
@@ -65,28 +67,37 @@ function dashBars(){
   }
 }
 function dashSfp(){
-  var p=null;
-  S.ports.forEach(function(q){if(!p&&q.isSFP)p=q;});
-  var card=$("d_sfpcard");
-  if(!p||!p.sfp_vendor){card.style.display="none";return;}
-  card.style.display="";
-  $("dsfpport").textContent=t("c_port")+" "+p.portNum+" · SFP+ DDM";
-  var hd=$("dsfphead");
-  hd.innerHTML="";
-  hd.appendChild(h("span",{class:"badge ok",text:t("d_present")}));
-  hd.appendChild(h("span",{class:"small mono",text:[p.sfp_vendor,p.sfp_model].filter(Boolean).join(" ")}));
-  if(p.sfp_serial)hd.appendChild(h("span",{class:"small mut",text:"S/N "+p.sfp_serial,style:"margin-left:auto"}));
-  var g=$("dsfpgrid");
-  g.innerHTML="";
-  if(!(p.sfp_options&0x40))return;
-  var tx=calSO(pU16(p.sfp_txpower),p.sfp_txpower_cal)/10000;
-  var rx=calRx(pU16(p.sfp_rxpower),p.sfp_rxpower_cal)/10000;
-  [["p_temp",ddmFmt(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256,1," °C")],
-   ["p_vcc",ddmFmt(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000,2," V")],
-   ["p_txpower",ddmFmt(dBm(tx),1," dBm")],
-   ["p_rxpower",ddmFmt(dBm(rx),1," dBm")]].forEach(function(s){
-    g.appendChild(h("div",{class:"sens"},[h("div",{class:"sv",text:s[1]}),h("div",{class:"sl",text:t(s[0])})]));
+  var box=$("dsfpcards");
+  box.innerHTML="";
+  S.ports.forEach(function(p){
+    if(!p.isSFP||!p.sfp_vendor)return;
+    var card=h("div",{class:"card"});
+    var hd=h("div",{style:"display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap"});
+    hd.appendChild(h("span",{class:"badge ok",text:t("d_present")}));
+    hd.appendChild(h("span",{class:"small mono",text:[p.sfp_vendor,p.sfp_model].filter(Boolean).join(" ")}));
+    if(p.sfp_serial)hd.appendChild(h("span",{class:"small mut",text:"S/N "+p.sfp_serial,style:"margin-left:auto"}));
+    var g=h("div",{class:"sensgrid"});
+    if(p.sfp_options&0x40){
+      var tx=calSO(pU16(p.sfp_txpower),p.sfp_txpower_cal)/10000;
+      var rx=calRx(pU16(p.sfp_rxpower),p.sfp_rxpower_cal)/10000;
+      [["p_temp",ddmFmt(calSO(pI16(p.sfp_temp),p.sfp_temp_cal)/256,1," °C")],
+       ["p_vcc",ddmFmt(calSO(pU16(p.sfp_vcc),p.sfp_vcc_cal)/10000,2," V")],
+       ["p_txpower",ddmFmt(dBm(tx),1," dBm")],
+       ["p_rxpower",ddmFmt(dBm(rx),1," dBm")]].forEach(function(s){
+        g.appendChild(h("div",{class:"sens"},[h("div",{class:"sv",text:s[1]}),h("div",{class:"sl",text:t(s[0])})]));
+      });
+    }
+    card.appendChild(h2card(t("d_sfp"),t("c_port")+" "+p.portNum+" · SFP+ DDM"));
+    card.appendChild(hd);card.appendChild(g);
+    box.appendChild(card);
   });
+  box.style.display=box.children.length?"":"none";
+}
+function h2card(label,hint){
+  var e=h("h2");
+  e.appendChild(h("span",{text:label}));
+  if(hint)e.appendChild(h("span",{class:"hint",text:hint}));
+  return e;
 }
 function dashStatus(){
   var tb=$("traffic").tBodies[0];
@@ -118,4 +129,3 @@ tabHooks.dash={
   leave:function(){statusPoller.stop()},
   status:dashStatus,
 };
-

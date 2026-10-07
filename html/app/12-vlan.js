@@ -1,3 +1,4 @@
+"use strict";
 // VLAN tab: list, editor, ingress filter. Also shared mask/range helpers.
 // Part of app.js: files in html/app/ are concatenated in filename order.
 function maskToPorts(mask){
@@ -40,7 +41,7 @@ function vlanRefresh(){
           tr.insertCell().textContent=rangeStr(maskToPorts(pv));
         }
         var del=tr.insertCell();
-        if(v.id!==1)del.appendChild(h("button",{class:"ctl",text:"\u2715",title:t("v_del_t"),onclick:function(){
+        if(v.id!==1)del.appendChild(h("button",{class:"ctl",text:"✕",title:t("v_del_t"),onclick:function(){
           confirmModal(t("v_del_q",{n:v.id}),t("v_del_d"),function(){
             postCmd("vlan "+v.id+" d").then(vlanRefresh).catch(function(){});
           });
@@ -57,7 +58,7 @@ function buildVlanEdit(){
   var rM=tb.insertRow();rM.insertCell().textContent=t("v_member");
   var rP=tb.insertRow();rP.insertCell().textContent=t("v_pvid");
   for(var p=1;p<=S.n;p++)(function(p){
-    hd.insertCell().innerHTML='<b>'+p+'</b>';
+    hd.insertCell().innerHTML="<b>"+p+"</b>";
     var seg=h("span",{class:"seg",id:"vm"+p});
     ["-","U","T"].forEach(function(s,ix){
       seg.appendChild(h("button",{text:s,"data-v":ix,onclick:function(){
@@ -73,7 +74,7 @@ function buildVlanEdit(){
   var ih=it.insertRow();ih.insertCell().className="mut";
   var ir=it.insertRow();ir.insertCell().textContent=t("v_accept");
   for(var q=1;q<=S.n;q++)(function(q){
-    ih.insertCell().innerHTML='<b>'+q+'</b>';
+    ih.insertCell().innerHTML="<b>"+q+"</b>";
     var sel=h("select",{class:"in",id:"ing"+q});
     [["","-"],["a",t("v_ing_all")],["u",t("v_untagged")],["t",t("v_tagged")]].forEach(function(o){
       sel.appendChild(h("option",{value:o[0],text:o[1]}));
@@ -127,16 +128,16 @@ function ingressApply(){
   if(!any){toast(t("v_ing_none"),"err");return;}
   postCmd(cmd).catch(function(){});
 }
-$("vload").addEventListener("click",vlanLoad);
-$("vapply").addEventListener("click",vlanApply);
-$("ingapply").addEventListener("click",ingressApply);
-$("vmgmt").addEventListener("click",function(){
+function vlanMgmt(){
   var vid=parseInt($("vvid").value,10);
   if(!vid){toast(t("v_vid_first"),"err");return;}
   confirmModal(t("v_mgmt_q",{n:vid}),t("v_mgmt_d"),
     function(){postCmd("vlan "+vid+" mgmt").then(vlanRefresh).catch(function(){})});
-});
+}
 tabHooks.vlan={
   enter:function(){needPorts(function(){buildVlanEdit();vlanRefresh().catch(function(){})})},
 };
-
+$("vload").addEventListener("click",vlanLoad);
+$("vapply").addEventListener("click",vlanApply);
+$("ingapply").addEventListener("click",ingressApply);
+$("vmgmt").addEventListener("click",vlanMgmt);
