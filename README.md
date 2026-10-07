@@ -154,7 +154,7 @@ make
 镜像位置为 `RTLPlayground/output/rtlplayground_version_machine.bin`,
 例如
 ```
-rtlplayground-v0.1.0-12c98ba-dirty-LIANGUO_ZX_SWTGW215AS.bin
+rtlplayground-v0.1.0+12c98ba~-LIANGUO_ZX_SWTGW215AS.bin
 ```
 
 > [!CAUTION]

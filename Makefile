@@ -18,7 +18,7 @@ SUBDIRS := tools
 SUBDIRSCLEAN=$(addsuffix clean,$(SUBDIRS))
 
 ifeq ($(MACHINE),)
-	MACHINE:= $(shell grep "^\s*\#define MACHINE_" machine.h | sed "s/^\s*\#define MACHINE_//")
+	MACHINE:= $(shell grep "^\s*\#define MACHINE_" machine.h | sed "s/^\s*\#define MACHINE_//" | awk '{print $$1}')
 else
 	CC_FLAGS += -DMACHINE_$(MACHINE)
 endif
@@ -55,13 +55,16 @@ endif
 BUILDDIR = output/$(MACHINE)
 VERSION_HEADER := version.h
 
+# Version string: v<VERSION>+<short hash>, a trailing ~ marks a dirty tree.
+# Semver build-metadata style; the ~ is safe mid-filename (no tilde
+# expansion outside word start).
 GIT_VERSION := $(shell git rev-parse --short HEAD)
 ifeq ($(shell git status --porcelain --untracked-files=no),)
 else
-	GIT_VERSION := $(GIT_VERSION)-dirty
+	GIT_VERSION := $(GIT_VERSION)~
 endif
 
-VERSION_EXTENSION = v$(VERSION)-$(GIT_VERSION)
+VERSION_EXTENSION = v$(VERSION)+$(GIT_VERSION)
 FILENAME_EXTENSION = $(VERSION_EXTENSION)$(BRIDGE_SUFFIX)-$(MACHINE)
 
 # Deterministic build date: honor SOURCE_DATE_EPOCH, else the HEAD commit date,

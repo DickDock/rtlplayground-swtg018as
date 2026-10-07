@@ -197,7 +197,7 @@ Note, that the image generated ends in .bin, not .img, in order to make IMSProg 
 image location is stored in `RTLPlayground/output/rtlplayground_version_machine.bin`
 for example
 ```
-rtlplayground-v0.1.0-12c98ba-dirty-LIANGUO_ZX_SWTGW215AS.bin
+rtlplayground-v0.1.0+12c98ba~-LIANGUO_ZX_SWTGW215AS.bin
 ```
 
 > [!CAUTION]

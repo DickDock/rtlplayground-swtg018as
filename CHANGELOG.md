@@ -17,6 +17,10 @@
 
 ## Changed
 
+- Version string
+  - The firmware version shortens from `v0.1.0-7aebfef-dirty` to `v0.1.0+7aebfef`
+    (semver build-metadata style); a dirty tree now appends a single `~`
+    instead of the `-dirty` suffix.  Image filenames follow the same scheme.
 - Flash layout
   - The firmware image grows from 512 KiB to 1 MiB: code banks 1-10 (480 KiB of code capacity,
     previously 3 banks / 144 KiB), the HTML slot moves to 0xB0000 and the two configuration
