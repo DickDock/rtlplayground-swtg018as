@@ -96,14 +96,27 @@ struct vlan_tag {
 // This is the standard size of an Ethernet frame header
 #define ETHER_HEADER_SIZE	14
 
+#ifdef BRIDGE_LAYOUT
+// Bridge variant: runs in the legacy 512KB layout so that firmware
+// already on the device accepts it as an update, but its only job is to
+// accept the 1MB image (uploaded to the staging area at 0x100000) and
+// install it, carrying the user configuration over to the new location.
 #define DEFAULT_CONFIG_START 0x6f000
 #define CONFIG_START 0x70000
+#else
+#define DEFAULT_CONFIG_START 0xfe000
+#define CONFIG_START 0xff000
+#endif
 #define CONFIG_LEN 0x1000
 #define CODE0_SIZE 0x4000
 #define CODE_BANK_SIZE 0xc000
 
+// Size of the firmware image itself; the upload staging area starts at
+// FIRMWARE_UPLOAD_START and must hold FIRMWARE_IMAGE_SIZE bytes.
+#define FIRMWARE_IMAGE_SIZE FIRMWARE_UPLOAD_START
+
 // Store update image after running image
-#define FIRMWARE_UPLOAD_START 0x80000
+#define FIRMWARE_UPLOAD_START 0x100000
 
 // Constants for the circular command buffer, the size must be 2^n
 #define CMD_HISTORY_SIZE 0x800

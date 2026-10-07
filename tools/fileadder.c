@@ -107,10 +107,21 @@ static struct argp argp = {
 
 int addfile(const char *name, int addr)
 {
+	struct stat st;
 	int dataptr = open(name, 0);
 	if (!dataptr) {
 		fprintf(stderr, "%s: ", name);
 		perror("Cannot open file for reading");
+		return 0;
+	}
+
+	// Refuse data that would spill past the end of the output image:
+	// without this check the file table would still claim the full
+	// length while the image only holds the first `size` bytes.
+	if (fstat(dataptr, &st) != 0 || addr + st.st_size + 1 > arguments.size) {
+		fprintf(stderr, "%s (%ld bytes) at 0x%x does not fit into the 0x%x byte image\n",
+			name, (long)(st.st_size), addr, arguments.size);
+		close(dataptr);
 		return 0;
 	}
 

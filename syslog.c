@@ -4,8 +4,13 @@
 #include "uip/uip.h"
 #include "rtl837x_common.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK6
+#pragma constseg BANK6
+#endif
 
 #define SYSLOG_P ((__xdata uint8_t *)uip_appdata)
 

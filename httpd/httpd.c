@@ -790,7 +790,7 @@ void handle_post(void)
 			config_upload = 0;
 			uptr = FIRMWARE_UPLOAD_START;
 			verify_crc = 1;
-			max_upload = 1024576;
+			max_upload = FIRMWARE_IMAGE_SIZE + 0x1000;
 			pre_acc = 0;
 		} else if (is_word(request_path, "config")) {
 			if (!authenticated) {

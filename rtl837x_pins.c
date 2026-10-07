@@ -7,8 +7,13 @@
 extern __code const struct machine machine;
 extern __xdata uint8_t sfr_data[4];
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK4
+#pragma constseg BANK4
+#endif
 
 /* Returns RTL837X_REG_GPIO_XX_OUTPUT register address */
 static uint16_t gpio_output_reg(uint8_t pin) __banked{

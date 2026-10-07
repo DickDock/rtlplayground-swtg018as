@@ -32,7 +32,7 @@ html/app/*.js --(按文件名顺序拼接)------------------/
 | `favicon.ico` | 378 | 378 | 214 |
 | 合计 | 148,274 | 134,656 | 42,539（28.7 %） |
 
-体积随 UI 本身变化；需要盯住的数字是 gzip 合计。flash 镜像的 HTML 区共 192 KB（`HTML_LOCATION` 0x40000 到 `DEFAULT_CONFIG_LOCATION` 0x6f000），且单个文件必须低于文件表的 `uint16_t` 上限（gzip 后 64 KB）。`app.js` 的 gzip 体积达到约 40 KB 时就应当着手瘦身。
+体积随 UI 本身变化；需要盯住的数字是 gzip 合计。HTML 槽位是 `HTML_LOCATION` 0xB0000 处对齐扇区的 64 KB 窗口，且单个文件必须低于文件表的 `uint16_t` 上限（gzip 后 64 KB）。整个槽位的 gzip 体积达到约 40 KB 时就应当着手瘦身。
 
 ## 说明
 

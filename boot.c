@@ -1,5 +1,10 @@
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK3
 #pragma constseg BANK3
+#else
+#pragma codeseg BANK6
+#pragma constseg BANK6
+#endif
 
 #include <8051.h>
 #include <stdint.h>

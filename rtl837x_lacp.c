@@ -5,8 +5,13 @@
 
 // #define DEBUG
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK3
 #pragma constseg BANK3
+#else
+#pragma codeseg BANK5
+#pragma constseg BANK5
+#endif
 
 #include <stdint.h>
 #include "rtl837x_common.h"

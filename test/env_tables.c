@@ -73,6 +73,13 @@ struct machine_runtime machine_detected = { .isRTL8373 = 1 };
 /* ---- firmware state the modules read or write ---- */
 uint8_t  outbuf[TCP_OUTBUF_SIZE];
 uint16_t slen;
+
+// Shared HTTP response headers: defined in rtlplayground.c (HOME) in the
+// firmware; the host tests do not link that file, so provide them here.
+__code const uint8_t * __code const HTTP_RESPONCE_JSON =
+	"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n";
+__code const uint8_t * __code const HTTP_RESPONCE_TXT =
+	"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\n";
 uint16_t management_vlan = 1;
 uint16_t cont_len;
 uint32_t cont_addr;

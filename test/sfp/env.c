@@ -43,6 +43,11 @@ static size_t console_len;
 uint8_t cmd_buffer[CMD_BUF_SIZE], err_status, cmd_words_len, cmd_words_b[15], atoi_results_u8;
 uint8_t outbuf[TCP_OUTBUF_SIZE];
 uint16_t slen;
+// HTTP response headers: HOME-resident in the firmware (rtlplayground.c).
+const uint8_t * const HTTP_RESPONCE_JSON =
+	"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n";
+const uint8_t * const HTTP_RESPONCE_TXT =
+	"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\n";
 char port_names[9][PORT_NAME_SIZE];
 const uint8_t * const hex = (const uint8_t *)"0123456789abcdef";
 int tests_run, tests_failed;

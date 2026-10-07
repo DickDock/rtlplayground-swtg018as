@@ -17,7 +17,7 @@ Build on macOS (SDCC ≥ 4.5, binutils for `objcopy`, json-c, argp-standalone):
 
     PATH="/opt/homebrew/opt/binutils/bin:$PATH" make
 
-Image lands in `output/SWTG018AS_A_V_2_0/` (512 KiB, web-upgradable via the RTLPlayground
+Image lands in `output/SWTG018AS_A_V_2_0/` (1 MiB, web-upgradable via the RTLPlayground
 "固件" page; a SOIC-8 clip + flashrom dump remains the brick-rescue path).
 
 ---

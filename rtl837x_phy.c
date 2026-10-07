@@ -17,8 +17,13 @@
 #include "phy.h"
 #include "machine.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK4
+#pragma constseg BANK4
+#endif
 
 extern __code const uint16_t bit_mask[16];
 extern __code const struct machine machine;

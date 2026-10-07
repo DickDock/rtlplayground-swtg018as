@@ -17,7 +17,25 @@
 
 ## Changed
 
+- Flash layout
+  - The firmware image grows from 512 KiB to 1 MiB: code banks 1-10 (480 KiB of code capacity,
+    previously 3 banks / 144 KiB), the HTML slot moves to 0xB0000 and the two configuration
+    sectors to 0xFE000/0xFF000.  Web upgrading now requires a 2 MB flash part (the staging
+    area is the second half); boards with smaller flashes keep working but can only be
+    reflashed through the SOIC-8 fixture or the serial installer.
+  - Bridge firmware (`make BRIDGE=1`, `-bridge` images): a 512 KiB build running in the
+    legacy layout that installs the 1 MB image and migrates the configuration to its new
+    location.  Upgrade path for devices still on the old firmware: flash the bridge, then
+    flash the 1 MB image - the configuration is preserved.
+
 ## Fixed
+
+- Code banks
+  - dhcp.c declared its string literals in a different bank than its code, so DHCP log
+    messages printed garbage; code and literals now share one bank and a CI check
+    (`tools/check_banking.py`) rejects cross-bank plain calls and literal mismatches.
+
+## Breaking changes
 
 - Config
   - A startup configuration line longer than the command buffer no longer stops the replay:

@@ -14,7 +14,7 @@
 
     PATH="/opt/homebrew/opt/binutils/bin:$PATH" make
 
-镜像输出到 `output/SWTG018AS_A_V_2_0/`(512 KiB,可通过 RTLPlayground 的“固件”页面进行 Web 升级;SOIC-8 夹具 + flashrom 转储仍是救砖的最后手段)。
+镜像输出到 `output/SWTG018AS_A_V_2_0/`(1 MiB,可通过 RTLPlayground 的“固件”页面进行 Web 升级;SOIC-8 夹具 + flashrom 转储仍是救砖的最后手段)。
 
 ---
 

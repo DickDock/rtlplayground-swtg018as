@@ -144,7 +144,7 @@ $("fwfile").addEventListener("change",function(){
   info.textContent=t("fw_checking",{f:f.name,n:f.size});
   f.arrayBuffer().then(function(buf){
     var u=new Uint8Array(buf),msg=null;
-    if(u.length!==524288)msg=t("fw_size_err",{n:u.length});
+    if(u.length!==524288&&u.length!==1048576)msg=t("fw_size_err",{n:u.length});
     else if(u[0]!==0x00||u[1]!==0x40||u[2]!==0x02)msg=t("fw_magic_err");
     else{
       var crc=0;

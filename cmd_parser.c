@@ -28,8 +28,13 @@
 #include "machine.h"
 #include "phy.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK3
+#pragma constseg BANK3
+#endif
 
 extern __code const struct machine machine;
 extern __xdata bool stp_enabled;

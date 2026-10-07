@@ -20,8 +20,13 @@ extern __xdata uint8_t igmpEnabled;
 
 #include "uip.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK3
 #pragma constseg BANK3
+#else
+#pragma codeseg BANK5
+#pragma constseg BANK5
+#endif
 
 extern __xdata uint8_t cpuPort;
 extern __xdata uint8_t sfr_data[4];

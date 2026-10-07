@@ -12,8 +12,13 @@ extern __xdata uint8_t sfr_data[4];
 extern __code const struct machine machine;
 extern __xdata struct machine_runtime machine_detected;
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK4
+#pragma constseg BANK4
+#endif
 
 /*
  * Configure the PHY-Side of the SDS-SDS link between SoC and PHY

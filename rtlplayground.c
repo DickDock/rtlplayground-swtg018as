@@ -117,6 +117,13 @@ extern __xdata struct flash_region_t flash_region;
 __code const uint8_t * __code const greeting = "\nA minimal prompt to explore the RTL8372:\n";
 __code const uint8_t * __code const hex = "0123456789abcdef";
 
+// Shared HTTP response headers live in HOME: both httpd (BANK1) and
+// page_impl (BANK2) dereference them, and __code pointers are only
+// valid while PSBANK points at the bank holding the target.  The
+// resident 16KB area is readable from every bank.
+__code const uint8_t * __code const HTTP_RESPONCE_JSON = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n";
+__code const uint8_t * __code const HTTP_RESPONCE_TXT = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\n";
+
 __xdata uint8_t flash_buf[FLASH_BUF_SIZE];
 
 // NIC buffers for packet RX/TX
@@ -1567,9 +1574,16 @@ void setup_serial_timer1(void)
 
 void check_and_flash_update_image(void)
 {
+	__xdata uint32_t dest = 0x0;
+	__xdata uint32_t source = FIRMWARE_UPLOAD_START;
+	__xdata uint16_t i = 0;
+	__xdata uint16_t j = 0;
+	__xdata uint8_t * __xdata bptr;
+	uint16_t blocks;
+
 	flash_read_jedecid(); // This initializes also __xdata flash_size variable
 
-	print_string(get_flash_size_str()); print_string(" flash size detected. (1 MB is needed for image updating)\n");
+	print_string(get_flash_size_str()); print_string(" flash size detected. (2 MB are needed for image updating)\n");
 	if (flash_size < FIRMWARE_UPLOAD_START*2) {
 		print_string("Flash too small for updating; skipping update check\n");
 		return;
@@ -1580,19 +1594,38 @@ void check_and_flash_update_image(void)
 	flash_region.addr = FIRMWARE_UPLOAD_START;
 	flash_region.len = 0x100;
 	flash_read_bulk(flash_buf);
-	if (flash_buf[0] == 0x00 && flash_buf[1] == 0x40)
-	{
-		// Yes, flash the new image to the start of flash and reset
-		__xdata uint32_t dest = 0x0;
-		__xdata uint32_t source = FIRMWARE_UPLOAD_START;
-		__xdata uint16_t i = 0;
-		__xdata uint16_t j = 0;
-		__xdata uint8_t * __xdata bptr;
-		print_string("found update image!\nChecking integrity");
-		flash_init(0); // Re-initialize flash for non-DIO operation, otherwise flashing will fail
-		set_sys_led_state(SYS_LED_FAST);
+	if (!(flash_buf[0] == 0x00 && flash_buf[1] == 0x40)) {
+		print_string("no update image found.\n");
+		return;
+	}
+
+	print_string("found update image!\nChecking integrity");
+	flash_init(0); // Re-initialize flash for non-DIO operation, otherwise flashing will fail
+	set_sys_led_state(SYS_LED_FAST);
+	crc_value = 0x0000;
+	source = FIRMWARE_UPLOAD_START;
+	for (i = 0; i < FIRMWARE_IMAGE_SIZE/FLASH_BUF_SIZE; i++) {
+		flash_region.addr = source;
+		flash_region.len = FLASH_BUF_SIZE;
+		flash_read_bulk(flash_buf);
+		bptr = flash_buf;
+		for (j = 0; j < FLASH_BUF_SIZE; j++) {
+			crc16_bank1(bptr++);
+		}
+		source += FLASH_BUF_SIZE;
+		if (i%16 == 0) write_char('.');
+	}
+
+#ifdef BRIDGE_LAYOUT
+	if (crc_value != 0xb001) {
+		// Fallback: a legacy 512KB image (rolling back to the previous
+		// firmware) covers only the first half of the staging area.  A
+		// truncated 1MB image is rejected here: its upper half must be
+		// fully erased, otherwise the CRC over half the area is a false
+		// positive.
 		crc_value = 0x0000;
-		for (i = 0; i < 1024; i++) {
+		source = FIRMWARE_UPLOAD_START;
+		for (i = 0; i < FIRMWARE_IMAGE_SIZE/2/FLASH_BUF_SIZE; i++) {
 			flash_region.addr = source;
 			flash_region.len = FLASH_BUF_SIZE;
 			flash_read_bulk(flash_buf);
@@ -1601,53 +1634,104 @@ void check_and_flash_update_image(void)
 				crc16_bank1(bptr++);
 			}
 			source += FLASH_BUF_SIZE;
-			if (i%16 == 0) write_char('.');
 		}
-		if (crc_value == 0xb001) {
-			print_string("Checksum OK.\nUpdate in progress, moving firmware to start of flash");
-			source = FIRMWARE_UPLOAD_START;
-			// Don't copy the config area at the end of flash
-			for (i = 0; i < CONFIG_START/FLASH_BUF_SIZE; i++) {
-				flash_region.addr = source;
-				flash_region.len = FLASH_BUF_SIZE;
-				flash_read_bulk(flash_buf);
-				if (i%8 == 0) {
-					flash_region.addr = dest;
-					flash_sector_erase();
-					if (i%16 == 0) write_char('.');
-				}
-				flash_region.addr = dest;
-				flash_region.len = FLASH_BUF_SIZE;
-				flash_write_bytes(flash_buf);
-				dest += FLASH_BUF_SIZE;
-				source += FLASH_BUF_SIZE;
-			}
-			print_string("Done.\nDeleting uploaded flash image");
+		if (crc_value != 0xb001) {
+			print_string("Checksum incorrect, please upload the image again\n");
+			print_string("Erasing bad uploaded flash image\n");
 			dest = FIRMWARE_UPLOAD_START;
-			for (register uint8_t i=0; i < 128; i++) // TODO: Erasing the entire 512kByte upload area is probably not necessary
-			{
+			for (uint16_t k=0; k < FIRMWARE_IMAGE_SIZE/FLASH_SECTOR_SIZE; k++) {
 				flash_region.addr = dest;
 				flash_sector_erase();
-				dest += 0x1000;
+				dest += FLASH_SECTOR_SIZE;
+			}
+			return;
+		}
+		for (i = FIRMWARE_IMAGE_SIZE/2/FLASH_BUF_SIZE; i < FIRMWARE_IMAGE_SIZE/FLASH_BUF_SIZE; i++) {
+			flash_region.addr = FIRMWARE_UPLOAD_START + (uint32_t)i*FLASH_BUF_SIZE;
+			flash_region.len = FLASH_BUF_SIZE;
+			flash_read_bulk(flash_buf);
+			for (j = 0; j < FLASH_BUF_SIZE; j++) {
+				if (flash_buf[j] != 0xff) {
+					print_string("Checksum incorrect, please upload the image again\n");
+					print_string("Erasing bad uploaded flash image\n");
+					dest = FIRMWARE_UPLOAD_START;
+					for (uint16_t k=0; k < FIRMWARE_IMAGE_SIZE/FLASH_SECTOR_SIZE; k++) {
+						flash_region.addr = dest;
+						flash_sector_erase();
+						dest += FLASH_SECTOR_SIZE;
+					}
+					return;
+				}
+			}
+		}
+		print_string("Checksum OK (512KB image).\n");
+		blocks = CONFIG_START/FLASH_BUF_SIZE; // legacy layout: keep the active config sector
+	} else
+#endif
+	{
+		print_string("Checksum OK.\n");
+#ifdef BRIDGE_LAYOUT
+		// Carry the active configuration over: inject the old config
+		// sector into the staged image at its new location (0xFF000),
+		// so the full-image block copy below installs it together with
+		// the new firmware.  An erased sector means the device was never
+		// configured; the new image then brings its own template.
+		flash_region.addr = CONFIG_START;
+		flash_region.len = 0x100;
+		flash_read_bulk(flash_buf);
+		if (flash_buf[0] != 0xff) {
+			print_string("Migrating configuration to the new layout");
+			flash_region.addr = FIRMWARE_UPLOAD_START + CONFIG_START;
+			flash_sector_erase();
+			for (i = 0; i < CONFIG_LEN/FLASH_BUF_SIZE; i++) {
+				flash_region.addr = CONFIG_START + (uint32_t)i*FLASH_BUF_SIZE;
+				flash_region.len = FLASH_BUF_SIZE;
+				flash_read_bulk(flash_buf);
+				flash_region.addr = FIRMWARE_UPLOAD_START + CONFIG_START + (uint32_t)i*FLASH_BUF_SIZE;
+				flash_region.len = FLASH_BUF_SIZE;
+				flash_write_bytes(flash_buf);
 				if (i%4 == 0) write_char('.');
 			}
-			print_string("Done.\nResetting now");
-			delay(200);
-			reset_chip();
+			print_string("Done.\n");
 		}
-		print_string("Checksum incorrect, please upload the image again\n");
-		print_string("Erasing bad uploaded flash image\n");
-		dest = FIRMWARE_UPLOAD_START;
-		for (register uint8_t i=0; i < 128; i++) {
+#endif
+#ifndef BRIDGE_LAYOUT
+		blocks = CONFIG_START/FLASH_BUF_SIZE; // keep the active config sector
+#else
+		blocks = FIRMWARE_IMAGE_SIZE/FLASH_BUF_SIZE; // full image incl. the injected config
+#endif
+	}
+
+	print_string("Update in progress, moving firmware to start of flash");
+	source = FIRMWARE_UPLOAD_START;
+	dest = 0x0;
+	for (i = 0; i < blocks; i++) {
+		flash_region.addr = source;
+		flash_region.len = FLASH_BUF_SIZE;
+		flash_read_bulk(flash_buf);
+		if (i%8 == 0) {
 			flash_region.addr = dest;
 			flash_sector_erase();
-			dest += 0x1000;
+			if (i%16 == 0) write_char('.');
 		}
+		flash_region.addr = dest;
+		flash_region.len = FLASH_BUF_SIZE;
+		flash_write_bytes(flash_buf);
+		dest += FLASH_BUF_SIZE;
+		source += FLASH_BUF_SIZE;
 	}
-	else
+	print_string("Done.\nDeleting uploaded flash image");
+	dest = FIRMWARE_UPLOAD_START;
+	for (uint16_t k=0; k < FIRMWARE_IMAGE_SIZE/FLASH_SECTOR_SIZE; k++) // TODO: Erasing the entire upload area is probably not necessary
 	{
-		print_string("no update image found.\n");
+		flash_region.addr = dest;
+		flash_sector_erase();
+		dest += FLASH_SECTOR_SIZE;
+		if (k%4 == 0) write_char('.');
 	}
+	print_string("Done.\nResetting now");
+	delay(200);
+	reset_chip();
 }
 
 

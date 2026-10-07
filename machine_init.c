@@ -1,5 +1,5 @@
 /*
- * Per-machine one-shot boot hooks, hosted in BANK2 so board-specific
+ * Per-machine one-shot boot hooks, hosted in BANK6 so board-specific
  * tables and code do not consume the common bank.
  */
 #include <stdint.h>
@@ -10,8 +10,13 @@
 #include "rtl837x_regs.h"
 #include "rtl837x_common.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK6
+#pragma constseg BANK6
+#endif
 
 #if defined(MACHINE_KP_9000_6XH_X2) || \
 	defined(MACHINE_KP_9000_6XH_X2_V2_1) || \

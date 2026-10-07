@@ -49,6 +49,8 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build
         run: make CI=1 MACHINE=${{ matrix.machine }}
+      - name: Banking check
+        run: python3 tools/check_banking.py --build-dir output/${{ matrix.machine }}
       - name: Check memory
         run: |
           out=output/${{ matrix.machine }}
@@ -60,7 +62,7 @@ jobs:
             echo "| | free bytes |"
             echo "|---|---|"
             echo "| stack | $stack |"
-            for b in BANK1 BANK2 BANK3; do
+            for b in BANK1 BANK2 BANK3 BANK4 BANK5 BANK6 BANK7 BANK8 BANK9 BANK10; do
               size=$(awk -v b=$b '$1 == b { print $3; exit }' $out/rtlplayground.map)
               echo "| $b | $((49152 - 16#$size)) |"
             done
@@ -69,6 +71,11 @@ jobs:
             echo "::error::stack has ${stack:-?} bytes, below MIN_STACK=$MIN_STACK"
             exit 1
           fi
+      - name: Build bridge variant
+        run: |
+          make CI=1 BRIDGE=1 MACHINE=${{ matrix.machine }}
+          python3 tools/check_banking.py --build-dir output/${{ matrix.machine }}
+          test "$(wc -c < output/${{ matrix.machine }}/rtlplayground-*bridge-*.bin)" -eq 524288
       - uses: actions/upload-artifact@v7
         with:
           name: firmware-${{ matrix.machine }}

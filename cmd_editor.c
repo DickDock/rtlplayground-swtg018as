@@ -1,8 +1,13 @@
 #include "cmd_parser.h"
 #include "machine.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK3
+#pragma constseg BANK3
+#endif
 
 // Position in the serial buffer
 __xdata uint8_t l;

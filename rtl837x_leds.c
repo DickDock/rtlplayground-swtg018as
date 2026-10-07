@@ -19,8 +19,13 @@ extern __code const struct machine machine;
 
 #include "uip.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK2
 #pragma constseg BANK2
+#else
+#pragma codeseg BANK5
+#pragma constseg BANK5
+#endif
 
 extern __xdata uint8_t sfr_data[4];
 

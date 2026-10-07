@@ -18,7 +18,7 @@
 | Web API/页面路由 | `httpd/httpd.c`（端点表：`/cmd`、`/upload`、`/config`、`/login`…）+ `httpd/page_impl.c` |
 | 上游文档 | `doc/`：`lacp.md`、`qos_pfc.md`、`automation.md`、`vlan.md`、`stp.md`、`link_aggregation.md`… |
 | 主机侧测试 | `test/`（fork 带 lacp/port_hash/httpd_tx 的 shim 测试） |
-| 构建产物 | `output/`（`rtlplayground.bin` 为软链，指向 `output/<MACHINE>/` 里的 512KiB 成品） |
+| 构建产物 | `output/`（`rtlplayground.bin` 为软链，指向 `output/<MACHINE>/` 里的 1MiB 成品） |
 
 ## 2. 构建循环（macOS，环境已就绪）
 
@@ -28,7 +28,7 @@
 PATH="/opt/homebrew/opt/binutils/bin:$PATH" make
 ```
 
-- 产物：`output/rtlplayground.bin`（512 KiB，文件名含版本+commit）
+- 产物：`output/rtlplayground.bin`（1 MiB，文件名含版本+commit）
 - ⚠️ 改了 `config.txt` 或 `machine.h` 后先 `rm -rf output` 再 make（增量构建不会重新生成）
 - push 到 GitHub 后 Actions 可自动构建全机型镜像（首次需在仓库 Settings → Actions 启用）
 

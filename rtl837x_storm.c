@@ -5,8 +5,13 @@
 #include "rtl837x_storm.h"
 #include "machine.h"
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK3
 #pragma constseg BANK3
+#else
+#pragma codeseg BANK5
+#pragma constseg BANK5
+#endif
 
 extern __code const struct machine machine;
 extern __xdata uint8_t sfr_data[4];

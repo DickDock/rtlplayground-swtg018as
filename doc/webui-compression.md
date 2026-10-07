@@ -65,11 +65,10 @@ Build on any machine (the Web UI is machine-independent):
 | total | 148,274 | 134,656 | 42,539 (28.7 %) |
 
 Sizes move with the UI itself; the number to watch is the gzip total.
-The HTML region of the flash image spans 192 KB
-(`HTML_LOCATION` 0x40000 up to `DEFAULT_CONFIG_LOCATION` 0x6f000), and
-each single file must stay below the `uint16_t` size limit of the file
-table, i.e. 64 KB gzip.  Treat ~40 KB gzip for `app.js` as the point
-where trimming is due.
+The HTML slot is the 64 KB sector-aligned window at `HTML_LOCATION`
+0xB0000, and each single file must stay below the `uint16_t` size
+limit of the file table, i.e. 64 KB gzip.  Treat ~40 KB gzip for the
+whole slot as the point where trimming is due.
 
 ## Notes
 

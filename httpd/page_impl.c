@@ -24,8 +24,13 @@
 
 #define L2_MAX_TRANSFER 30
 
+#ifdef BRIDGE_LAYOUT
 #pragma codeseg BANK1
 #pragma constseg BANK1
+#else
+#pragma codeseg BANK2
+#pragma constseg BANK2
+#endif
 
 extern __code const struct machine machine;
 extern __xdata uint8_t outbuf[TCP_OUTBUF_SIZE];
@@ -51,8 +56,9 @@ extern __xdata char sfp_module_model[2][17];
 extern __xdata char sfp_module_serial[2][17];
 extern __xdata uint8_t sfp_options[2];
 
-__code const uint8_t * __code const HTTP_RESPONCE_JSON = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n";
-__code const uint8_t * __code const HTTP_RESPONCE_TXT = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/plain\r\n\r\n";
+/* defined in rtlplayground.c (HOME): dereferenced from BANK1 and BANK2 */
+extern __code const uint8_t * __code const HTTP_RESPONCE_JSON;
+extern __code const uint8_t * __code const HTTP_RESPONCE_TXT;
 
 // Convert uint8_t to ascii HEX char push on html-buffer.
 void charhex_to_html(char c)
@@ -227,7 +233,7 @@ void counter_to_html(void)
 }
 
 
-void send_sfp_info(uint8_t sfp)
+void send_sfp_info(uint8_t sfp) __banked
 {
 	if ((sfp_pins_last & (0x1 << (sfp << 2)))
 	    || !(sfp_wake_pending[sfp] & SFP_WAKE_READY))
@@ -259,7 +265,7 @@ void sfp_send_data(uint8_t slot, uint8_t reg, uint8_t len)
 }
 
 
-void send_basic_info(void)
+void send_basic_info(void) __banked
 {
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	dbg_string("send_basic_info called\n");
@@ -324,7 +330,7 @@ void send_basic_info(void)
 }
 
 
-void send_vlan(uint16_t vlan)
+void send_vlan(uint16_t vlan) __banked
 {
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	dbg_string("sending VLAN\n");
@@ -355,7 +361,7 @@ void send_vlan(uint16_t vlan)
  * Only accepts physical port 1..9.
  * Returns an error if the port physical don't exists.
  */
-bool send_counters(uint8_t phys_port)
+bool send_counters(uint8_t phys_port) __banked
 {
 	uint8_t phys_port_idx = phys_port - 1;
 	if (phys_port_idx > (machine.max_port - machine.min_port))
@@ -385,7 +391,7 @@ err:
 }
 
 
-void send_l2(uint16_t idx)
+void send_l2(uint16_t idx) __banked
 {
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	dbg_string("sending L2\n");
@@ -503,7 +509,7 @@ void send_l2(uint16_t idx)
 }
 
 
-void l2_delete(uint16_t idx)
+void l2_delete(uint16_t idx) __banked
 {
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	dbg_string("L2 DELETE\n");
@@ -560,7 +566,7 @@ void l2_delete(uint16_t idx)
 }
 
 
-void send_mirror(void)
+void send_mirror(void) __banked
 {
 	dbg_string("send_mirror called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -594,7 +600,7 @@ void send_mirror(void)
 }
 
 
-void send_lag(void)
+void send_lag(void) __banked
 {
 	dbg_string("send_lag called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -643,7 +649,7 @@ static void bridge_to_html(void)
 }
 
 
-void send_stp(void)
+void send_stp(void) __banked
 {
 	uint8_t i, j, st, dsg;
 
@@ -761,7 +767,7 @@ void send_stp(void)
 /* LACP protocol status for the LAG page ("/lacp.json"). State variables are
  * exported read-only via rtl837x_lacp.h; hardware trunk membership itself is
  * already visible through send_lag() (it reads the trunk registers). */
-void send_lacp(void)
+void send_lacp(void) __banked
 {
 	dbg_string("send_lacp called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -813,7 +819,7 @@ void send_lacp(void)
 }
 
 
-void send_eee(void)
+void send_eee(void) __banked
 {
 	dbg_string("send_eee called\nsending EEE status\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -862,7 +868,7 @@ void send_eee(void)
 }
 
 
-void send_bandwidth(void)
+void send_bandwidth(void) __banked
 {
 	dbg_string("send_bandwidth called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -905,7 +911,7 @@ void send_bandwidth(void)
 }
 
 
-void send_storm(void)
+void send_storm(void) __banked
 {
 	__xdata uint8_t i, t, idx;
 
@@ -939,7 +945,7 @@ void send_storm(void)
 }
 
 
-void send_mtu(void)
+void send_mtu(void) __banked
 {
 	dbg_string("send_mtu called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
@@ -962,7 +968,7 @@ void send_mtu(void)
 }
 
 
-void send_status(void)
+void send_status(void) __banked
 {
 	slen = strtox(outbuf, HTTP_RESPONCE_JSON);
 	dbg_string("sending status\n");
@@ -1093,7 +1099,7 @@ void send_status(void)
 }
 
 
-void send_config(void)
+void send_config(void) __banked
 {
 	dbg_string("send_config called\n");
 	__xdata uint32_t pos = CONFIG_START;
@@ -1137,7 +1143,7 @@ found_end:
 	slen += valid_len;
 }
 
-void send_cmd_log(void)
+void send_cmd_log(void) __banked
 {
 	dbg_string("send_cmd_log called\n");
 	slen = strtox(outbuf, HTTP_RESPONCE_TXT);
@@ -1155,7 +1161,7 @@ void send_cmd_log(void)
 }
 
 
-void send_vlanlist(void)
+void send_vlanlist(void) __banked
 {
 	/* Worst case per entry: {"id":4094,"name":"<117-char name>"} = 138 bytes
 	 * (name bound: CMD_BUF_SIZE=128 minus command prefix); +1 for closing ']'.
