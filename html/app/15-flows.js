@@ -71,9 +71,9 @@ function scLoad(){
         tr.addEventListener("change",function(){tr.dataset.dirty="1"});
         tr.insertCell().textContent=n;
         SC_TYPES.forEach(function(ty){
-          tr.insertCell().appendChild(h("span",{style:"display:flex;gap:4px"},[
+          tr.insertCell().appendChild(h("span",{class:"hrow",style:"gap:4px;flex-wrap:nowrap;margin:0"},[
             h("input",{class:"in sm",id:"scv"+ty+n,type:"number",min:"1",step:"1",placeholder:"pps"}),
-            h("select",{class:"in",id:"scu"+ty+n},[
+            h("select",{class:"in",id:"scu"+ty+n,style:"width:5.5em"},[
               h("option",{value:"pps",text:"pps"}),
               h("option",{value:"kbps",text:"kbit/s"}),
             ]),
@@ -116,10 +116,10 @@ function buildMirror(){
   if(sel.options.length)return;
   for(var p=1;p<=S.n;p++)sel.appendChild(h("option",{value:p,text:t("c_port")+" "+p}));
   var tb=$("mtable").tBodies[0];
-  var hd=tb.insertRow();hd.insertCell().className="mut";
-  var r=tb.insertRow();r.insertCell().textContent=t("m_mirror");
+  var hd=tb.insertRow(),hc0=hd.insertCell();hc0.className="mut";
+  var r=tb.insertRow(),rl=r.insertCell();rl.className="mut";rl.textContent=t("m_mirror");
   for(var q=1;q<=S.n;q++)(function(q){
-    hd.insertCell().innerHTML="<b>"+q+"</b>";
+    var hc=hd.insertCell();hc.className="mut";hc.innerHTML='<b class="mono">'+q+"</b>";
     var seg=h("span",{class:"seg",id:"mm"+q});
     ["-","RX","TX",t("m_both")].forEach(function(s,ix){
       seg.appendChild(h("button",{text:s,"data-v":ix,onclick:function(){

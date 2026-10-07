@@ -39,13 +39,20 @@
     area is the second half); boards with smaller flashes keep working but can only be
     reflashed through the SOIC-8 fixture or the serial installer.
 - Web UI
-  - Login page redesigned: a glassmorphism card over a glowing perspective grid ("network
-    horizon"), password visibility toggle, spinner while submitting and a shake on a wrong
-    password, in both light and dark themes.
+  - 界面全面重做为「Obsidian」精密暗色设计系统：dark-first 令牌体系（#0B0E14 深灰蓝底、
+    侧栏再深一档、hairline 细边框分层、青蓝 #3FB9E8 单一强调）、全站 tabular-nums 等宽数字、
+    圆角收敛为 6/10/14 三档；亮色主题完整适配，正文三级文字与全部状态徽章对比度 ≥4.5:1。
+    JS 逻辑层、HTTP 端点与数据流零变化——仅重构视觉层与 DOM/render 输出，56 项宿主测试全绿。
+  - 登录页：简约居中卡片，以手绘 8+2 口交换机正视图为视觉锚点（PWR/SYS 指示灯、每口链路
+    灯、SFP+ 口微光），保留密码显隐切换、提交 spinner、错误 shake 与中英文案；页面不再出现
+    "RTLPlayground" 品牌字样（取代本版本早先的玻璃拟态"网络地平线"设计）。
   - Dashboard: the per-port throughput bar list is removed (the traffic table already carries
     the numbers).  The live chart gains an error-rate line, Y-axis tick labels, a 2m/5m/15m
     window selector and a crosshair tooltip; the SFP DDM cards keep their own fluid grid,
     which also fixes the collapsed gap above the traffic table.
+  - 状态语义修正：端口「已禁用」（admin-down，虚线幽灵徽章）与「未连接」（link-down，中性
+    灰）在前面板、配置表与流量表中全面区分；错误计数为 0 时中性色、非零才标红；down 端口卡
+    降透明度只压数据不压徽章；亮色主题速率徽章墨色加深至达标。
   - The nav footer shows just the firmware version in the `v<ver>+<hash>` form the images
     are named with, instead of the prefixed "RTLPlayground <version>".
   - Bridge firmware (`make BRIDGE=1`, `-bridge` images): a 512 KiB build running in the

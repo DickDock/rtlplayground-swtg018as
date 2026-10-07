@@ -15,6 +15,7 @@ function pollStatus(){
         if(p.isSFP){slot++;S.sfpSlot[p.portNum-1]=slot;}
       });
       buildStrip();
+      navCount("ports",S.n);
     }
     if(S.prev){
       var dt=(now-S.prevT)/1000;

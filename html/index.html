@@ -5,298 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Switch</title>
 <link rel="icon" href="/favicon.ico">
-<style>
-:root{
-  --bg:#f5f6f8;--panel:#ffffff;--panel2:#eef0f3;--bd:#dfe3e9;--bd2:#cbd2db;
-  --fg:#181d25;--fg2:#626c7a;
-  --ac:#2e6fd8;--ac2:#1e5bc0;--acfg:#ffffff;--sel:rgba(46,111,216,.11);
-  --ok:#218a4c;--bad:#cf4437;--warn:#9a6b00;
-  --overlay:rgba(15,21,30,.45);
-  --shadow-pop:0 2px 6px rgba(15,21,30,.08),0 16px 44px rgba(15,21,30,.16);
-  --s10:#c26a3c;--s100:#97750c;--s1g:#2f8746;--s2g5:#0e8579;--s5g:#3b74d6;--s10g:#7e5cd6;
-  --pc:var(--s1g);
-  --r:10px;--r-s:7px;--r-l:14px;--r-pill:999px;
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,
-         "PingFang SC","Hiragino Sans","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  --t1:.14s;--t2:.2s;--ease:cubic-bezier(.4,0,.2,1);--pop:cubic-bezier(.34,1.4,.64,1);
-}
-:root[data-theme="dark"]{
-  --bg:#0e1217;--panel:#161c24;--panel2:#1e2630;--bd:#28303c;--bd2:#3a4553;
-  --fg:#dfe6ee;--fg2:#8b98a7;
-  --ac:#5b9bf0;--ac2:#7db3f5;--acfg:#07203f;--sel:rgba(91,155,240,.16);
-  --ok:#57bd77;--bad:#ef7166;--warn:#d7a94b;
-  --overlay:rgba(3,6,10,.62);
-  --shadow-pop:0 2px 6px rgba(0,0,0,.5),0 16px 44px rgba(0,0,0,.55);
-  --s10:#e09a6a;--s100:#d4b04f;--s1g:#6cc178;--s2g5:#45c6b4;--s5g:#6da7e8;--s10g:#b096ef;
-}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%}
-body{font:14px/1.5 var(--font);background:var(--bg);color:var(--fg);display:flex}
-button,input,select,textarea{font:inherit;color:inherit}
-a{color:var(--ac);text-decoration:none}
-*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--fg2) 40%,transparent) transparent}
-::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--fg2) 35%,transparent);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
-:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-#nav{
-  width:212px;flex:none;background:var(--panel);border-right:1px solid var(--bd);
-  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
-}
-#brand{display:flex;align-items:center;gap:10px;padding:16px 16px 10px;font-weight:600;font-size:14px;letter-spacing:-.01em}
-#brand svg{flex:none;stroke:var(--ac);background:var(--sel);border-radius:9px;padding:5px;box-sizing:content-box}
-#brand span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#navlist{list-style:none;padding:6px 10px;overflow-y:auto;flex:1}
-#navlist li{
-  position:relative;display:flex;align-items:center;gap:10px;padding:7px 11px;margin:1px 0;
-  border-radius:var(--r-s);cursor:pointer;color:var(--fg2);font-weight:500;font-size:13.5px;
-  transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
-}
-#navlist li svg{flex:none;stroke:currentColor}
-#navlist li:hover{background:color-mix(in srgb,var(--ac) 6%,transparent);color:var(--fg)}
-#navlist li.act{background:var(--sel);color:var(--ac)}
-#navlist li.act::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:2px;background:var(--ac)}
-#navfoot{padding:10px 16px;border-top:1px solid var(--bd);font-size:11px;color:var(--fg2);word-break:break-word;line-height:1.5}
-#wrap{flex:1;min-width:0;display:flex;flex-direction:column}
-#top{
-  display:flex;align-items:center;gap:10px;padding:10px 22px;
-  background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5;
-}
-#burger{display:none;background:none;border:0;cursor:pointer;padding:4px}
-#ttitle{font-size:14.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#dirty{
-  display:none;font-size:12px;font-weight:600;color:var(--warn);
-  border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);
-  background:color-mix(in srgb,var(--warn) 12%,transparent);
-  border-radius:var(--r-pill);padding:3px 11px;white-space:nowrap;
-}
-#dirty.show{display:inline-block}
-select.ctl,button.ctl{
-  background:var(--panel);border:1px solid var(--bd2);border-radius:var(--r-s);
-  padding:6px 13px;cursor:pointer;font-size:13px;white-space:nowrap;
-  transition:background var(--t1) var(--ease),border-color var(--t1) var(--ease),color var(--t1) var(--ease);
-}
-button.pri{background:var(--ac);color:var(--acfg);border-color:transparent;font-weight:600}
-button.pri:hover{background:var(--ac2)}
-button.ctl:hover{background:var(--panel2)}
-button.ctl:active,button.pri:active{transform:translateY(1px)}
-button:disabled{opacity:.45;cursor:default;transform:none}
-input.in,select.in,textarea.in{
-  background:var(--panel);border:1px solid var(--bd2);border-radius:var(--r-s);padding:6px 10px;outline:none;
-  transition:border-color var(--t1) var(--ease),box-shadow var(--t1) var(--ease);
-}
-input.in:hover,select.in:hover,textarea.in:hover{border-color:color-mix(in srgb,var(--fg2) 45%,var(--bd2))}
-input.in:focus,select.in:focus,textarea.in:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--sel)}
-input.in:disabled,select.in:disabled,textarea.in:disabled{opacity:.45;cursor:default}
-input.in.sm{width:7em}
-select.in,select.ctl{
-  appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23626c7a' stroke-width='1.5'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;
-}
-main{padding:20px 22px 48px;max-width:1400px;width:100%}
-section.tab{display:none}
-section.tab.act{display:block}
-.card{
-  background:var(--panel);border:1px solid var(--bd);border-radius:var(--r-l);
-  padding:16px 18px;margin-bottom:18px;
-}
-.card h2{font-size:13.5px;font-weight:600;letter-spacing:-.01em;margin-bottom:12px;color:var(--fg);display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px}
-.card h2 .hint{font-weight:400;font-size:12px;color:var(--fg2);letter-spacing:0}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start}
-.grid2 .card{margin-bottom:0}
-table.t{width:100%;border-collapse:collapse;font-size:13px}
-table.t thead th{
-  position:sticky;top:0;background:var(--panel);z-index:1;
-  text-align:left;font-weight:600;color:var(--fg2);font-size:11.5px;letter-spacing:.02em;
-  padding:7px 10px;border-bottom:1px solid var(--bd);white-space:nowrap;
-}
-table.t th[data-sort]{cursor:pointer;user-select:none}
-table.t th[data-sort]:hover{color:var(--fg)}
-table.t td{
-  padding:7px 10px;border-bottom:1px solid color-mix(in srgb,var(--bd) 55%,transparent);
-  vertical-align:middle;font-variant-numeric:tabular-nums;
-}
-table.t tbody tr:last-child td{border-bottom:0}
-table.t tbody tr{transition:background var(--t1) var(--ease)}
-table.t tbody tr:hover td{background:color-mix(in srgb,var(--ac) 5%,transparent)}
-.num{font-variant-numeric:tabular-nums;text-align:right}
-table.t th.num{text-align:right}
-table.t th.num,table.t td.num{width:1%}
-table.t td.num{white-space:nowrap}
-.arrow{font-size:9px;color:var(--ac)}
-.scrollx{overflow-x:auto;max-width:100%}
-pre.cfg{
-  background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-s);padding:10px 12px;
-  font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-all;
-}
-textarea.cfg{
-  width:100%;min-height:200px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-s);
-  padding:10px 12px;font:12px/1.6 var(--mono);resize:vertical;outline:none;
-}
-.mono{font-family:var(--mono);font-size:12px}
-.mut{color:var(--fg2)}
-.small{font-size:12px}
-label.row{display:flex;align-items:center;gap:10px;margin:8px 0}
-label.row span.lb{width:110px;flex:none;color:var(--fg2);font-size:13px}
-input[type=checkbox]{accent-color:var(--ac)}
-.switch{position:relative;display:inline-block;width:36px;height:20px;flex:none}
-.switch input{opacity:0;width:0;height:0}
-.switch i{position:absolute;inset:0;background:color-mix(in srgb,var(--fg2) 35%,var(--bg));border-radius:20px;transition:background var(--t2) var(--ease);cursor:pointer}
-.switch i:before{
-  content:"";position:absolute;width:16px;height:16px;border-radius:50%;
-  left:2px;top:2px;background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.2);
-  transition:transform var(--t2) var(--ease);
-}
-.switch input:checked+i{background:var(--ac)}
-.switch input:checked+i:before{transform:translateX(16px)}
-.badge{display:inline-block;font-size:11px;font-weight:600;line-height:1.4;border-radius:var(--r-pill);padding:2px 9px;background:var(--panel2);color:var(--fg2)}
-.badge:empty{display:none}
-.badge.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 13%,var(--panel))}
-.badge.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 13%,var(--panel))}
-.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--bd);border-radius:var(--r-s);padding:2px;gap:2px}
-.seg button{
-  background:transparent;border:0;padding:3px 9px;cursor:pointer;font-size:12px;color:var(--fg2);
-  border-radius:5px;transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
-}
-.seg button.on{background:var(--ac);color:var(--acfg)}
-.dangerzone{border-color:color-mix(in srgb,var(--bad) 30%,var(--bd));background:color-mix(in srgb,var(--bad) 4%,var(--panel))}
-button.danger{background:var(--bad);color:#fff;border-color:transparent;font-weight:600}
-button.danger:hover{background:color-mix(in srgb,var(--bad) 88%,var(--fg))}
-input[type=file]::file-selector-button{
-  background:var(--panel2);border:1px solid var(--bd2);border-radius:var(--r-s);
-  padding:5px 10px;margin-right:10px;cursor:pointer;color:var(--fg);
-}
-#fwprog{accent-color:var(--ac);height:6px;border:0}
-#strip{display:flex;gap:10px;flex-wrap:wrap;padding:4px 0 2px}
-.port{
-  width:54px;border:2px solid var(--bd);border-radius:9px;padding:6px 0 4px;
-  text-align:center;cursor:pointer;background:var(--panel2);position:relative;
-  transition:transform var(--t1) var(--ease),box-shadow var(--t1) var(--ease),border-color var(--t1) var(--ease);
-}
-.port:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.14)}
-.port.sfp{width:62px}
-.port .pn{font-weight:600;font-size:13px}
-.port .ps{font-size:10px;color:var(--fg2);display:block;line-height:1.2}
-.port .jack{
-  display:block;width:20px;height:13px;margin:3px auto 2px;border-radius:2px;
-  border:2px solid var(--fg2);border-top-width:5px;opacity:.55;
-}
-.port.sfp .jack{width:30px;height:11px;border-top-width:3px}
-.port.up{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 14%,var(--panel2))}
-.port.up .jack{border-color:var(--pc);opacity:1}
-.port.up .ps{color:var(--pc);font-weight:600}
-.port.dis{opacity:.45;border-style:dashed}
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border-radius:var(--r-pill);padding:3px 11px;font-size:12px;color:var(--fg2);font-weight:600}
-.chip b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
-.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
-.dashchips{display:inline-flex;gap:8px;flex-wrap:wrap;font-weight:400;letter-spacing:0}
-.chipset{display:flex;gap:6px;flex-wrap:wrap}
-.dashgrid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start;margin-bottom:18px}
-.dashgrid .card{margin-bottom:0}
-/* SFP DDM cards take a fluid grid of their own; :empty keeps the reserved
- * gap from showing when no module reports DDM data. */
-#dsfpcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start;margin-bottom:18px}
-#dsfpcards:empty{display:none}
-#dsfpcards .card{margin-bottom:0}
-.chartwrap{display:flex;gap:8px;margin:6px 0 2px}
-.yaxis{position:relative;width:38px;flex:none}
-.yaxis span{
-  position:absolute;right:0;transform:translateY(-50%);
-  font-size:10.5px;line-height:1;color:var(--fg2);font-variant-numeric:tabular-nums;white-space:nowrap;
-}
-.yaxis span:nth-child(1){top:2.9%}
-.yaxis span:nth-child(2){top:50%}
-.yaxis span:nth-child(3){top:97.1%}
-.chartbox{position:relative;flex:1;height:190px}
-.chartbox svg{width:100%;height:100%;display:block}
-.chartbox .gl{stroke:var(--bd);stroke-width:1;opacity:.55;vector-effect:non-scaling-stroke;fill:none}
-.chartbox .ln{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-#rxline{stroke:var(--ac)}
-#txline{stroke:var(--s5g)}
-#errline{stroke:var(--bad);stroke-dasharray:5 4;stroke-width:1.5;opacity:.85}
-#grx stop{stop-color:var(--ac)}
-#gtx stop{stop-color:var(--s5g)}
-.xcross{stroke:var(--fg2);stroke-width:1;stroke-dasharray:3 3;opacity:.6;vector-effect:non-scaling-stroke;pointer-events:none}
-.tip{
-  position:absolute;top:6px;z-index:2;pointer-events:none;white-space:nowrap;
-  background:var(--panel);border:1px solid var(--bd);border-radius:var(--r-s);
-  padding:6px 9px;font-size:11.5px;line-height:1.6;box-shadow:var(--shadow-pop);
-}
-.tip .tt{color:var(--fg2);font-size:10.5px}
-.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
-.tip b{font-variant-numeric:tabular-nums;float:right;margin-left:12px}
-.legend{display:flex;gap:14px;font-size:12px;color:var(--fg2);align-items:center}
-.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
-.chartfoot{justify-content:flex-end;gap:14px}
-.sensgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
-.sens{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-s);padding:10px 12px}
-.sens .sv{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
-.sens .sl{font-size:11.5px;color:var(--fg2);margin-top:2px}
-.stdots{display:inline-flex;gap:3px;align-items:center}
-.stdots i{width:8px;height:8px;border-radius:50%;background:var(--panel2);border:1px solid var(--bd)}
-.stdots i.on{background:var(--ok);border-color:var(--ok)}
-.stdots i.warn{background:var(--warn);border-color:var(--warn)}
-.spdots{display:inline-flex;gap:4px}
-.spdots span{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:var(--r-pill);background:var(--panel2);color:var(--fg2);opacity:.45}
-.spdots span.on{background:color-mix(in srgb,var(--ok) 13%,var(--panel));color:var(--ok);opacity:1}
-.empt{padding:6px 0;color:var(--fg2);font-size:13px}
-label.pchk{position:relative}
-label.pchk input{position:absolute;opacity:0;pointer-events:none}
-label.pchk span{
-  display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:var(--r-pill);
-  border:1px solid var(--bd);background:var(--panel);font-size:12px;font-weight:600;cursor:pointer;
-  color:var(--fg2);transition:background var(--t1) var(--ease),border-color var(--t1) var(--ease),color var(--t1) var(--ease);
-  user-select:none;
-}
-label.pchk:hover span{border-color:color-mix(in srgb,var(--fg2) 45%,var(--bd))}
-label.pchk input:checked+span{background:var(--sel);border-color:var(--ac);color:var(--ac)}
-label.pchk input:focus-visible+span{outline:2px solid var(--ac);outline-offset:2px}
-label.pchk span i{width:6px;height:6px;border-radius:50%;background:color-mix(in srgb,var(--fg2) 40%,var(--bd))}
-label.pchk span i.up{background:var(--ok)}
-#toasts{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;gap:8px}
-.toast{
-  background:var(--panel);border:1px solid var(--bd);border-left:4px solid var(--ac);
-  border-radius:var(--r);padding:10px 14px;box-shadow:var(--shadow-pop);font-size:13px;max-width:340px;
-  animation:tin .24s var(--pop);
-}
-.toast.ok{border-left-color:var(--ok)}.toast.err{border-left-color:var(--bad)}
-@keyframes tin{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
-#mback{
-  position:fixed;inset:0;background:var(--overlay);z-index:40;display:none;
-  align-items:flex-start;justify-content:center;padding:6vh 16px;
-}
-#mback.show{display:flex;animation:fadein var(--t2) var(--ease)}
-#modal{
-  background:var(--panel);border:1px solid var(--bd);border-radius:var(--r-l);box-shadow:var(--shadow-pop);
-  width:min(760px,96vw);max-height:86vh;display:flex;flex-direction:column;
-}
-#mback.show #modal{animation:popin .18s var(--pop)}
-@keyframes fadein{from{opacity:0}}
-@keyframes popin{from{transform:scale(.97) translateY(-4px);opacity:0}}
-#mhead{display:flex;align-items:center;padding:13px 20px;border-bottom:1px solid var(--bd)}
-#mtitle{font-weight:600;font-size:15px;flex:1}
-#mx{background:none;border:0;font-size:19px;cursor:pointer;color:var(--fg2);padding:0 2px}
-#mbody{padding:16px 20px;overflow:auto}
-#mfoot{padding:13px 20px;border-top:1px solid var(--bd);display:flex;gap:10px;justify-content:flex-end}
-#mfoot:empty{display:none}
-@media (max-width:1000px){
-  #nav{width:190px}
-  main{padding:16px 14px 40px}
-}
-@media (max-width:760px){
-  #nav{position:fixed;left:-216px;transition:left var(--t2) var(--ease);z-index:30;box-shadow:var(--shadow-pop)}
-  #nav.open{left:0}
-  #burger{display:block}
-  #top{padding:8px 10px;gap:7px}
-  #ttitle{font-size:14px}
-  #dirty{padding:2px 7px}
-  main{padding:12px 10px 40px}
-  .dashgrid{grid-template-columns:1fr}
-}
-</style>
 <script>
 (function(){
   var pref="auto";
@@ -306,15 +14,533 @@ label.pchk span i.up{background:var(--ok)}
   document.documentElement.dataset.theme=pref==="dark"||(pref!=="light"&&dark)?"dark":"light";
 })();
 </script>
+<style>
+/* ===== Obsidian · precision dark engineering console · dark-first ===== */
+:root{
+  color-scheme:dark;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,
+         "PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --bg:#0B0E14;--glass:rgba(11,14,20,.82);--bg-side:#07090D;
+  --s1:#10141C;--s2:#161C27;--s3:#1D2532;--s4:#283244;--s-in:#0C1018;
+  --bd:#1B2230;--bd2:#2A3547;--grid:#151C28;
+  --fg:#E8ECF4;--fg2:#A6B0C1;--fg3:#7A8596;--fg4:#5D697A;
+  --ac:#3FB9E8;--ac2:#6ACCF2;--ac-ink:#062433;
+  --ac-strong:#3FB9E8;--ac-strong-h:#6ACCF2;
+  --sel:rgba(63,185,232,.13);--ac-bd:rgba(63,185,232,.40);--ring:rgba(63,185,232,.22);
+  --ok:#3ED598;--up:var(--ok);--ok-bd:rgba(62,213,152,.35);--ok-dim:rgba(62,213,152,.12);
+  --warn:#E8A33D;--warn-bd:rgba(232,163,61,.38);--warn-dim:rgba(232,163,61,.13);
+  --err:#E5484D;--err-bd:rgba(229,72,77,.40);--err-dim:rgba(229,72,77,.13);
+  --bad:var(--err);
+  --down:#7B889C;--down-bd:rgba(123,136,156,.32);--down-dim:rgba(123,136,156,.12);
+  --mask:rgba(4,7,12,.58);
+  --shadow-pop:0 18px 50px rgba(0,0,0,.5);
+  /* link-speed palette — names referenced by app.js LINKC / chart legend */
+  --s10:#E0916B;--s100:#D2AE55;--s1g:#45C98C;--s2g5:#38CFC0;--s5g:#6DA7E8;--s10g:#B49AEE;
+  --pc:var(--s1g);
+  --r-s:6px;--r:10px;--r-l:14px;
+  --t1:.14s;--t2:.2s;--ease:cubic-bezier(.4,0,.2,1);--pop:cubic-bezier(.34,1.4,.64,1);
+}
+[data-theme="light"]{
+  color-scheme:light;
+  --bg:#F2F4F8;--glass:rgba(242,244,248,.85);--bg-side:#E8ECF2;
+  --s1:#FFFFFF;--s2:#F5F7FA;--s3:#EBEFF5;--s4:#DCE3EC;--s-in:#FFFFFF;
+  --bd:#E1E6EE;--bd2:#C8D2E0;--grid:#EDF1F6;
+  --fg:#17202C;--fg2:#3E4C63;--fg3:#525F75;--fg4:#5C6B80;
+  --ac:#0B82B0;--ac2:#0A7199;--ac-ink:#FFFFFF;
+  /* solid controls need white ink ≥4.5:1: #0B82B0 is only ~4.0, so filled
+   * buttons/segments use the darker --ac-strong tier (#0A7199 ≈ 5.5:1) */
+  --ac-strong:#0A7199;--ac-strong-h:#095F82;
+  --sel:rgba(11,130,176,.10);--ac-bd:rgba(11,130,176,.35);--ring:rgba(11,130,176,.16);
+  --ok:#137345;--ok-bd:rgba(19,115,69,.32);--ok-dim:rgba(19,115,69,.09);
+  --warn:#9A6700;--warn-bd:rgba(154,103,0,.30);--warn-dim:rgba(154,103,0,.09);
+  --err:#C4383E;--err-bd:rgba(196,56,62,.32);--err-dim:rgba(196,56,62,.08);
+  --down:#5C6B80;--down-bd:rgba(92,107,128,.32);--down-dim:rgba(92,107,128,.10);
+  --mask:rgba(24,32,46,.38);
+  --shadow-pop:0 18px 50px rgba(23,34,51,.16);
+  /* light-theme speed inks darkened so 10px badge text clears 4.5:1 on its
+   * own dim fill (old #8F7012/#7A57C4 measured 3.79/4.32) */
+  --s10:#8F4A22;--s100:#6F570E;--s1g:#156B3F;--s2g5:#0D6A62;--s5g:#28619F;--s10g:#6440BE;
+}
+/* ===== base ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{
+  min-height:100%;font:13px/1.55 var(--font);
+  background:var(--bg);color:var(--fg);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-variant-numeric:tabular-nums;display:flex;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--ac);text-decoration:none}
+svg{display:block;flex:none}
+::selection{background:var(--sel)}
+*{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:5px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.mono{font-family:var(--mono);font-size:12px}
+.mut{color:var(--fg3)}
+.small{font-size:12px}
+.small.mut,.small .mut{font-size:12px}
+.hint{font-weight:400;font-size:11.5px;color:var(--fg3);letter-spacing:0}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.note{font-size:12px;color:var(--fg3);margin-top:8px;line-height:1.55}
+.empty{
+  padding:26px 16px;text-align:center;color:var(--fg3);font-size:12px;
+  border:1px dashed var(--bd2);border-radius:var(--r);margin:6px 0;
+}
+.empt{padding:8px 2px;color:var(--fg3);font-size:12.5px}
+/* ===== sidebar ===== */
+#nav{
+  width:224px;flex:none;background:var(--bg-side);border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:30;
+}
+#brand{display:flex;align-items:center;gap:10px;height:54px;padding:0 14px;border-bottom:1px solid var(--bd);flex:none}
+.bmark{
+  width:28px;height:28px;border-radius:var(--r-s);flex:none;
+  background:var(--sel);border:1px solid var(--ac-bd);color:var(--ac);
+  display:grid;place-items:center;
+}
+.bmark svg{stroke:currentColor;stroke-width:1.5}
+.btxt{min-width:0;line-height:1.25}
+#brandname{display:block;font-size:13px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bsub{display:block;font-size:10.5px;color:var(--fg3);letter-spacing:.02em;white-space:nowrap}
+#navlist{list-style:none;padding:8px 10px 10px;overflow-y:auto;flex:1}
+#navlist li{
+  position:relative;display:flex;align-items:center;gap:9px;height:32px;padding:0 9px;
+  border-radius:var(--r-s);cursor:pointer;color:var(--fg2);font-size:12.5px;font-weight:500;
+  transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+#navlist li+li{margin-top:1px}
+#navlist li svg{color:var(--fg3);stroke:currentColor;stroke-width:1.5;transition:color var(--t1) var(--ease)}
+#navlist li:hover{background:var(--s2);color:var(--fg)}
+#navlist li:hover svg{color:var(--fg2)}
+#navlist li.act{background:var(--s3);color:var(--fg);font-weight:600}
+#navlist li.act svg{color:var(--ac)}
+#navlist li.act::before{
+  content:"";position:absolute;left:-10px;top:7px;bottom:7px;width:2.5px;
+  border-radius:0 3px 3px 0;background:var(--ac);
+}
+/* section label rows between nav groups (概览 / 交换 / 管理) */
+#navlist li.navgrp{
+  height:auto;padding:12px 9px 4px;margin-top:5px;cursor:default;pointer-events:none;
+  font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--fg4);background:none;
+}
+#navlist li.navgrp:first-child{margin-top:0;padding-top:6px}
+#navlist li.navgrp:hover{background:none;color:var(--fg4)}
+.nav-count{
+  margin-left:auto;font-size:10.5px;color:var(--fg4);
+  font-variant-numeric:tabular-nums;font-weight:500;
+}
+#navlist li.act .nav-count{color:var(--fg2)}
+#navfoot{
+  flex:none;border-top:1px solid var(--bd);padding:10px 14px 12px;
+  font-size:11px;color:var(--fg3);line-height:1.5;word-break:break-word;
+}
+#fver{font-family:var(--mono);font-size:10.5px;color:var(--fg4)}
+/* ===== topbar ===== */
+#wrap{flex:1;min-width:0;display:flex;flex-direction:column}
+#top{
+  display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;flex:none;
+  background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:25;
+}
+#burger{display:none;background:none;border:0;cursor:pointer;color:var(--fg2);padding:5px;margin-left:-5px;border-radius:var(--r-s)}
+#burger:hover{background:var(--s2);color:var(--fg)}
+#ttitle{font-size:14.5px;font-weight:700;letter-spacing:.01em;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tsub{
+  flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:11.5px;color:var(--fg3);margin-left:2px;padding-left:12px;border-left:1px solid var(--bd2);
+}
+#dirty{
+  display:none;font-size:11px;font-weight:600;color:var(--warn);line-height:1;
+  border:1px solid var(--warn-bd);background:var(--warn-dim);
+  border-radius:var(--r-s);padding:5px 9px;white-space:nowrap;flex:none;
+}
+#dirty::before{
+  content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:currentColor;margin-right:6px;vertical-align:1px;
+}
+#dirty.show{display:inline-block}
+/* ===== buttons ===== */
+button.ctl,select.ctl{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:28px;padding:0 12px;background:none;
+  border:1px solid var(--bd2);border-radius:var(--r);
+  font-size:12px;font-weight:600;color:var(--fg2);cursor:pointer;white-space:nowrap;
+  transition:background var(--t1) var(--ease),border-color var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+button.ctl:hover,select.ctl:hover{background:var(--s2);color:var(--fg)}
+button.ctl:active{transform:translateY(.5px)}
+button.pri{background:var(--ac-strong);border-color:var(--ac-strong);color:var(--ac-ink)}
+button.pri:hover{background:var(--ac-strong-h);border-color:var(--ac-strong-h);color:var(--ac-ink)}
+button.danger{background:var(--err-dim);border-color:var(--err-bd);color:var(--err)}
+button.danger:hover{background:var(--err);border-color:var(--err);color:#fff}
+/* compact row-action icon button (✕ delete in MAC/VLAN tables): quiet ghost,
+ * red on hover — square to keep the .ctl height */
+button.ctl.iconb{width:28px;min-width:28px;height:28px;padding:0;color:var(--fg3)}
+button.ctl.iconb:hover{background:var(--err-dim);border-color:var(--err-bd);color:var(--err)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+button.pri:disabled:hover{background:var(--ac-strong);border-color:var(--ac-strong)}
+/* ===== inputs ===== */
+input.in,select.in,textarea.in{
+  height:30px;padding:0 10px;background:var(--s-in);
+  border:1px solid var(--bd2);border-radius:var(--r);
+  color:var(--fg);font-size:12.5px;outline:none;
+  transition:border-color var(--t1) var(--ease),box-shadow var(--t1) var(--ease);
+}
+textarea.in{height:auto;padding:8px 10px;resize:vertical;line-height:1.55}
+input.in::placeholder,textarea.in::placeholder{color:var(--fg4)}
+input.in:hover,select.in:hover,textarea.in:hover{border-color:var(--fg4)}
+input.in:focus,select.in:focus,textarea.in:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ring)}
+input.in:disabled,select.in:disabled,textarea.in:disabled{
+  opacity:.38;cursor:not-allowed;border-color:var(--bd);background:var(--s2);
+}
+input.in.sm{width:7em;flex:none}
+select.in,select.ctl{
+  appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237A8596' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+[data-theme="light"] select.in,[data-theme="light"] select.ctl{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23525F75' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+label.row{display:flex;align-items:center;gap:10px;margin:9px 0}
+label.row span.lb{width:110px;flex:none;color:var(--fg3);font-size:12.5px}
+label.row>input.in,label.row>select.in{flex:1;min-width:0}
+.hrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+input[type=checkbox],input[type=radio]{accent-color:var(--ac)}
+/* ===== switch ===== */
+.switch{position:relative;display:inline-block;width:30px;height:17px;flex:none}
+.switch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer;z-index:2}
+.switch i{
+  position:absolute;inset:0;border-radius:99px;background:var(--s3);
+  border:1px solid var(--bd2);transition:background var(--t2) var(--ease),border-color var(--t2) var(--ease);
+}
+.switch i::before{
+  content:"";position:absolute;width:11px;height:11px;border-radius:50%;
+  left:2px;top:2px;background:var(--fg3);transition:transform var(--t2) var(--ease),background var(--t2) var(--ease);
+}
+.switch input:checked+i{background:var(--ac);border-color:var(--ac)}
+.switch input:checked+i::before{transform:translateX(13px);background:var(--ac-ink)}
+.switch input:focus-visible+i{box-shadow:0 0 0 3px var(--ring)}
+/* ===== segmented control (segVal/segSet: .seg > button.on[data-v]) ===== */
+.seg{display:inline-flex;background:var(--s-in);border:1px solid var(--bd2);border-radius:var(--r-s);padding:2px;gap:2px}
+.seg button{
+  background:transparent;border:0;padding:3px 10px;cursor:pointer;font-size:11.5px;font-weight:600;
+  color:var(--fg3);border-radius:4px;white-space:nowrap;
+  transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--ac-strong);color:var(--ac-ink)}
+/* ===== VLAN editor + ingress matrix (12-vlan): port-number headers, row labels.
+ * Both cards must line up column for column, so they share one fixed layout:
+ * identical label column, equal 1fr port tracks, identical padding. ===== */
+#vedit,#ingress{table-layout:fixed;min-width:520px}
+#vedit td:first-child,#ingress td:first-child{width:110px}
+#vedit td.vh,#ingress td.vh{
+  font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.02em;
+  color:var(--fg3);text-align:center;padding:5px 6px;
+}
+#vedit td.vh b,#ingress td.vh b{font-weight:600}
+#vedit td.rlab,#ingress td.rlab{
+  font-family:inherit;font-size:11.5px;font-weight:600;color:var(--fg3);
+  text-align:right;padding-right:14px;white-space:nowrap;overflow:hidden;
+}
+#vedit td:not(.rlab),#ingress td:not(.rlab){text-align:center}
+#vedit .seg button{padding:3px 8px;min-width:24px}
+/* VID link in the VLAN list */
+#vtable tbody a:hover{text-decoration:underline}
+/* ===== poll-protection affordance (12-vlan / 14-links): elements marked
+ * data-dirty are skipped by the poller until applied — flag them amber ===== */
+#stpcfg tr[data-dirty] td{background:var(--warn-dim)}
+#stpcfg tr[data-dirty] td:first-child{box-shadow:inset 2.5px 0 0 var(--warn)}
+#stpcfg tr[data-dirty] .ctl{border-color:var(--warn-bd);color:var(--warn)}
+.card[data-dirty]{border-color:var(--warn-bd)}
+#stpbridge[data-dirty]{outline:1.5px solid var(--warn-bd);outline-offset:4px;border-radius:var(--r-s)}
+/* ===== port check pills (LAG members / hash fields) ===== */
+label.pchk{position:relative}
+label.pchk input{position:absolute;opacity:0;pointer-events:none}
+label.pchk span{
+  display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--r-s);
+  border:1px solid var(--bd2);background:var(--s-in);font-size:11.5px;font-weight:600;cursor:pointer;
+  color:var(--fg3);user-select:none;
+  transition:background var(--t1) var(--ease),border-color var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+label.pchk:hover span{border-color:var(--fg4);color:var(--fg2)}
+label.pchk input:checked+span{background:var(--sel);border-color:var(--ac-bd);color:var(--ac)}
+label.pchk input:focus-visible+span{outline:2px solid var(--ac);outline-offset:1px}
+label.pchk span i{width:6px;height:6px;border-radius:50%;background:var(--bd2);flex:none}
+label.pchk span i.up{background:var(--ok)}
+.chipset{display:flex;gap:6px;flex-wrap:wrap}
+/* ===== cards ===== */
+main{padding:20px 22px 56px;max-width:1240px;width:100%;margin:0 auto}
+section.tab{display:none}
+section.tab.act{display:block}
+.card{
+  background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-l);
+  padding:14px 16px 16px;margin-bottom:14px;min-width:0;
+}
+.card h2{
+  display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;
+  font-size:12.5px;font-weight:700;letter-spacing:.01em;margin-bottom:12px;color:var(--fg);
+}
+.card h2 .seg{margin-left:auto}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px;align-items:stretch}
+.grid2>.card{margin-bottom:0;min-width:0;display:flex;flex-direction:column}
+.dashgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start;margin-bottom:14px}
+.dashgrid>.card{margin-bottom:0;min-width:0}
+/* SFP DDM cards: fluid grid of their own; :empty hides the reserved gap. */
+#dsfpcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px;align-items:start;margin-bottom:14px}
+#dsfpcards:empty{display:none}
+#dsfpcards>.card{margin-bottom:0;min-width:0}
+/* ===== tables ===== */
+.scrollx{overflow-x:auto;max-width:100%;border-radius:var(--r-s)}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+table.t thead th{
+  position:sticky;top:0;z-index:2;background:var(--s1);
+  text-align:left;font-weight:600;color:var(--fg3);font-size:10.5px;letter-spacing:.05em;
+  padding:7px 10px;border-bottom:1px solid var(--bd2);white-space:nowrap;
+}
+table.t th[data-sort]{cursor:pointer;user-select:none}
+table.t th[data-sort]:hover{color:var(--fg)}
+table.t td{
+  padding:7px 10px;border-bottom:1px solid var(--bd);
+  vertical-align:middle;white-space:nowrap;
+}
+table.t tbody tr:last-child td{border-bottom:0}
+table.t tbody tr{transition:background var(--t1) var(--ease)}
+table.t tbody tr:hover td{background:var(--s2)}
+table.t th.num,table.t td.num{width:1%;text-align:right}
+table.t td:first-child:not(.mut){font-family:var(--mono);font-size:12px;font-weight:600}
+.arrow{font-size:9px;color:var(--ac)}
+/* port not up → dim rate/error numbers, keep the link badge legible */
+table.t tr.pdown td.num{opacity:.55;transition:opacity var(--t1) var(--ease)}
+/* error counters, shared by the stats table and the dashboard traffic table:
+ * non-zero → red (.nz), zero → dim gray (.nz0). Both classes are stamped by
+ * errCell() in 01-core.js so both pages encode errors identically. */
+#stable td.nz,#traffic td.nz{color:var(--err)}
+#stable td.nz0,#traffic td.nz0{color:var(--fg4)}
+/* ===== badges: dim fill + 1px border + colored fg; neutral = down gray ===== */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;height:19px;padding:0 7px;
+  border-radius:var(--r-s);border:1px solid var(--down-bd);background:var(--down-dim);
+  font-size:10.5px;font-weight:600;letter-spacing:.02em;line-height:1;color:var(--down);white-space:nowrap;vertical-align:middle;
+}
+.badge:empty{display:none}
+.badge.ok{color:var(--ok);border-color:var(--ok-bd);background:var(--ok-dim)}
+.badge.warn{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-dim)}
+.badge.err,.badge.bad{color:var(--err);border-color:var(--err-bd);background:var(--err-dim)}
+.badge.down{color:var(--down);border-color:var(--down-bd);background:var(--down-dim)}
+.badge.accent{color:var(--ac);border-color:var(--ac-bd);background:var(--sel)}
+[data-theme="light"] .badge.accent{color:#096993}
+/* ===== speed badges: one shared encoding for every link column (dash traffic,
+ * port config, port stats). Ink/border/fill derive from the same --s* token the
+ * front-panel rate label uses, so speed→color never changes per page; the green
+ * dot carries the "link up" state. (Family rule: dim fill + 1px border + fg.) */
+.badge.spd{padding-left:6px}
+.badge.spd .udot{width:5px;height:5px;border-radius:50%;background:var(--up);flex:none}
+.badge.s10{color:var(--s10);border-color:color-mix(in srgb,var(--s10) 38%,transparent);background:color-mix(in srgb,var(--s10) 11%,transparent)}
+.badge.s100{color:var(--s100);border-color:color-mix(in srgb,var(--s100) 38%,transparent);background:color-mix(in srgb,var(--s100) 11%,transparent)}
+.badge.s1g{color:var(--s1g);border-color:color-mix(in srgb,var(--s1g) 38%,transparent);background:color-mix(in srgb,var(--s1g) 11%,transparent)}
+.badge.s2g5{color:var(--s2g5);border-color:color-mix(in srgb,var(--s2g5) 38%,transparent);background:color-mix(in srgb,var(--s2g5) 11%,transparent)}
+.badge.s5g{color:var(--s5g);border-color:color-mix(in srgb,var(--s5g) 38%,transparent);background:color-mix(in srgb,var(--s5g) 11%,transparent)}
+.badge.s10g{color:var(--s10g);border-color:color-mix(in srgb,var(--s10g) 38%,transparent);background:color-mix(in srgb,var(--s10g) 11%,transparent)}
+/* admin-down: dashed ghost twin of the front-panel .port.dis — transparent bg
+ * + dashed border reads "off" while staying ≥4.5:1 in the light theme */
+.badge.off{color:var(--fg3);background:transparent;border:1px dashed var(--bd2)}
+/* per-port attached-device MAC badge; mono keeps hex columns aligned */
+.badge.macb{font-family:var(--mono);letter-spacing:0}
+/* ===== chips (dashboard headline stats) ===== */
+.dashchips{display:inline-flex;gap:6px;flex-wrap:wrap;font-weight:400;letter-spacing:0;margin-left:auto}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;
+  border-radius:var(--r-s);border:1px solid var(--bd);background:var(--s2);
+  font-size:11px;color:var(--fg3);font-weight:600;white-space:nowrap;
+}
+.chip b{color:var(--fg);font-weight:600}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+/* error counters: neutral at zero, red only when non-zero (JS toggles .nz) */
+#derrs.nz,#dnowerr.nz{color:var(--err)}
+/* ===== front-panel port strip ===== */
+#strip{display:flex;gap:10px;flex-wrap:wrap;padding:2px 0}
+.port{
+  width:56px;border:1.5px solid var(--bd2);border-radius:var(--r);
+  background:var(--s2);text-align:center;padding:7px 0 6px;cursor:pointer;position:relative;
+  transition:border-color var(--t1) var(--ease),background var(--t1) var(--ease),transform var(--t1) var(--ease);
+}
+.port:hover{transform:translateY(-1px);border-color:var(--fg4)}
+.port.sfp{width:66px}
+.port .pn{font-family:var(--mono);font-weight:700;font-size:13px;line-height:1.2;color:var(--fg)}
+.port .jack{
+  display:block;width:20px;height:12px;margin:4px auto 3px;border-radius:2.5px;
+  border:1.5px solid var(--fg4);border-top-width:4px;opacity:.6;
+}
+.port.sfp .jack{width:30px;height:11px;border-top-width:3px}
+.port .ps{display:block;font-size:10px;line-height:1.25;color:var(--fg3);font-weight:600}
+/* link-up: the state chrome is always the --up green — speed never tints the
+ * outline (one screen used amber/purple/green for the same "up" state once).
+ * Only the small rate label keeps its speed ink via --pc (set by updateStrip),
+ * matching the .spd table badges. */
+.port.up{border-color:color-mix(in srgb,var(--up) 55%,var(--bd2));background:color-mix(in srgb,var(--up) 9%,var(--s2))}
+.port.up .jack{border-color:var(--up);opacity:1}
+.port.up .ps{color:var(--pc)}
+/* admin-down: dashed ghost; link-down: plain solid surface — visually distinct.
+ * The dimming hits the icon + port number only: the status label itself keeps
+ * full-strength var(--down) so it stays ≥4.5:1 in both themes. */
+.port.dis{border-style:dashed;border-color:var(--bd);background:transparent}
+.port.dis .pn,.port.dis .jack{opacity:.5}
+.port.dis .ps,.port:not(.up):not(.dis) .ps{color:var(--down)}
+/* ===== live chart ===== */
+.chartwrap{display:flex;gap:8px;margin:4px 0 2px}
+.yaxis{position:relative;width:40px;flex:none}
+.yaxis span{
+  position:absolute;right:0;transform:translateY(-50%);
+  font:10px/1 var(--mono);color:var(--fg3);white-space:nowrap;
+}
+.yaxis span:nth-child(1){top:2.9%}
+.yaxis span:nth-child(2){top:50%}
+.yaxis span:nth-child(3){top:97.1%}
+.chartbox{position:relative;flex:1;height:190px}
+.chartbox svg{width:100%;height:100%;display:block}
+.chartbox .gl{stroke:var(--grid);stroke-width:1;vector-effect:non-scaling-stroke;fill:none}
+.chartbox .ln{fill:none;stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+#rxline{stroke:var(--ac)}
+#txline{stroke:var(--s5g)}
+#errline{stroke:var(--err);stroke-width:1.3;stroke-dasharray:4 3;opacity:.85}
+#grx stop{stop-color:var(--ac)}
+#gtx stop{stop-color:var(--s5g)}
+.xcross{stroke:var(--fg3);stroke-width:1;stroke-dasharray:3 3;opacity:.6;vector-effect:non-scaling-stroke;pointer-events:none}
+.tip{
+  position:absolute;top:6px;z-index:3;pointer-events:none;white-space:nowrap;
+  background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);
+  padding:6px 9px;font-size:11px;line-height:1.6;box-shadow:var(--shadow-pop);
+}
+.tip .tt{color:var(--fg3);font-size:10px}
+.tip i{display:inline-block;width:8px;height:2.5px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.tip b{font-variant-numeric:tabular-nums;float:right;margin-left:14px}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--fg2);align-items:center}
+.legend i{display:inline-block;width:14px;height:0;border-top:2.5px solid;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend b{font-family:var(--mono);font-size:11px;font-weight:600}
+.chartfoot{justify-content:flex-end;gap:14px;margin-top:8px}
+/* ===== SFP DDM sensor tiles ===== */
+.sensgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.sens{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
+.sens .sv{font-size:17px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.sens .sl{font-size:11px;color:var(--fg3);margin-top:2px}
+/* DDM card of a port that is not up → dim only the numeric value (0.7 keeps
+ * even the light theme ≥4.5:1); the sub-label keeps full var(--fg3). Dimming
+ * the whole tile dropped the 11px labels to ~2.2:1 in the light theme. */
+.card.pdown .sens .sv{opacity:.7;transition:opacity var(--t1) var(--ease)}
+/* ===== EEE dots / speed pills ===== */
+.stdots{display:inline-flex;gap:3px;align-items:center}
+.stdots i{width:8px;height:8px;border-radius:50%;background:var(--s3);border:1px solid var(--bd2)}
+.stdots i.on{background:var(--ok);border-color:var(--ok)}
+.stdots i.warn{background:var(--warn);border-color:var(--warn)}
+.spdots{display:inline-flex;gap:4px}
+.spdots span{
+  font-size:10px;font-weight:600;padding:2px 7px;border-radius:var(--r-s);
+  background:var(--s3);color:var(--fg4);opacity:.6;
+}
+.spdots span.on{background:var(--ok-dim);color:var(--ok);border:1px solid var(--ok-bd);opacity:1;padding:1px 6px}
+/* ===== startup config / console output ===== */
+pre.cfg,textarea.cfg{
+  background:var(--s-in);border:1px solid var(--bd);border-radius:var(--r);
+  padding:10px 12px;font:12px/1.6 var(--mono);color:var(--fg);
+  white-space:pre-wrap;word-break:break-all;outline:none;
+}
+textarea.cfg{width:100%;min-height:200px;resize:vertical}
+pre.cfg{overflow:auto}
+pre.cfg u{color:var(--err);text-decoration-color:var(--err-bd)}
+/* ===== firmware upload ===== */
+input[type=file]::file-selector-button{
+  height:26px;padding:0 11px;margin-right:10px;cursor:pointer;
+  background:none;border:1px solid var(--bd2);border-radius:var(--r);
+  font:600 12px var(--font);color:var(--fg2);transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+input[type=file]::file-selector-button:hover{background:var(--s2);color:var(--fg)}
+#fwprog{accent-color:var(--ac);height:6px;border:0}
+/* ===== danger zone ===== */
+.dangerzone{border-color:color-mix(in srgb,var(--err) 28%,var(--bd));background:color-mix(in srgb,var(--err) 3%,var(--s1))}
+/* ===== toasts ===== */
+#toasts{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;gap:8px}
+.toast{
+  background:var(--s2);border:1px solid var(--bd2);border-left:3px solid var(--ac);
+  border-radius:var(--r);padding:10px 14px;box-shadow:var(--shadow-pop);
+  font-size:12.5px;max-width:340px;animation:tin .24s var(--pop);
+}
+.toast.ok{border-left-color:var(--ok)}
+.toast.err{border-left-color:var(--err)}
+@keyframes tin{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+/* ===== modal ===== */
+#mback{
+  position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  z-index:40;display:none;align-items:flex-start;justify-content:center;padding:6vh 16px;
+}
+#mback.show{display:flex;animation:fadein var(--t2) var(--ease)}
+#modal{
+  background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r-l);box-shadow:var(--shadow-pop);
+  width:min(760px,96vw);max-height:86vh;display:flex;flex-direction:column;
+}
+#mback.show #modal{animation:popin .18s var(--pop)}
+@keyframes fadein{from{opacity:0}}
+@keyframes popin{from{transform:scale(.97) translateY(-4px);opacity:0}}
+#mhead{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--bd);flex:none}
+#mtitle{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mx{
+  width:26px;height:26px;display:grid;place-items:center;flex:none;
+  background:none;border:0;border-radius:var(--r-s);cursor:pointer;color:var(--fg3);font-size:13px;
+  transition:background var(--t1) var(--ease),color var(--t1) var(--ease);
+}
+#mx:hover{background:var(--s2);color:var(--fg)}
+#mbody{padding:14px 18px;overflow:auto}
+#mbody table.t td:first-child:not(.mut){font-weight:400}
+#mfoot{padding:12px 18px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;flex:none}
+#mfoot:empty{display:none}
+/* modal checkbox labels built by showCounters */
+#mbody label>input[type=checkbox]{margin-right:5px;vertical-align:-2px}
+/* ===== responsive ===== */
+@media (max-width:1000px){
+  #nav{width:200px}
+  main{padding:16px 14px 48px}
+  #top{padding:0 14px}
+  #tsub{display:none}
+  #ttitle{flex:1 1 auto}
+}
+@media (max-width:760px){
+  #nav{
+    position:fixed;left:-224px;transition:left var(--t2) var(--ease);
+    z-index:35;box-shadow:var(--shadow-pop);width:224px;
+  }
+  #nav.open{left:0}
+  #burger{display:block}
+  #top{height:46px;padding:0 10px;gap:7px}
+  #ttitle{font-size:13.5px}
+  #dirty{padding:4px 7px}
+  main{padding:12px 10px 40px}
+  .dashgrid{grid-template-columns:minmax(0,1fr)}
+  #mback{padding:4vh 8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+/* Narrow phones: the flex strip wraps 5+1 (one orphan tile); a fixed 3-col
+ * grid keeps the rows balanced (3+3 on a 6-port device). */
+@media (max-width:480px){
+  #strip{display:grid;grid-template-columns:repeat(3,1fr)}
+  #strip .port,#strip .port.sfp{width:auto}
+}
+</style>
 </head>
 <body>
 
 <nav id="nav">
   <div id="brand">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2">
-      <rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 11v2M10 11v2M14 11v2M18 11v2"/>
-    </svg>
-    <span id="brandname">Switch</span>
+    <span class="bmark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><rect x="2.5" y="7" width="19" height="10" rx="2"/><path d="M6.5 11v2M10.5 11v2M14.5 11v2M18.5 11v2"/></svg></span>
+    <span class="btxt"><span id="brandname">Switch</span><span class="bsub">SWTG018AS</span></span>
   </div>
   <ul id="navlist"></ul>
   <div id="navfoot"><span id="fver"></span></div>
@@ -322,10 +548,11 @@ label.pchk span i.up{background:var(--ok)}
 
 <div id="wrap">
   <header id="top">
-    <button id="burger" title="Menu">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--fg)" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <button id="burger" title="Menu" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <span id="ttitle"></span>
+    <span id="tsub" data-i18n="hdr_sub">8×2.5GbE + 2×10G SFP+ · refresh every 2 s</span>
     <span id="dirty" data-i18n="hdr_dirty" data-i18n-t="hdr_dirty_t">unsaved changes</span>
     <button class="ctl pri" id="saveBtn" data-i18n="hdr_save" data-i18n-t="hdr_save_t">Save to flash</button>
   </header>
@@ -343,7 +570,7 @@ label.pchk span i.up{background:var(--ok)}
       </div>
       <div class="dashgrid">
         <div class="card"><h2><span data-i18n="d_live">Live traffic</span> <span class="hint" data-i18n="d_live_h">packets/s</span>
-            <span class="seg" id="chartspan" style="margin-left:auto">
+            <span class="seg" id="chartspan">
               <button type="button" data-n="48">2m</button><button type="button" data-n="120" class="on">5m</button><button type="button" data-n="360">15m</button>
             </span></h2>
           <div class="chartwrap">
@@ -351,11 +578,11 @@ label.pchk span i.up{background:var(--ok)}
             <div class="chartbox" id="chartbox"><svg viewBox="0 0 600 170" preserveAspectRatio="none" aria-hidden="true">
               <defs>
                 <linearGradient id="grx" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#888888" stop-opacity=".22"/>
+                  <stop offset="0" stop-color="#888888" stop-opacity=".20"/>
                   <stop offset="1" stop-color="#888888" stop-opacity="0"/>
                 </linearGradient>
                 <linearGradient id="gtx" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#888888" stop-opacity=".12"/>
+                  <stop offset="0" stop-color="#888888" stop-opacity=".10"/>
                   <stop offset="1" stop-color="#888888" stop-opacity="0"/>
                 </linearGradient>
               </defs>
@@ -371,9 +598,9 @@ label.pchk span i.up{background:var(--ok)}
             </svg><div class="tip" id="charttip" style="display:none"></div></div>
           </div>
           <div class="legend chartfoot">
-            <span><i style="background:var(--ac)"></i>RX <b class="mono" id="dnowrx">-</b></span>
-            <span><i style="background:var(--s5g)"></i>TX <b class="mono" id="dnowtx">-</b></span>
-            <span><i style="background:var(--bad)"></i><span data-i18n="d_errs">errors</span> <b class="mono" id="dnowerr">-</b></span>
+            <span><i style="border-color:var(--ac)"></i>RX <b id="dnowrx">-</b></span>
+            <span><i style="border-color:var(--s5g)"></i>TX <b id="dnowtx">-</b></span>
+            <span><i style="border-top-style:dashed;border-color:var(--err)"></i><span data-i18n="d_errs">errors</span> <b id="dnowerr">-</b></span>
           </div>
         </div>
         <div class="card"><h2 data-i18n="d_system">System</h2><table class="t" id="sysinfo"></table></div>
@@ -391,7 +618,7 @@ label.pchk span i.up{background:var(--ok)}
         <div class="scrollx"><table class="t" id="ptable">
           <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_name">Name</th><th data-i18n="c_link">Link</th><th data-i18n="pt_conn">Connected</th><th data-i18n="pt_speed">Speed</th><th data-i18n="c_enabled">Enabled</th><th data-i18n="pt_mtu">MTU</th><th></th></tr></thead>
           <tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:8px" data-i18n="pt_sfp_note">SFP speed is set per slot and is not saved in the startup config.</p>
+        <p class="note" data-i18n="pt_sfp_note">SFP speed is set per slot and is not saved in the startup config.</p>
       </div>
       <div class="card"><h2><span data-i18n="st_title">Port statistics</span> <span class="hint" data-i18n="st_h">totals since boot</span></h2>
         <div class="scrollx"><table class="t" id="stable">
@@ -402,7 +629,7 @@ label.pchk span i.up{background:var(--ok)}
         <div class="scrollx"><table class="t" id="etable">
           <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="e_adv">Advertised</th><th data-i18n="e_lp">Link partner</th><th data-i18n="e_active">Active</th><th data-i18n="e_enable">Enable</th></tr></thead>
           <tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:8px" data-i18n="e_note">Advertised and link-partner flags per speed: 100M, 1G, 2.5G. SFP ports do not support EEE.</p>
+        <p class="note" data-i18n="e_note">Advertised and link-partner flags per speed: 100M, 1G, 2.5G. SFP ports do not support EEE.</p>
       </div>
     </section>
 
@@ -411,10 +638,10 @@ label.pchk span i.up{background:var(--ok)}
         <div class="scrollx"><table class="t" id="vtable">
           <thead><tr><th data-i18n="v_vid">VID</th><th data-i18n="c_name">Name</th><th data-i18n="v_members">Members</th><th data-i18n="v_tagged">Tagged</th><th data-i18n="v_untagged">Untagged</th><th data-i18n="v_pvid_on">PVID on</th><th></th></tr></thead>
           <tbody></tbody></table></div>
-        <p class="small mut" id="vempty" style="display:none;margin-top:6px" data-i18n="v_empty">No VLANs configured.</p>
+        <p class="note" id="vempty" style="display:none;margin-top:6px" data-i18n="v_empty">No VLANs configured.</p>
       </div>
       <div class="card"><h2 data-i18n="v_editor">VLAN editor</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <div class="hrow">
           <label><span data-i18n="v_vid">VID</span> <input class="in sm" id="vvid" type="number" min="1" max="4094"></label>
           <label><span data-i18n="c_name">Name</span> <input class="in" id="vname" size="12" maxlength="15" data-i18n-p="v_optional"></label>
           <button class="ctl" id="vload" data-i18n="c_load">Load</button>
@@ -422,18 +649,18 @@ label.pchk span i.up{background:var(--ok)}
           <button class="ctl" id="vmgmt" data-i18n="v_setmgmt" data-i18n-t="v_setmgmt_t">Set as mgmt VLAN</button>
         </div>
         <div class="scrollx"><table class="t" id="vedit"><tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:6px" data-i18n="v_legend">U = untagged member, T = tagged member, - = not a member. PVID assigns this VLAN to untagged ingress traffic.</p>
+        <p class="note" data-i18n="v_legend">U = untagged member, T = tagged member, - = not a member. PVID assigns this VLAN to untagged ingress traffic.</p>
       </div>
       <div class="card"><h2><span data-i18n="v_ingress">Ingress filtering</span> <span class="hint" data-i18n="v_ingress_h">write-only: the state is not readable from the switch</span></h2>
         <div class="scrollx"><table class="t" id="ingress"><tbody></tbody></table></div>
-        <div style="margin-top:10px"><button class="ctl pri" id="ingapply" data-i18n="v_ing_apply">Apply ingress modes</button></div>
+        <div class="hrow" style="margin:10px 0 0"><button class="ctl pri" id="ingapply" data-i18n="v_ing_apply">Apply ingress modes</button></div>
       </div>
     </section>
 
     <section class="tab" id="tab-l2">
       <div class="card"><h2><span data-i18n="l2_title">MAC address table</span>
         <span class="hint"><input class="in" id="l2filter" data-i18n-p="l2_filter" size="14"></span></h2>
-        <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div class="hrow">
           <button class="ctl" id="l2refresh" data-i18n="c_refresh">Refresh</button>
           <button class="ctl" id="l2flush" data-i18n="l2_flush">Flush learned entries</button>
           <span class="small mut" id="l2count" style="align-self:center"></span>
@@ -446,23 +673,23 @@ label.pchk span i.up{background:var(--ok)}
 
     <section class="tab" id="tab-links">
       <div class="card"><h2 data-i18n="nav_lag">Link aggregation</h2>
-        <p class="small mut" style="margin-bottom:12px" data-i18n="lag_desc">Bundle several ports into one logical link for more bandwidth and redundancy.</p>
+        <p class="note" style="margin:0 0 12px" data-i18n="lag_desc">Bundle several ports into one logical link for more bandwidth and redundancy.</p>
         <button class="ctl pri" id="lagnew" data-i18n="lag_new">New aggregation group</button>
       </div>
       <div id="lagwrap" class="grid2"></div>
-      <div class="card" style="margin-top:18px"><h2 data-i18n="lacp_heading">LACP (802.3ad)</h2>
+      <div class="card" style="margin-top:14px"><h2 data-i18n="lacp_heading">LACP (802.3ad)</h2>
         <div class="scrollx"><table class="t" id="lacptbl">
           <thead><tr><th data-i18n="c_port">Port</th><th>LAG</th><th data-i18n="lacp_actor">Actor</th><th data-i18n="lacp_partner">Partner</th><th data-i18n="lacp_rxstate">RX state</th><th class="num" data-i18n="lacp_rx">LACPDUs received</th><th data-i18n="lacp_psys">Partner system</th></tr></thead>
           <tbody></tbody></table></div>
         <p class="empt" id="lacpempty" style="display:none" data-i18n="lacp_off">LACP is not enabled on any group.</p>
+        <p class="note" data-i18n="lag_note">A LAG needs at least one member to be saved in the startup config; applying an empty group clears it.</p>
       </div>
-      <p class="small mut" style="margin:10px 0 18px" data-i18n="lag_note">A LAG needs at least one member to be saved in the startup config; applying an empty group clears it.</p>
 
       <div class="card"><h2><span data-i18n="stp_title">Spanning tree</span> <span class="hint" data-i18n="stp_h">RSTP, 802.1w</span></h2>
         <label class="row"><span class="lb" data-i18n="c_enabled">Enabled</span>
           <span class="switch"><input type="checkbox" id="stpen"><i></i></span></label>
-        <p class="small mono" id="stpids">-</p>
-        <div id="stpbridge" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
+        <p class="small mono" id="stpids" data-i18n="c_loading">loading…</p>
+        <div class="hrow" id="stpbridge" style="align-items:flex-end;margin-top:10px">
           <label><span class="small mut" data-i18n="stp_version">Version</span><br><select class="in" id="stpver"><option value="rstp">RSTP</option><option value="stp" data-i18n="stp_v_stp">STP compatible</option></select></label>
           <label><span class="small mut" data-i18n="stp_prio">Bridge priority</span><br><select class="in" id="stpprio"></select></label>
           <label><span class="small mut" data-i18n="stp_hello">Hello [s]</span><br><input class="in sm" id="stphello" type="number" min="1" max="10"></label>
@@ -470,14 +697,14 @@ label.pchk span i.up{background:var(--ok)}
           <label><span class="small mut" data-i18n="stp_fwd">Forward delay [s]</span><br><input class="in sm" id="stpfwd" type="number" min="4" max="30"></label>
           <label><span class="small mut" data-i18n="stp_txhold">TX hold</span><br><input class="in sm" id="stptxhold" type="number" min="1" max="10"></label>
         </div>
-        <div style="margin-top:10px"><button class="ctl pri" id="stpbapply" data-i18n="stp_bridge_apply">Apply bridge settings</button></div>
-        <p class="small mut" style="margin-top:8px" data-i18n="stp_prio_note">Lower priority wins the root election (default 8 = 32768). Settings apply immediately; use Save to flash to keep them.</p>
+        <div class="hrow" style="margin:10px 0 0"><button class="ctl pri" id="stpbapply" data-i18n="stp_bridge_apply">Apply bridge settings</button></div>
+        <p class="note" data-i18n="stp_prio_note">Lower priority wins the root election (default 8 = 32768). Settings apply immediately; use Save to flash to keep them.</p>
       </div>
       <div class="card"><h2 data-i18n="stp_portcfg">Port configuration</h2>
         <div class="scrollx"><table class="t" id="stpcfg">
           <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="c_enabled">Enabled</th><th data-i18n="stp_edge">Edge</th><th data-i18n="stp_pcost">Path cost</th><th data-i18n="stp_pprio">Priority</th><th data-i18n="stp_guard">Guard</th><th data-i18n="stp_filter">BPDU filter</th><th data-i18n="stp_p2p">Point-to-point</th><th></th></tr></thead>
           <tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:8px" data-i18n="stp_port_note">Edge ports forward immediately and cause no topology change; Auto treats a port as edge after 3 s without BPDUs, and any received BPDU revokes it. Path cost 0 = automatic.</p>
+        <p class="note" data-i18n="stp_port_note">Edge ports forward immediately and cause no topology change; Auto treats a port as edge after 3 s without BPDUs, and any received BPDU revokes it. Path cost 0 = automatic.</p>
       </div>
       <div class="card"><h2 data-i18n="stp_status">Port status</h2>
         <div class="scrollx"><table class="t" id="stpstat">
@@ -489,24 +716,24 @@ label.pchk span i.up{background:var(--ok)}
     <section class="tab" id="tab-flows">
       <div class="card"><h2><span data-i18n="bw_title">Bandwidth limits</span> <span class="hint" data-i18n="bw_h">Mbit/s, 0.016-10000</span></h2>
         <div class="scrollx"><table class="t" id="btable">
-          <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="bw_in">Ingress limit</th><th>Mbit/s</th><th data-i18n="bw_exceed">When exceeded</th><th data-i18n="bw_out">Egress limit</th><th>Mbit/s</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="bw_in">Ingress limit (Mbit/s)</th><th></th><th data-i18n="bw_exceed">When exceeded</th><th data-i18n="bw_out">Egress limit (Mbit/s)</th><th></th><th></th></tr></thead>
           <tbody></tbody></table></div>
       </div>
       <div class="card"><h2><span data-i18n="sc_title">Storm control</span> <span class="hint" data-i18n="sc_h">per port and traffic type, empty = off</span></h2>
         <div class="scrollx"><table class="t" id="sctable">
           <thead><tr><th data-i18n="c_port">Port</th><th data-i18n="sc_bcast">Broadcast</th><th data-i18n="sc_mcast">Multicast</th><th data-i18n="sc_ucast">Unknown unicast</th><th data-i18n="sc_umcast">Unknown multicast</th><th></th></tr></thead>
           <tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:8px" data-i18n="sc_note">Frames of a type above its limit are dropped where they enter the switch.</p>
+        <p class="note" data-i18n="sc_note">Frames of a type above its limit are dropped where they enter the switch.</p>
       </div>
       <div class="card"><h2 data-i18n="m_title">Port mirroring</h2>
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <div class="hrow">
           <span class="badge" id="mstate">off</span>
           <label><span data-i18n="m_monitor">Monitor port</span> <select class="in" id="mport"></select></label>
           <button class="ctl pri" id="mapply" data-i18n="c_apply">Apply</button>
           <button class="ctl" id="moff" data-i18n="c_disable">Disable</button>
         </div>
         <div class="scrollx"><table class="t" id="mtable"><tbody></tbody></table></div>
-        <p class="small mut" style="margin-top:6px" data-i18n="m_note">Both = mirror RX and TX of the port to the monitor port.</p>
+        <p class="note" data-i18n="m_note">Both = mirror RX and TX of the port to the monitor port.</p>
       </div>
     </section>
 
@@ -517,7 +744,7 @@ label.pchk span i.up{background:var(--ok)}
           <label class="row"><span class="lb" data-i18n="i_ip">IP address</span><input class="in" id="sy-ip" size="15"></label>
           <label class="row"><span class="lb" data-i18n="i_mask">Netmask</span><input class="in" id="sy-mask" size="15"></label>
           <label class="row"><span class="lb" data-i18n="i_gw">Gateway</span><input class="in" id="sy-gw" size="15"></label>
-          <div style="display:flex;gap:10px;margin-top:12px">
+          <div class="hrow" style="margin:12px 0 0">
             <button class="ctl pri" id="sy-apply" data-i18n="c_apply">Apply</button>
             <button class="ctl" id="sy-dhcp" data-i18n="sy_dhcp" data-i18n-t="sy_dhcp_t">Use DHCP</button>
           </div>
@@ -534,20 +761,20 @@ label.pchk span i.up{background:var(--ok)}
             <input class="in" id="sy-sysport" style="width:64px" type="number" min="1" max="65535"></div>
           <label class="row" style="justify-content:space-between"><span data-i18n="sy_sesstmo">Session timeout (s)</span>
             <input class="in" id="sy-sesstmo" style="width:80px" type="number" min="1" max="65535"></label>
-          <p class="small mut" data-i18n="sy_services_note">Service state reflects the startup config; runtime state is not readable.</p>
+          <p class="note" style="margin-top:2px" data-i18n="sy_services_note">Service state reflects the startup config; runtime state is not readable.</p>
         </div>
         <div class="card"><h2 data-i18n="sy_password">Admin password</h2>
           <label class="row"><span class="lb" data-i18n="sy_newpw">New password</span><input class="in" id="sy-pw1" type="password" maxlength="20"></label>
           <label class="row"><span class="lb" data-i18n="sy_repeat">Repeat</span><input class="in" id="sy-pw2" type="password" maxlength="20"></label>
           <button class="ctl pri" id="sy-pwapply" style="margin-top:8px" data-i18n="sy_pwapply">Change password</button>
-          <p class="small mut" style="margin-top:8px" data-i18n="sy_pw_note">Takes effect immediately; save to flash to keep it after reboot.</p>
+          <p class="note" data-i18n="sy_pw_note">Takes effect immediately; save to flash to keep it after reboot.</p>
         </div>
         <div class="card"><h2 data-i18n="sy_console">Console</h2>
-          <div style="display:flex;gap:8px">
+          <div class="hrow" style="flex-wrap:nowrap;margin-bottom:0">
             <input class="in" id="sy-cmd" style="flex:1" data-i18n-p="sy_cmd" spellcheck="false">
             <button class="ctl pri" id="sy-send" data-i18n="sy_send">Send</button>
           </div>
-          <pre class="cfg" id="sy-cout" style="margin-top:10px;min-height:70px;max-height:180px;overflow:auto"></pre>
+          <pre class="cfg" id="sy-cout" style="margin-top:10px;min-height:70px;max-height:180px"></pre>
         </div>
         <div class="card"><h2 data-i18n="sy_display">Display</h2>
           <label class="row"><span class="lb" data-i18n="sy_lang">Language</span>
@@ -561,29 +788,29 @@ label.pchk span i.up{background:var(--ok)}
               <option value="light" data-i18n="th_light">Light</option>
               <option value="dark" data-i18n="th_dark">Dark</option>
             </select></label>
-          <p class="small mut" data-i18n="sy_display_note">Stored in this browser only.</p>
+          <p class="note" data-i18n="sy_display_note">Stored in this browser only.</p>
         </div>
       </div>
-      <div class="card" style="margin-top:18px"><h2><span data-i18n="sy_startup">Startup configuration</span>
+      <div class="card" style="margin-top:14px"><h2><span data-i18n="sy_startup">Startup configuration</span>
         <span class="hint"><span id="cfgbytes"></span>, <span data-i18n="sy_replayed">replayed on every boot</span></span></h2>
         <textarea class="cfg" id="cfgedit" spellcheck="false"></textarea>
-        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <div class="hrow" style="margin:10px 0 0">
           <button class="ctl" id="cfgreload" data-i18n="sy_reload">Reload from flash</button>
           <button class="ctl pri" id="cfgwrite" data-i18n="sy_write">Write to flash</button>
           <span class="small mut" style="align-self:center" data-i18n="sy_unknown_note">Unknown lines are highlighted before writing.</span>
         </div>
       </div>
-      <div class="card" style="margin-top:18px"><h2 data-i18n="fw_title">Firmware update</h2>
-        <p class="small mut" style="margin-bottom:12px" data-i18n="fw_intro">Upload an RTLPlayground image (512 KiB, or 1 MiB for the expanded flash layout). The image is staged to flash and CRC-checked; on success the switch reboots itself, re-verifies the image and applies it. The startup configuration is preserved.</p>
+      <div class="card" style="margin-top:14px"><h2 data-i18n="fw_title">Firmware update</h2>
+        <p class="note" style="margin:0 0 12px" data-i18n="fw_intro">Upload an RTLPlayground image (512 KiB, or 1 MiB for the expanded flash layout). The image is staged to flash and CRC-checked; on success the switch reboots itself, re-verifies the image and applies it. The startup configuration is preserved.</p>
         <input type="file" id="fwfile" accept=".bin">
         <div id="fwinfo" class="small" style="margin:10px 0"></div>
-        <div style="display:flex;gap:10px;align-items:center">
+        <div class="hrow" style="margin:0">
           <button class="ctl pri" id="fwup" disabled data-i18n="fw_upload">Upload</button>
           <progress id="fwprog" max="100" value="0" style="display:none;width:220px"></progress>
           <span class="small" id="fwstat"></span>
         </div>
       </div>
-      <div class="card dangerzone" style="margin-top:18px"><h2 data-i18n="sy_maint">Maintenance</h2>
+      <div class="card dangerzone" style="margin-top:14px"><h2 data-i18n="sy_maint">Maintenance</h2>
         <button class="ctl danger" id="sy-reboot" data-i18n="sy_reboot">Reboot switch</button>
       </div>
     </section>
@@ -592,10 +819,39 @@ label.pchk span i.up{background:var(--ok)}
 
 <div id="toasts"></div>
 <div id="mback"><div id="modal">
-  <div id="mhead"><span id="mtitle"></span><button id="mx">&#x2715;</button></div>
+  <div id="mhead"><span id="mtitle"></span><button id="mx" aria-label="Close">&#x2715;</button></div>
   <div id="mbody"></div><div id="mfoot"></div>
 </div></div>
 
+<script>
+/* Error counters read neutral at zero and turn red only when non-zero.
+ * Pure presentation: app.js keeps writing plain text, this observer only
+ * toggles the .nz class on the dashboard chips (the chart legend + traffic
+ * table cells are classed by errCell() in app.js — a blanket scan here would
+ * paint non-zero pps cells red too). */
+(function(){
+  function num(s){
+    var m=/^([\d.]+)\s*([kM]?)$/.exec(String(s).trim());
+    if(!m)return Number(s)||0;
+    return Number(m[1])*(m[2]==="k"?1e3:m[2]==="M"?1e6:1);
+  }
+  function mark(el){if(el)el.classList.toggle("nz",num(el.textContent)>0)}
+  var mo=new MutationObserver(function(list){
+    list.forEach(function(ev){
+      if(ev.target.nodeType!==1)return;
+      var el=ev.target;
+      if(el.id==="derrs"||el.id==="dnowerr")mark(el);
+    });
+  });
+  function boot(){
+    mark(document.getElementById("derrs"));
+    mark(document.getElementById("dnowerr"));
+    mo.observe(document.body,{subtree:true,childList:true,characterData:true});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
+  else boot();
+})();
+</script>
 <script src="/app.js"></script>
 </body>
 </html>

@@ -155,11 +155,11 @@ $("fwfile").addEventListener("change",function(){
       if(crc!==0xB001)msg=t("fw_crc_err");
     }
     if(msg){
-      info.innerHTML='<span style="color:var(--bad)">✕ '+esc(msg)+"</span>";
+      info.innerHTML='<span class="badge err">✕ '+esc(msg)+"</span>";
       return;
     }
     fwBuf=f;
-    info.innerHTML='<span style="color:var(--ok)">✓ '+esc(t("fw_valid"))+"</span>";
+    info.innerHTML='<span class="badge ok">✓ '+esc(t("fw_valid"))+"</span>";
     $("fwup").disabled=false;
   });
 });
@@ -185,6 +185,7 @@ $("fwup").addEventListener("click",function(){
       st.textContent=sent?t("fw_finishing",{s:s}):t("fw_uploading",{p:pct,s:s});
     },500);
     st.textContent=t("fw_uploading",{p:0,s:0});
+    st.style.color="";
     xhr.upload.onprogress=function(e){
       if(e.lengthComputable){pct=Math.round(100*e.loaded/e.total);prog.value=pct;}
     };
@@ -199,11 +200,12 @@ $("fwup").addEventListener("click",function(){
       }else{
         var why=(xhr.responseText||"").trim().split("\n")[0];
         st.textContent="✕ "+t("fw_rejected")+" (HTTP "+xhr.status+(why?": "+why:"")+")";
+        st.style.color="var(--err)";
         $("fwup").disabled=false;
       }
     })};
     xhr.onerror=function(){settle(function(){
-      if(!sent){st.textContent=t("fw_lost");$("fwup").disabled=false;return;}
+      if(!sent){st.textContent=t("fw_lost");st.style.color="var(--err)";$("fwup").disabled=false;return;}
       fwSettle(st,false);
     })};
     xhr.open("POST","/upload");
@@ -224,6 +226,7 @@ function fwSettle(st,knownGood){
       if(!down&&waited<=9){
         if(!knownGood){
           st.textContent="✕ "+t("fw_noreboot");
+          st.style.color="var(--err)";
           $("fwup").disabled=false;
           return;
         }
@@ -231,7 +234,8 @@ function fwSettle(st,knownGood){
         return;
       }
       st.textContent=t("fw_applied")+" ✓";
-      modal(t("fw_done_t"),h("p",{text:t("fw_done")}),
+      st.style.color="";
+      modal(t("fw_done_t"),h("p",{class:"note",text:t("fw_done")}),
         [h("button",{class:"ctl pri",text:t("fw_login"),onclick:function(){location.href="/login.html"}})]);
     },function(){
       clearTimeout(to);
@@ -240,6 +244,7 @@ function fwSettle(st,knownGood){
       st.textContent=t("fw_rebooting");
       if(waited>150){
         st.textContent=t("fw_timeout");
+        st.style.color="var(--err)";
         $("fwup").disabled=false;
         return;
       }

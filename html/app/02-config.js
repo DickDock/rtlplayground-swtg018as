@@ -163,6 +163,8 @@ function cfgLongLine(txt){
 function writeConfig(txt,title,fromLog){
   var info=h("p",{class:"small mut"}),warn=h("p",{class:"small"});
   var ed=h("textarea",{class:"cfg",spellcheck:"false",placeholder:t("cw_empty"),style:"min-height:45vh"});
+  /* Rendered copy of the config with unknown lines underlined (pre.cfg u). */
+  var prev=h("pre",{class:"cfg",style:"display:none;margin-top:8px;max-height:18vh"});
   ed.value=txt.replace(/\r\n/g,"\n");
   var ok=h("button",{class:"ctl pri",text:t("sy_write"),onclick:function(){closeModal();doWriteConfig(cfgText(ed.value),fromLog)}});
   function refresh(){
@@ -172,9 +174,13 @@ function writeConfig(txt,title,fromLog){
     ok.disabled=bytes>2048||!!long;
     warn.style.color=ok.disabled?"var(--bad)":"var(--warn)";
     warn.textContent=bytes>2048?t("cw_toolarge"):long?t("cw_longline",long):(unknown.length?t("cw_unknown")+unknown.join(" | "):"");
+    prev.style.display=unknown.length?"":"none";
+    if(unknown.length)prev.innerHTML=v.split("\n").map(function(l){
+      return l.trim()&&!isConfCmd(l.trim().replace(/\s+/g," "))?"<u>"+esc(l)+"</u>":esc(l);
+    }).join("\n");
   }
   ed.addEventListener("input",refresh);refresh();
-  modal(title,h("div",null,[info,warn,ed]),[h("button",{class:"ctl",text:t("c_cancel"),onclick:closeModal}),ok]);
+  modal(title,h("div",null,[info,warn,ed,prev]),[h("button",{class:"ctl",text:t("c_cancel"),onclick:closeModal}),ok]);
 }
 function doWriteConfig(txt,fromLog){
   var form=new FormData();

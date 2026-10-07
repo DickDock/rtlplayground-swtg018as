@@ -94,7 +94,9 @@ function dashSfp(){
   box.innerHTML="";
   S.ports.forEach(function(p){
     if(!p.isSFP||!p.sfp_vendor)return;
-    var card=h("div",{class:"card"});
+    /* not up: dim the DDM tiles, keep the "present" badge full strength */
+    var up=p.enabled&&p.link>0;
+    var card=h("div",{class:"card"+(up?"":" pdown")});
     var hd=h("div",{style:"display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap"});
     hd.appendChild(h("span",{class:"badge ok",text:t("d_present")}));
     hd.appendChild(h("span",{class:"small mono",text:[p.sfp_vendor,p.sfp_model].filter(Boolean).join(" ")}));
@@ -134,12 +136,17 @@ function dashStatus(){
     var r=tb.rows[p.portNum-1];
     if(!r)return;
     var rt=S.rates[p.portNum-1];
+    /* port not up: dim the numbers, keep the link badge legible */
+    r.className=(p.enabled&&p.link>0)?"":"pdown";
     r.cells[0].textContent=portLabel(p);
     r.cells[1].innerHTML=linkBadge(p);
     r.cells[2].textContent=rt?fmtPps(rt.tx):"-";
     r.cells[3].textContent=rt?fmtPps(rt.rx):"-";
     r.cells[4].textContent=BigInt(p.txB).toString();
     r.cells[5].textContent=BigInt(p.rxB).toString();
+    /* same error encoding as the port statistics table */
+    errCell(r.cells[4],p.txB);
+    errCell(r.cells[5],p.rxB);
   });
   dashChips();
   dashChart();

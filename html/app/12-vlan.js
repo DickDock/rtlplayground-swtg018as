@@ -22,6 +22,7 @@ function vlanRefresh(){
     var vl=d.vlan||[];
     $("vmgmtcur").textContent=d.mgmt?String(d.mgmt):t("v_mgmt_none");
     $("vempty").style.display=vl.length?"none":"";
+    navCount("vlan",vl.length);
     tb.innerHTML="";
     var p=Promise.resolve();
     vl.forEach(function(v){
@@ -41,7 +42,7 @@ function vlanRefresh(){
           tr.insertCell().textContent=rangeStr(maskToPorts(pv));
         }
         var del=tr.insertCell();
-        if(v.id!==1)del.appendChild(h("button",{class:"ctl",text:"✕",title:t("v_del_t"),onclick:function(){
+        if(v.id!==1)del.appendChild(h("button",{class:"ctl iconb",text:"✕","aria-label":t("v_del_t"),title:t("v_del_t"),onclick:function(){
           confirmModal(t("v_del_q",{n:v.id}),t("v_del_d"),function(){
             postCmd("vlan "+v.id+" d").then(vlanRefresh).catch(function(){});
           });
@@ -55,10 +56,10 @@ function buildVlanEdit(){
   var tb=$("vedit").tBodies[0];
   if(tb.rows.length||!S.n)return;
   var hd=tb.insertRow();hd.insertCell().className="mut";
-  var rM=tb.insertRow();rM.insertCell().textContent=t("v_member");
-  var rP=tb.insertRow();rP.insertCell().textContent=t("v_pvid");
+  var rM=tb.insertRow();rM.insertCell().className="rlab";rM.cells[0].textContent=t("v_member");
+  var rP=tb.insertRow();rP.insertCell().className="rlab";rP.cells[0].textContent=t("v_pvid");
   for(var p=1;p<=S.n;p++)(function(p){
-    hd.insertCell().innerHTML="<b>"+p+"</b>";
+    var hc=hd.insertCell();hc.className="vh";hc.innerHTML="<b>"+p+"</b>";
     var seg=h("span",{class:"seg",id:"vm"+p});
     ["-","U","T"].forEach(function(s,ix){
       seg.appendChild(h("button",{text:s,"data-v":ix,onclick:function(){
@@ -72,9 +73,9 @@ function buildVlanEdit(){
   })(p);
   var it=$("ingress").tBodies[0];
   var ih=it.insertRow();ih.insertCell().className="mut";
-  var ir=it.insertRow();ir.insertCell().textContent=t("v_accept");
+  var ir=it.insertRow();ir.insertCell().className="rlab";ir.cells[0].textContent=t("v_accept");
   for(var q=1;q<=S.n;q++)(function(q){
-    ih.insertCell().innerHTML="<b>"+q+"</b>";
+    var hc=ih.insertCell();hc.className="vh";hc.innerHTML="<b>"+q+"</b>";
     var sel=h("select",{class:"in",id:"ing"+q});
     [["","-"],["a",t("v_ing_all")],["u",t("v_untagged")],["t",t("v_tagged")]].forEach(function(o){
       sel.appendChild(h("option",{value:o[0],text:o[1]}));

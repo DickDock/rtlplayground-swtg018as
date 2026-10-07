@@ -27,8 +27,40 @@ function h(tag,attrs,kids){
 }
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function badge(txt,cls){return'<span class="badge'+(cls?" "+cls:"")+'">'+esc(txt)+"</span>"}
+/* Speed badge for an up link: one shared encoding for every link column —
+ * the .s* class derives from the same LINKC token the front-panel rate label
+ * uses, and the green dot carries the "link up" state (not the speed). */
+function spdBadge(p){
+  var cls=LINKC[p.link]||"--s1g";
+  return'<span class="badge spd '+cls.slice(2)+'"><i class="udot"></i>'+esc(LINKS[p.link])+"</span>";
+}
+/* admin-down ("off", dashed ghost) and link-down ("down", plain gray) must
+ * read differently at a glance — mirrors .port.dis vs .port:not(.up). */
 function linkBadge(p){
-  return!p.enabled?badge(t("c_off")):(p.link>0?badge(LINKS[p.link],"ok"):badge(t("c_down")));
+  return!p.enabled?badge(t("c_off"),"off")
+    :(p.link>0?spdBadge(p):badge(t("c_down"),"down"));
+}
+/* Error counters: non-zero → red (.nz), zero → dim gray (.nz0). Shared by the
+ * dashboard traffic table and the port statistics table so both pages agree. */
+function errCell(cell,v){
+  var on=BigInt(v)>0n;
+  cell.classList.toggle("nz",on);
+  cell.classList.toggle("nz0",!on);
+}
+/* 64-bit counters: compact auto-unit for the cell, exact grouped value in the
+ * tooltip (the MIB modal keeps the raw digits). */
+function fmtGroup(v){return BigInt(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+function fmtBig(v){
+  var n=Number(v),u=n>=1e9?"G":n>=1e6?"M":n>=1e3?"k":"";
+  if(!u)return BigInt(v).toString();
+  var d=n/{G:1e9,M:1e6,k:1e3}[u];
+  var s=d>=100?d.toFixed(0):d>=10?d.toFixed(1):d.toFixed(2);
+  return s.replace(/\.0+$|(\.\d*?)0+$/,"$1").replace(/\.$/,"")+" "+u;
+}
+/* Sidebar count badges: best-effort, silently skipped when absent. */
+function navCount(id,v){
+  var el=$("nvc-"+id);
+  if(el&&v!=null)el.textContent=String(v);
 }
 function applyTheme(){
   var pref="auto";
@@ -97,13 +129,13 @@ function confirmModal(title,detail,onok){
 }
 
 var TABS=[
-  {id:"dash",  icon:"M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z"},
-  {id:"ports", icon:"M2 7h20v10H2zM6 11v2M10 11v2M14 11v2M18 11v2"},
-  {id:"vlan",  icon:"M12 3v6M12 9l-7 5M12 9l7 5M5 14v5M19 14v5M3 21h4M17 21h4"},
-  {id:"l2",    icon:"M4 5h16M4 12h16M4 19h10"},
-  {id:"links", icon:"M7 8a4 4 0 100 8h3M17 8a4 4 0 110 8h-3M9 12h6"},
-  {id:"flows", icon:"M4 18a8 8 0 0116 0M12 18l4-6"},
-  {id:"system",icon:"M12 8a4 4 0 100 8 4 4 0 000-8zM4 12h2M18 12h2M12 4v2M12 18v2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18"},
+  {id:"dash",  grp:"overview",icon:"M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z"},
+  {id:"ports", grp:"switch",  icon:"M2 7h20v10H2zM6 11v2M10 11v2M14 11v2M18 11v2"},
+  {id:"vlan",  grp:"switch",  icon:"M12 3v6M12 9l-7 5M12 9l7 5M5 14v5M19 14v5M3 21h4M17 21h4"},
+  {id:"l2",    grp:"switch",  icon:"M4 5h16M4 12h16M4 19h10"},
+  {id:"links", grp:"switch",  icon:"M7 8a4 4 0 100 8h3M17 8a4 4 0 110 8h-3M9 12h6"},
+  {id:"flows", grp:"manage",  icon:"M4 18a8 8 0 0116 0M12 18l4-6"},
+  {id:"system",grp:"manage",  icon:"M12 8a4 4 0 100 8 4 4 0 000-8zM4 12h2M18 12h2M12 4v2M12 18v2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18"},
 ];
 var curTab="dash";
 var tabHooks={};

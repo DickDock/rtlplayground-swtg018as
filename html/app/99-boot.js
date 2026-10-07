@@ -4,10 +4,16 @@
 ["mousemove","mousedown","keydown","touchstart","wheel"].forEach(function(ev){
   addEventListener(ev,function(){lastInput=Date.now()},{passive:true});
 });
+var _navGrp=null;
 TABS.forEach(function(tb){
+  if(tb.grp!==_navGrp){
+    _navGrp=tb.grp;
+    $("navlist").appendChild(h("li",{class:"navgrp",text:t("nav_g_"+tb.grp)}));
+  }
   $("navlist").appendChild(h("li",{id:"nv-"+tb.id,onclick:function(){showTab(tb.id)}},[
     h("span",{html:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="'+tb.icon+'"/></svg>'}),
     h("span",{text:t("nav_"+tb.id)}),
+    h("span",{class:"nav-count",id:"nvc-"+tb.id}),
   ]));
 });
 $("burger").addEventListener("click",function(){$("nav").classList.toggle("open")});

@@ -62,9 +62,9 @@ function l2Render(){
     tr.insertCell().textContent=e.where;
     tr.insertCell().className="mono";tr.cells[1].textContent=e.mac;
     tr.insertCell().textContent=e.vlan;
-    tr.insertCell().textContent=ty;
+    tr.insertCell().innerHTML=e.stat?badge(ty,"accent"):badge(ty);
     var dc=tr.insertCell();
-    if(e.pport!=="CPU")dc.appendChild(h("button",{class:"ctl",text:"✕",title:t("l2_del_t"),onclick:function(){
+    if(e.pport!=="CPU")dc.appendChild(h("button",{class:"ctl iconb",text:"✕",title:t("l2_del_t"),"aria-label":t("l2_del_t"),onclick:function(){
       getJSON("/l2_del.json?idx="+e.idx).then(function(){
         l2Rows=l2Rows.filter(function(x){return x!==e});
         l2Render();
@@ -72,6 +72,7 @@ function l2Render(){
     }}));
   });
   $("l2count").textContent=shown+" / "+l2Rows.length+" "+t("l2_entries");
+  navCount("l2",l2Rows.length);
 }
 function l2SortClick(){
   var c=this.dataset.sort;

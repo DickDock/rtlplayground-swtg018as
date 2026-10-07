@@ -10,6 +10,13 @@ function speedLabel(s){
   if(s==="c_auto")return t("c_auto");
   return s.replace(" full"," "+t("c_full")).replace(" half"," "+t("c_half"));
 }
+/* Link cell badge keeping the front-panel distinction: a disabled port is
+ * an admin-down dashed ghost, an unplugged one is plain link-down gray, an
+ * up link is the shared .spd speed badge (speed token + green up dot). */
+function portLinkBadge(p){
+  if(!p.enabled)return badge(t("c_off"),"off");
+  return p.link>0?spdBadge(p):badge(t("c_down"));
+}
 function buildPorts(){
   var tb=$("ptable").tBodies[0];
   if(tb.rows.length||!S.n)return;
@@ -56,7 +63,8 @@ function portsMacs(){
       var el=$("pmac"+(p.portNum-1));
       if(!el)return;
       var m=by[p.portNum]||[];
-      el.textContent=!m.length?"-":(m.length===1?m[0]:m.length+" "+t("c_devices"));
+      el.innerHTML=!m.length?'<span class="mut">-</span>'
+        :(m.length===1?badge(m[0],"macb"):badge(m.length+" "+t("c_devices"),"accent"));
       el.title=m.join("\n");
     });
   }).catch(function(){});
@@ -67,7 +75,7 @@ function portsStatus(){
   if(++_macTick%10===0)portsMacs();
   S.ports.forEach(function(p){
     var i=p.portNum-1,el=$("plink"+i);
-    if(el)el.innerHTML=linkBadge(p);
+    if(el)el.innerHTML=portLinkBadge(p);
     var sel=$("pspd"+i),v=p.isSFP?0:ADVSEL[parseInt(p.adv,2)];
     if(sel&&v&&document.activeElement!==sel)sel.value=v;
   });
@@ -158,7 +166,7 @@ function decodeCounters(s){
 var ctrPoll=null;
 function showCounters(i){
   var body=h("div");
-  var bar=h("div",{style:"display:flex;gap:12px;align-items:center;margin-bottom:10px"});
+  var bar=h("div",{class:"hrow"});
   var nz=h("input",{type:"checkbox",checked:""});
   var auto=h("input",{type:"checkbox"});
   bar.appendChild(h("label",null,[nz,document.createTextNode(" "+t("st_nonzero"))]));
@@ -204,11 +212,15 @@ function statsStatus(){
     if(!r)return;
     r.cells[0].textContent=p.portNum;
     r.cells[1].textContent=p.name||"";
-    r.cells[2].innerHTML=linkBadge(p);
-    r.cells[3].textContent=BigInt(p.txG).toString();
-    r.cells[4].textContent=BigInt(p.txB).toString();
-    r.cells[5].textContent=BigInt(p.rxG).toString();
-    r.cells[6].textContent=BigInt(p.rxB).toString();
+    r.cells[2].innerHTML=portLinkBadge(p);
+    /* compact auto-unit in the cell, exact value in the tooltip */
+    r.cells[3].textContent=fmtBig(p.txG);r.cells[3].title=fmtGroup(p.txG);
+    r.cells[4].textContent=fmtBig(p.txB);r.cells[4].title=fmtGroup(p.txB);
+    r.cells[5].textContent=fmtBig(p.rxG);r.cells[5].title=fmtGroup(p.rxG);
+    r.cells[6].textContent=fmtBig(p.rxB);r.cells[6].title=fmtGroup(p.rxB);
+    /* error counters stay dim at zero, turn red only when non-zero */
+    errCell(r.cells[4],p.txB);
+    errCell(r.cells[6],p.rxB);
   });
 }
 
@@ -229,7 +241,7 @@ function eeeLoad(){
       if(p.isSFP){
         tr.insertCell().appendChild(spDots("0"));
         tr.insertCell().appendChild(spDots("0"));
-        tr.insertCell().textContent=t("e_na");
+        var na=tr.insertCell();na.textContent=t("e_na");na.className="mut";
         return;
       }
       tr.insertCell().appendChild(spDots(p.eee));

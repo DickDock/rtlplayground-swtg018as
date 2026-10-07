@@ -14,7 +14,7 @@ function lagBadge(g){
     if(q&&q.portNum===p&&q.enabled&&q.link>0)live++;
   }
   b.textContent=n?(n+" "+t("lag_n")+(live?" · "+t("lag_up"):" · "+t("lag_down"))):t("c_off");
-  b.className="badge"+(n&&live?" ok":"");
+  b.className="badge"+(n&&live?" ok":(n?" down":""));
 }
 function buildLag(){
   var w=$("lagwrap");
@@ -23,10 +23,10 @@ function buildLag(){
     var card=h("div",{class:"card",style:"display:none"});
     card.appendChild(h("h2",null,[
       h("span",{text:"LAG "+g}),
-      h("span",{class:"badge",id:"lgt"+g,style:"margin-left:8px"}),
+      h("span",{class:"badge accent",id:"lgt"+g}),
       h("span",{class:"badge",id:"lgb"+g,style:"margin-left:auto"}),
     ]));
-    var mr=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px",class:"small"});
+    var mr=h("div",{class:"hrow small"});
     mr.appendChild(h("span",{class:"mut",text:t("lag_mode")}));
     var ms=h("select",{class:"in",id:"lgm"+g});
     ms.appendChild(h("option",{value:"static",text:t("lag_static")}));
@@ -34,7 +34,7 @@ function buildLag(){
     ms.addEventListener("change",function(){$("lgs"+g).textContent=ms.value==="lacp"?t("lacp_hint"):""});
     mr.appendChild(ms);
     card.appendChild(mr);
-    card.appendChild(h("p",{class:"small mono",id:"lgs"+g,style:"margin-bottom:10px"}));
+    card.appendChild(h("p",{class:"small mono",id:"lgs"+g,style:"margin:0 0 10px;min-height:1.4em"}));
     card.appendChild(h("div",{class:"small mut",style:"margin-bottom:6px",text:t("lag_members")}));
     var pr=h("div",{class:"chipset",style:"margin-bottom:12px"});
     for(var p=1;p<=S.n;p++)pr.appendChild(h("label",{class:"pchk",title:t("c_port")+" "+p},[
@@ -51,7 +51,7 @@ function buildLag(){
       ]));
     });
     card.appendChild(hr);
-    var acts=h("div",{style:"display:flex;gap:10px;flex-wrap:wrap"});
+    var acts=h("div",{class:"hrow",style:"margin-bottom:0"});
     acts.appendChild(h("button",{class:"ctl pri",text:t("c_apply"),onclick:function(){lagApply(g)}}));
     acts.appendChild(h("button",{class:"ctl danger",text:t("c_delete"),onclick:function(){
       confirmModal(t("lag_clear_q",{n:g}),t("lag_clear_d"),function(){
@@ -130,12 +130,15 @@ function lagLoad(){
       HASHF.forEach(function(f,i){$("lg"+g+"h"+f).checked=!!((hash>>i)&1)});
     });
     lagDots();
+    var nGroups=0;
     for(var g2=1;g2<=4;g2++){
       var card=$("lgm"+g2).closest(".card");
       card.style.display=(lacpCfg[g2]||lagMasks[g2]||card.dataset.dirty)?"":"none";
       $("lgt"+g2).textContent=lacpCfg[g2]?"LACP":(lagMasks[g2]?t("lag_static"):"");
+      if(lacpCfg[g2]||lagMasks[g2])nGroups++;
       lagBadge(g2);
     }
+    navCount("links",nGroups);
   });
 }
 function lagApply(g){
@@ -235,8 +238,8 @@ function stpLoad(){
     s.ports.forEach(function(pt){
       var p=stpKey(pt);
       var trip=(pt.f&STP_PF.TRIP)?" "+badge(t("stp_trip"),"bad"):"";
-      $("stro"+p).textContent=s.on&&pt.role?t("stp_r"+pt.role):"-";
-      $("stst"+p).innerHTML=s.on?badge(t("stp_s"+pt.st),pt.st===3?"ok":"")+trip:"-";
+      $("stro"+p).innerHTML=s.on&&pt.role?badge(t("stp_r"+pt.role),pt.role===1?"accent":""):"-";
+      $("stst"+p).innerHTML=s.on?badge(t("stp_s"+pt.st),["","down","warn","ok"][pt.st]||"")+trip:"-";
       $("stdb"+p).textContent=s.on?fmtBridge(pt.db):"-";
       $("stdp"+p).textContent=s.on?parseInt(pt.dp.slice(0,2),16)+"."+parseInt(pt.dp.slice(2),16):"-";
       $("stdc"+p).textContent=s.on?parseInt(pt.dc,16):"-";
