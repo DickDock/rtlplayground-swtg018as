@@ -72,7 +72,7 @@ void clock_init(void);
  *
  * \return The current clock time, measured in system ticks.
  */
-inline clock_time_t clock_time(void)
+static inline clock_time_t clock_time(void)
 {
   return ticks;
 }

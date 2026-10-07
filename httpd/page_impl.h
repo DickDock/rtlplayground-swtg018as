@@ -28,7 +28,7 @@ void send_vlanlist(void) __banked;
 /*  Convert only the lower nibble to ascii HEX char.
     For convenience the upper nibble is masked out.
 */
-inline char itohex(uint8_t val) {
+static inline char itohex(uint8_t val) {
 	// Ignore upper nibble for convenience.
 	val &= 0x0f;
 	val -= 10;

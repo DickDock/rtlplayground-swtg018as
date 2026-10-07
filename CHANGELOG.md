@@ -34,6 +34,20 @@
   - dhcp.c declared its string literals in a different bank than its code, so DHCP log
     messages printed garbage; code and literals now share one bank and a CI check
     (`tools/check_banking.py`) rejects cross-bank plain calls and literal mismatches.
+- Tools and CI
+  - fileadder compressed the web files with gzip in place but left the raw tail past the
+    compressed stream in the image, shipping ~50 KiB of plaintext residue behind the HTML
+    slot; the tail is now wiped after compression.
+  - CI: the bridge image size check relied on the shell glob-expanding a redirection
+    target, which the container's `sh` does not do; it now iterates the matches and
+    redirects a plain variable.
+  - CI: building with an explicit `MACHINE=` plus `machine.h` defining the same board
+    tripped `-Werror` with "macro redefined"; the active board define now carries an
+    explicit value.
+  - Header `inline` functions (`tcp_tick_due`, `clock_time`, `itohex`) are now
+    `static inline`: without `static` a C99 inline definition provides no external
+    definition, so the host unit tests only linked on compilers that happened to inline
+    every call.
 
 ## Breaking changes
 

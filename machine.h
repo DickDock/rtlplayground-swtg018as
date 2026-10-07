@@ -26,7 +26,9 @@
 // #define MACHINE_SWGT024_V2_0_UNMANAGED
 // #define MACHINE_TRENDNET_TEG_S562
 // #define MACHINE_HG0402XG_V1_1
-#define MACHINE_SWTG018AS_A_V_2_0
+/* The explicit 1 matters: `make MACHINE=...` adds -DMACHINE_x, and a
+ * value-less redefinition of it here trips -Werror (CI) with "redefined". */
+#define MACHINE_SWTG018AS_A_V_2_0 1
 // #define MACHINE_SWTGW218AS
 // #define MACHINE_PCB_SWTG018AS_V2_1_0
 // #define MACHINE_PCB_K0402WS_V3

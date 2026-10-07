@@ -75,7 +75,12 @@ jobs:
         run: |
           make CI=1 BRIDGE=1 MACHINE=${{ matrix.machine }}
           python3 tools/check_banking.py --build-dir output/${{ matrix.machine }}
-          test "$(wc -c < output/${{ matrix.machine }}/rtlplayground-*bridge-*.bin)" -eq 524288
+          # sh (the container's default shell) does not glob-expand
+          # redirection targets, so iterate the matches and redirect
+          # a plain variable instead.
+          for f in output/${{ matrix.machine }}/rtlplayground-*bridge-*.bin; do
+            test "$(wc -c < "$f")" -eq 524288
+          done
       - uses: actions/upload-artifact@v7
         with:
           name: firmware-${{ matrix.machine }}

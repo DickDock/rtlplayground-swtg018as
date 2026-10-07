@@ -384,8 +384,15 @@ int main(int argc, char **argv)
 			data_read = replaceCalls(addr, file_len);
 			if (old_len > data_read)
 				memset(buffer + addr + data_read, 0, old_len - data_read);
-			if (arguments.gzip)
+			if (arguments.gzip) {
+				old_len = data_read;
 				data_read = gzipBuffer(addr, data_read);
+				/* gzipBuffer compresses in place: wipe the raw tail the
+				 * compressed stream no longer covers, or it ships in
+				 * the image as plaintext residue */
+				if (old_len > data_read)
+					memset(buffer + addr + data_read, 0, old_len - data_read);
+			}
 			addidx(in_file->d_name, addr, data_read);
 			addr += data_read;
 		}
