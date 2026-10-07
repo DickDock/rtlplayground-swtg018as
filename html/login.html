@@ -113,11 +113,19 @@ button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
     e.preventDefault();
     var err=document.getElementById("err"),btn=document.getElementById("lb");
     btn.disabled=true;err.textContent="";
-    fetch("/login",{method:"POST",body:new URLSearchParams({pwd:document.getElementById("pwd").value})})
+    /* Content-Type must be set explicitly: left to the fetch default it
+     * becomes "application/x-www-form-urlencoded;charset=UTF-8", and the
+     * firmware's is_word() does not treat ';' as a separator, so the
+     * login is rejected as a bad request. */
+    fetch("/login",{method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:new URLSearchParams({pwd:document.getElementById("pwd").value})})
       .then(function(r){
-        if(r.redirected&&/login\.html$/.test(new URL(r.url,location.href).pathname)){
+        var p=new URL(r.url,location.href).pathname;
+        if(r.redirected&&/login\.html$/.test(p)){
           err.textContent=S[4];btn.disabled=false;return;
         }
+        if(!r.ok&&!r.redirected){err.textContent=S[4];btn.disabled=false;return;}
         location.replace("/");
       })
       .catch(function(){err.textContent=S[4];btn.disabled=false;});
