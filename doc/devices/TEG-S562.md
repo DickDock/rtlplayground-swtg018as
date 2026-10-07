@@ -1,42 +1,40 @@
 # TrendNet TEG-S562
 
-English | [简体中文](TEG-S562.zh-CN.md)
+[English](TEG-S562.en.md) | 简体中文
 
-Following is documentation for unmanaged switch marked as `TEG-S563/EU H/W: V1.0R`.
+以下是针对标识为 `TEG-S563/EU H/W: V1.0R` 的非网管型交换机的文档。
 
-Original software is running UART on 57600 baud rate. The software does not allow to
-do anything fancy via serial. There is `IP` configuration which can be printed as well.
-There might be also some flash upload procedure, but using SPI clamp in-board seems to
-be easier method.
+原厂软件的 UART 波特率为 57600。该软件不允许通过串口做太多复杂的操作。其中有 `IP` 配置，也可以打印出来。
+可能还存在某种 flash 上传流程，但使用 SPI 夹具进行在板操作似乎是更简单的方法。
 
-The memory chip is `Winbond W25Q16JV` with 16M-bit size.
+存储芯片为 `Winbond W25Q16JV`，容量 16M-bit。
 
-## What does work
+## 可正常工作的功能
 
-1. 2.5G ports on all advertised speeds.
-2. SFP+ communication.
-3. Serial, Web UI.
-4. All LEDs
+1. 2.5G 端口在所有标称速率下均正常工作。
+2. SFP+ 通信。
+3. 串口、Web UI。
+4. 所有 LED。
 
-## Known issues
+## 已知问题
 
-None.
+无。
 
 ## PCB
 
-Manufacturer information be found [on the product page](https://www.trendnet.com/support/support-detail.asp?prod=105_TEG-S562).
+厂商信息可以在[产品页面](https://www.trendnet.com/support/support-detail.asp?prod=105_TEG-S562)找到。
 
-Top side
+顶面
 
 <img src="photos/TEG-S562/TEG-S562-v1.0R-top.jpg" width="300" />
 
-Bottom
+底面
 
 <img src="photos/TEG-S562/TEG-S562-v1.0R-bottom.jpg" width="300" />
 
-## Connectors
+## 连接器
 
-### Port overview
+### 端口概览
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -49,83 +47,82 @@ Bottom
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### J2, serial console
+### J2，串口控制台
 
-| `J2` pin | Signal      |
+| `J2` 引脚 | 信号        |
 | -------- | ----------- |
 | 1        | 3V3         |
-| 2        | TX (Output) |
-| 3        | RX (Input)  |
+| 2        | TX（输出） |
+| 3        | RX（输入）  |
 | 4        | GND         |
 
-Note: 1 pin is square shaped, towards the power input.
+注意：1 号引脚为方形，朝向电源输入端。
 
-### J5, power pass-thru
+### J5，供电直通（power pass-thru）
 
-| `J5` pin | Signal |
+| `J5` 引脚 | 信号 |
 | -------- | ------ |
 | 1        | 12V    |
 | 2        | 12V    |
 | 3        | GND    |
 | 4        | GND    |
 
-Note: 1 pin is square shaped.
+注意：1 号引脚为方形。
 
-### U5, I2C eeprom placeholder
+### U5，I2C EEPROM 预留位
 
-| `J5` pin | Signal        |
+| `J5` 引脚 | 信号        |
 | -------- | ------------- |
 | 1        | GND           |
 | 2        | GND           |
 | 3        | GND           |
 | 4        | GND           |
 | 5        | 3V3           |
-| 6        | ??? Logic Low |
+| 6        | ??? 逻辑低电平 |
 | 7        | SCL           |
 | 8        | SDA           |
 
-SOC I2C address is 0x5c.
+SOC 的 I2C 地址是 0x5c。
 
-### SW1 GPIO switch?
+### SW1，GPIO 开关？
 
-Not populated but looks like a switch for selecting
-GPIO level. Missing resistors in place.
+未焊接，但看起来像是一个用于选择 GPIO 电平的开关。缺少电阻，位置空置。
 
-GPIO mapping unknown.
+GPIO 映射未知。
 
-### S2 Reset ciruit
+### S2 复位电路
 
-Not populated but looks like a button can be added on `S2` connector,
-requires additional `R571` resistor which will pull signal to ground.
+未焊接，但看起来可以在 `S2` 连接器上加装一个按钮，
+还需要额外加装 `R571` 电阻把信号拉到地。
 
-GPIO mapping unknown.
+GPIO 映射未知。
 
 ### GPIO
 
-| HEX VAL. | GPIO   | When            | GPIO   | When                   |
+| 十六进制值 | GPIO   | 状态            | GPIO   | 状态                   |
 | -------- | ------ | ----------------| ------ | -----------------------|
 | 00000001 | GPIO00 |                 | GPIO32 |                        |
 | 00000002 | GPIO01 |                 | GPIO33 |                        |
-| 00000004 | GPIO02 |                 | GPIO34 | Random changes         |
+| 00000004 | GPIO02 |                 | GPIO34 | 随机变化         |
 | 00000008 | GPIO03 |                 | GPIO35 |                        |
-| 00000010 | GPIO04 |                 | GPIO36 | SFP2 Present           |
-| 00000020 | GPIO05 |                 | GPIO37 | SFP2 RX Los            |
-| 00000040 | GPIO06 |                 | GPIO38 | SFP1 Present           |
+| 00000010 | GPIO04 |                 | GPIO36 | SFP2 在位           |
+| 00000020 | GPIO05 |                 | GPIO37 | SFP2 RX 丢失            |
+| 00000040 | GPIO06 |                 | GPIO38 | SFP1 在位           |
 | 00000080 | GPIO07 |                 | GPIO39 |                        |
 | 00000100 | GPIO08 |                 | GPIO40 |                        |
 | 00000200 | GPIO09 |                 | GPIO41 |                        |
-| 00000400 | GPIO10 |                 | GPIO42 | Random changes         |
+| 00000400 | GPIO10 |                 | GPIO42 | 随机变化         |
 | 00000800 | GPIO11 |                 | GPIO43 |                        |
-| 00001000 | GPIO12 | PORT1 Link      | GPIO44 |                        |
+| 00001000 | GPIO12 | 端口 1 有链路      | GPIO44 |                        |
 | 00002000 | GPIO13 | PORT1-LED-GREEN | GPIO45 |                        |
 | 00004000 | GPIO14 | PORT1-LED-AMBER | GPIO46 | SFP1 I2C CLK           |
-| 00008000 | GPIO15 | PORT2 Link      | GPIO47 | SFP1 I2C SDA           |
+| 00008000 | GPIO15 | 端口 2 有链路      | GPIO47 | SFP1 I2C SDA           |
 | 00010000 | GPIO16 | PORT2-LED-GREEN | GPIO48 | SFP2 I2C CLK           |
 | 00020000 | GPIO17 | PORT2-LED-AMBER | GPIO49 | SFP2 I2C SDA           |
-| 00040000 | GPIO18 | PORT3 Link      | GPIO50 | SFP1 Rx LOS            |
+| 00040000 | GPIO18 | 端口 3 有链路      | GPIO50 | SFP1 Rx LOS            |
 | 00080000 | GPIO19 | PORT3-LED-GREEN | GPIO51 | SFP2 TX Disable        |
 | 00100000 | GPIO20 | PORT4-LED-AMBER | GPIO52 |                        |
-| 00200000 | GPIO21 | PORT4 Link      | GPIO53 |                        |
+| 00200000 | GPIO21 | 端口 4 有链路      | GPIO53 |                        |
 | 00400000 | GPIO22 | PORT4-LED-GREEN | GPIO54 | SFP1 TX Disable        |
 | 00800000 | GPIO23 | PORT4-LED-AMBER | GPIO55 |                        |
 | 01000000 | GPIO24 |                 | GPIO56 |                        |
@@ -137,40 +134,40 @@ GPIO mapping unknown.
 | 40000000 | GPIO30 |                 | GPIO62 |                        |
 | 80000000 | GPIO31 |                 | GPIO63 |                        |
 
-## LEDs
+## LED
 
-Ports 1-4 are amber for 100M/1G links, Green for 2.5G.
-Port 5-6 are green for 10G/1G link. Both should flash on activity.
+端口 1-4 在 100M/1G 链路下为琥珀色，2.5G 下为绿色。
+端口 5-6 在 10G/1G 链路下为绿色。两者都应在有活动时闪烁。
 
-| NAME             | When active    |
+| 名称             | 何时点亮       |
 | ---------------- | ---------------|
 | PWR              | 3V3            |
 | SFP1             |                |
 | SFP2             |                |
 | PORT1-LED-GREEN  | -              |
-| PORT2-LED-GREEN  | PORT2 2.5G     |
-| PORT3-LED-GREEN  | PORT3 2.5G     |
-| PORT4-LED-GREEN  | PORT4 2.5G     |
-| PORT1-LED-AMBER  | PORT1 1GB/100M |
-| PORT2-LED-AMBER  | PORT2 1GB/100M |
-| PORT3-LED-AMBER  | PORT3 1GB/100M |
-| PORT4-LED-AMBER  | PORT4 1GB/100M |
+| PORT2-LED-GREEN  | 端口 2 2.5G     |
+| PORT3-LED-GREEN  | 端口 3 2.5G     |
+| PORT4-LED-GREEN  | 端口 4 2.5G     |
+| PORT1-LED-AMBER  | 端口 1 1GB/100M |
+| PORT2-LED-AMBER  | 端口 2 1GB/100M |
+| PORT3-LED-AMBER  | 端口 3 1GB/100M |
+| PORT4-LED-AMBER  | 端口 4 1GB/100M |
 
-## Power supply
+## 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
-Board has two supply rails. `0.95` and `3.3` volt.
+输入电源通过桶形插头提供，随附 `12V 1A` 适配器。
+板上有两条供电轨：`0.95` 和 `3.3` 伏。
 
-### `0.95` Core Voltage
+### `0.95` 核心电压
 
-Voltage is made by a `APW8713` (U3).
+该电压由 `APW8713`（U3）产生。
 
-### `3.3` Voltage
+### `3.3` 电压
 
-Voltage is crated regulated by chip marked as `GoIAT` (U2).
+该电压由丝印标记为 `GoIAT`（U2）的芯片稳压产生。
 
 ## SFP SPI
 
-There is separate clock and data lines for both SFP modules. MSDA/MSCK 0 and 1 need to be enabled.
+两颗 SFP 模块各有独立的时钟和数据线。需要启用 MSDA/MSCK 0 和 1。
 
-SFP1 slot is connected to SPI0. SFP2 slot is connected to SPI1.
+SFP1 插槽连接到 SPI0。SFP2 插槽连接到 SPI1。

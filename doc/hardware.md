@@ -1,60 +1,42 @@
-#RTL8272/3 features
+#RTL8272/3 功能特性
 
-English | [简体中文](hardware.zh-CN.md)
+[English](hardware.en.md) | 简体中文
 
-The following hardware features of the RTL8372/3 is supported:
-- Clock generation, including different divider settings
-- Interrupt control for timer, serial, external irqs 0, 1
-- Serial console via SFRs
-- Flash operations via SFRs
-- Bank switching via SFRs
-- Access to Switch registers via SFRs
-  - LED setup
-  - Reset
-  - Some switch settings such as MAC configuration
-  - GPIO to detect SFP module insert/removal/RX-LOS (depending on device/module support)
-  - I2C to read SFP EEPROM on 1 and 2 SFP slot devices
-  - NIC setup
-  - L2 learning table access, L2 table flushing
-  - VLAN setup/configuration
-  - Port mirroring
-- Access to PHYs via MDIO (clause 45 via SFR):
-  - Internal PHYs of RTL8372 and RTL8373
-  - RTL8221 (1x2.5GBit port on devices with 5 ports)
-  - RTL8224 (4x2.5GBit ports on devices with 8 ports)
-- SerDes settings of SoC via SFR:
-  - Configure SFPs with 10Gbit/2.5Gbit/1Gbit (Ethernet and Fiber SFP(+) tested)
-  - RTL8221, RTL8224
-- NIC TX and RX of packets via SFRs
-  - send and receive Ethernet frames via SFRs and Switch registers
-  - RTL-tags and VLAN ingress-tag decoding for CPU-port
+RTL8372/3 支持以下硬件功能:
+- 时钟生成,包括不同的分频器设置
+- 定时器、串口以及外部中断 0、1 的中断控制
+- 通过 SFR 实现串口控制台
+- 通过 SFR 实现 Flash 操作
+- 通过 SFR 实现存储体(bank)切换
+- 通过 SFR 访问交换机寄存器
+  - LED 设置
+  - 复位
+  - 部分交换机设置,例如 MAC 配置
+  - 用 GPIO 检测 SFP 模块的插入/拔出/RX-LOS(取决于设备/模块的支持情况)
+  - 在 1 个和 2 个 SFP 插槽的设备上通过 I2C 读取 SFP EEPROM
+  - NIC 设置
+  - L2 学习表访问、L2 表刷新
+  - VLAN 设置/配置
+  - 端口镜像
+- 通过 MDIO 访问 PHY(clause 45 经由 SFR 实现):
+  - RTL8372 和 RTL8373 的内部 PHY
+  - RTL8221(5 端口设备上的 1 个 2.5GBit 端口)
+  - RTL8224(8 端口设备上的 4 个 2.5GBit 端口)
+- 通过 SFR 设置 SoC 的 SerDes:
+  - 配置 10Gbit/2.5Gbit/1Gbit 的 SFP(已测试以太网和光纤 SFP(+))
+  - RTL8221、RTL8224
+- 通过 SFR 进行 NIC 数据包的发送和接收
+  - 通过 SFR 和交换机寄存器收发以太网帧
+  - CPU 端口的 RTL 标签与 VLAN 入口标签解码
 
-Ethernet frame RX IRQ via IRQ1 is conceptually understood, but not activated. RX is
-currently done via polling, which allows ping-times of <10ms.
+通过 IRQ1 进行以太网帧接收中断在原理上已经理解,但尚未启用。目前接收通过轮询完成,ping 延时可低于 10ms。
 
-The RTL8372/3 have 256 bytes of internal RAM (INTMEM) accessible through MOV
-instructions, which are used for the stack and important globals. Some of
-these are bit-adressable, e.g. for storing global flags.
+RTL8372/3 具有 256 字节可通过 MOV 指令访问的内部 RAM(INTMEM),用于栈和重要的全局变量。其中一些是可位寻址的,例如用于存储全局标志。
 
-Additionally, 64kB of extended RAM (XMEM) is built in, which is accessed
-through the MOVX instruction. It is used for global variables, for most
-of the function argument passing that is not done using the 8 registers
-R0-R7 or registers A/B, and for local variables (which requires extremely
-careful planning). The flash memory is transparently accessible for code
-being executed and can be used to store configuration. Access is done through
-the MOVC instruction, possibly setting the bank register before and
-resetting it to access the entire 4MB space. Code is prefetched from flash
-and cached in a small RAM automatically by the HW.
+此外,芯片内置 64kB 扩展 RAM(XMEM),通过 MOVX 指令访问。它用于全局变量、大部分未使用 R0-R7 这 8 个寄存器或 A/B 寄存器传递的函数参数,以及局部变量(这需要极其周密的规划)。Flash 存储器对正在执行的代码是透明可访问的,也可用于存储配置。访问通过 MOVC 指令完成,必要时先设置 bank 寄存器,访问完再将其复位,以访问整个 4MB 空间。代码由硬件自动从 Flash 预取并缓存到一个小型 RAM 中。
 
-The peripherial functions are accessed through 2 different mechanisms:
-- Special Function Registers (SFRs, 0x80-0xff) for banking, timers, UART, access to
-  switch registers, MDIO, SPI (flash) and NIC transfers. Some SFRs are not
-  used for HW purposes and can be used as RAM. Some SFRs are bit-adressable,
-  allowing for very tight event wait loops (a single 2-byte instruction).
-- 0x10000 switch registers, which appear to be very similar to the registers
-  of the RTL838x, for which source code and datasheets are available. This
-  controls clock dividers, GPIO/LEDs and general  switch functionality. 
+外设功能通过两种不同的机制访问:
+- 特殊功能寄存器(SFR,0x80-0xff),用于存储体切换、定时器、UART、访问交换机寄存器、MDIO、SPI(Flash)和 NIC 传输。有些 SFR 不用于硬件用途,可以用作 RAM。有些 SFR 支持位寻址,从而可以实现非常紧凑的事件等待循环(一条 2 字节指令)。
+- 0x10000 个交换机寄存器,它们看起来与 RTL838x 的寄存器非常相似,而后者有源代码和数据手册可用。这些寄存器控制时钟分频器、GPIO/LED 以及一般的交换机功能。
 
-The playground image shows access to the different types of memory using the
-SDCC compiler. Any support of Linux or e.g. Zephyr would require porting gcc.
-There are FreeRTOS ports to 8051 processors using sdcc, however.
+playground 镜像演示了使用 SDCC 编译器访问各类存储器的方法。若要支持 Linux 或 Zephyr 等,则需要移植 gcc。不过,目前已存在使用 sdcc 面向 8051 处理器的 FreeRTOS 移植。

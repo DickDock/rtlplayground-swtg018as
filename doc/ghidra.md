@@ -1,16 +1,12 @@
-# Understanding the image using ghidra
+# 使用 ghidra 理解固件镜像
 
-English | [简体中文](ghidra.zh-CN.md)
+[English](ghidra.en.md) | 简体中文
 
-Start ghidra, load file starting from offset 0x0002 into
-memory starting at 0x0000. The lengthe is 0x10000. Select generic 8051, big
-endian.
+启动 ghidra，把文件从偏移 0x0002 开始加载到从 0x0000 开始的内存中，长度为 0x10000。选择 generic 8051、大端序（big endian）。
 
-After loading, the boot vector is at 0x0000, which will jump to 0x0100 for
-the boot routine.
+加载完成后，boot 向量位于 0x0000，它会跳转到 0x0100 处的启动例程。
 
-The firmware uses only bank 1 of the RTL837x since it is quite short.
-Otherwise the firmware would be organized as follows
+由于固件相当短，它只使用了 RTL837x 的 bank 1。否则固件将按如下方式组织：
 ```
 --------------------------- 0x0000 ---------------------------------
 Boot-Vector
@@ -24,21 +20,10 @@ Overlay 1                    Overlay 2                 Overlay n
 
 --------- 0xffff ---------   -------- 0xffff --------  -------- 0xffff
 ```
-The RTL837x firmware images are organized as follows:
-The first 2 bytes of the image give the size of the prefetched data at the
-start of the CPU power up. The default is 0x4000 (bytes: 0x00 0x40), which
-means that the entire shared area of the code memory in all banks,
-0x4000 bytes is read immediately into the code RAM.
+RTL837x 固件镜像的组织方式如下：
+镜像的前 2 个字节表示 CPU 上电启动时在起始处预取数据的大小。默认值为 0x4000（字节：0x00 0x40），这意味着所有 bank 中代码存储器的整个共享区域——0x4000 字节——会被立即读入代码 RAM。
 
-Common code starts at
-0x0002 in the image and has length 0x3ffd, the first bank starts at 0x4000
-in the image, is mapped to 0x4000 and has length 0xc000. The second bank
-starts at 0x10000, is mapped to 0x4000 and has length 0xc000. The third
-bank would start at 0x1c000 and would again be mapped to 0x4000.
-There are about 30 banks in use for managed switches, unmanaged ones use
-2-3, while the hardware would allow to use 0x3f banks, i.e. up to 4 MB of
-flash.
+公共代码（Common code）从镜像中的 0x0002 开始，长度为 0x3ffd；第一个 bank 从镜像中的 0x4000 开始，被映射到 0x4000，长度为 0xc000；第二个 bank 从镜像中的 0x10000 开始，被映射到 0x4000，长度为 0xc000；第三个 bank 将从 0x1c000 开始，同样被映射到 0x4000。
+网管型交换机大约会用到 30 个 bank，非网管型使用 2-3 个，而硬件最多允许使用 0x3f 个 bank，即最大 4 MB 的 flash。
 
-The current image uses Common BANK0 and the first BANK1 via sdccs __banked
-function keyword and custom banking trampoline code for the RTL837x in
-assembler.
+当前镜像通过 sdcc 的 `__banked` 函数关键字，以及针对 RTL837x 用汇编编写的自定义 bank 切换 trampoline 代码，使用公共区加 10 个 bank（BANK1-BANK10，见 `flash-layout.md`）。

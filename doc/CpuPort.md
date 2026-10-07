@@ -1,29 +1,17 @@
-# The CPU Port
+# CPU 端口
 
-English | [简体中文](CpuPort.zh-CN.md)
+[English](CpuPort.en.md) | 简体中文
 
-The RTL827x provide a CPU Port for a NIC on the 8051 side of the SoC.
+RTL827x 为 SoC 8051 一侧的 NIC 提供了一个 CPU 端口。
 
-## Receiving packets
-In order to receive packets on the ASIC side, bit 0 of RTL837X_REG_RX_CTRL
-(0x785c) must be set. Further bits in the register enable reception of various
-kinds of Ethernet frames. They should all be set in order for the firmware
-to decide what to do with them. To drop packets with incorrect Ethernet frame CRC
-already by the ASIC, clear bit 2 of this register.
+## 接收数据包
+为了在 ASIC 侧接收数据包,必须置位 RTL837X_REG_RX_CTRL(0x785c)的第 0 位。该寄存器中的其他位用于启用各类以太网帧的接收。固件需要自行决定如何处理这些帧,因此这些位都应当置位。若要让 ASIC 在早期就丢弃以太网帧 CRC 不正确的数据包,清除此寄存器的第 2 位。
 
-Packets are received by either polling the RTL837X_REG_RX_AVAIL register
-(0x7874), which will be > 0 if data is within a ring-buffer on the ASIC side
-of the SoC. Alternatively, an interrupt can be triggered (EX1).
+接收数据包的方式可以是轮询 RTL837X_REG_RX_AVAIL 寄存器(0x7874):当数据位于 SoC ASIC 侧的环形缓冲区中时,该值大于 0。另一种方式是触发中断(EX1)。
 
-Data is transferred to the 8051 side by calling an SFR function. First, the
-frame header of the received frame will be copied over. For this, provide
-the destination memory location in xdata memory in SFRs B3 and B4 (little
-endian), the source location on the ASIC-side in SFRs B5/B6 (also little
-endian, found in RTL837X_REG_RX_RINGPTR, 0x787c) and execute the function
-by setting SFR_NIC_CTRL (B7) to the length to be transferred divided by 8,
-i.e. 1.
+数据通过调用一个 SFR 函数传输到 8051 侧。首先,接收帧的帧头会被复制过来。为此,在 SFR B3 和 B4 中提供 xdata 存储器中的目标地址(小端序),在 SFR B5/B6 中提供 ASIC 侧的源地址(同样为小端序,可在 RTL837X_REG_RX_RINGPTR,0x787c 中找到),然后将 SFR_NIC_CTRL(B7)设置为要传输的长度除以 8,即 1,以执行该函数。
 
-The frame header has the following format:
+帧头的格式如下:
 ```
 SS xx xx xP LL LH xx xx
 SS:	8-bit sequence number
@@ -32,23 +20,14 @@ LHLL:	Length of Ethernet frame (little endian)
 xx:	Unknown
 ``` 
 
-Next, transfer the actual packet over by repeating the SFR function with a
-pointer to the frame on the ASIC directly after the frame header and a
-length as given by the length in the frame header + 7, again divided by 8.
+接着,再次调用该 SFR 函数传输实际的数据包:源指针指向 ASIC 上紧跟帧头之后的帧,长度取帧头中给出的长度加 7,同样再除以 8。
 
-The received frame will have an RTL proprietary Ethernet frame type of
-0x8899 (RRPC) where normally the frame type 0x0800 for IPv4 would be located.
-Further 6 bytes follow describing the frame, before the normal IPv4 data
-starts. A documentation can be found here:
-[TAG8899_COMMIT](https://github.com/torvalds/linux/commit/1521d5adfc2b557e15f97283c8b7ad688c3ebc40)
+接收到的帧会在通常存放 IPv4 帧类型 0x0800 的位置,带有 RTL 私有以太网帧类型 0x8899(RRPC)。其后还有 6 个字节用于描述该帧,之后正常的 IPv4 数据才开始。相关文档见:[TAG8899_COMMIT](https://github.com/torvalds/linux/commit/1521d5adfc2b557e15f97283c8b7ad688c3ebc40)
 
-After copying over header and frame, the frame is marked read in the ring
-buffer on the ASIC side by writing 0x1 to RTL837X_REG_RX_DONE (0x784c).
+复制完帧头和帧之后,向 RTL837X_REG_RX_DONE(0x784c)写入 0x1,即可把 ASIC 侧环形缓冲区中的该帧标记为已读。
 
-## Transmissing packets
-Packets are transmitted by preparing a frame-header plus frame in xdata memory
-and transferring both to the ASIC side via the SFRs. The ASIC will transmit
-packets if bit 0 of RTL837X_REG_TX_CTRL	(0x7860) is set.
+## 发送数据包
+发送数据包时,先在 xdata 存储器中准备好帧头加帧,然后通过 SFR 将两者一起传输到 ASIC 侧。置位 RTL837X_REG_TX_CTRL(0x7860)的第 0 位后,ASIC 就会发送数据包。
 
 ```
 SS 07 00 00 LL LH 00 00 
@@ -56,48 +35,33 @@ SS:	8-bit sequence number
 07:	Enables header and TCP checksum offloading to ASIC
 LHLL:	Length of the Ethernet frame
 ```
-The Ethernet frame data starts immediately after the frame header in xdata
-memory. The frame is transferred to the ASIC side by setting SFRs B3 and B4
-to the xdata source address of the frame header, and the ring pointer to the
-free space indicated by register 0x7890 multiplied by 8 and the MSB set.
-The length is given by the length of the frame plus 15, divided by 8.
+以太网帧数据在 xdata 存储器中紧跟在帧头之后开始。把 SFR B3 和 B4 设置为帧头的 xdata 源地址,并把环形指针设置为寄存器 0x7890 所指示的空闲空间乘以 8 且最高位置位,即可把帧传输到 ASIC 侧。长度取帧的长度加 15,再除以 8。
 
-Writing 0x1 to register 0x7850 will transmit the frame. The Ethernet frame
-checksum and the TCP checksum are automatically calculated (offloaded) by the
-ASIC before transmitting on the wire.
+向寄存器 0x7850 写入 0x1 即会发送该帧。以太网帧校验和与 TCP 校验和由 ASIC 在上线路发送之前自动计算(卸载)。
 
 
-## The RTL tag words
+## RTL 标签字段
 
-The frame header uses the Realtek Remote Control Protocol (RRCP) format or
-the like.
+帧头采用 Realtek Remote Control Protocol(RRCP)格式或类似格式。
 
-The `flags` word:
+`flags` 字:
 
 ```
 bit15 EFID_EN | 14:12 EFID | 11 PRI_EN | 10:8 PRI |
 bit7  KEEP    | 6 VSEL     | 5 LEARN_DIS         | 4:0 VIDX
 ```
 
-All fields are in network byte order.
+所有字段均为网络字节序。
 
-This word has to be written through `HTONS` like every other field of the tag.
-Writing a constant raw puts the bits in the wrong byte, so `0x0020` reaches the
-wire as `0x2000`, which is EFID rather than LEARN_DIS. The ASIC then fails to
-parse the tag and forwards the frame with the `0x8899` header still on it.
+与标签的每一个其他字段一样,这个字必须通过 `HTONS` 写入。直接写入原始常量会把各个位放进错误的字节,于是 `0x0020` 到达线路上时就成了 `0x2000`,即 EFID 而不是 LEARN_DIS。此时 ASIC 无法解析该标签,会带着 `0x8899` 头原样转发该帧。
 
-* `EFID_EN`, `EFID`: look the destination up under this filtering ID
-  instead of the port's own
-* `PRI_EN`, `PRI`: force the given priority on the frame
-* `KEEP`: keep the 802.1Q tagging of the frame exactly as injected,
-  bypassing the egress tagging rules of the port
-* `VSEL`, `VIDX`: classify the frame into the VLAN at this index of the
-  VLAN table
-* `LEARN_DIS`: do not learn the source address from this frame
+* `EFID_EN`、`EFID`:使用此过滤 ID 而不是端口自己的过滤 ID 来查找目的地址
+* `PRI_EN`、`PRI`:强制为帧设置指定的优先级
+* `KEEP`:让帧的 802.1Q 标签保持注入时的原样,绕过端口的出口打标签规则
+* `VSEL`、`VIDX`:把帧归类到 VLAN 表中此索引处的 VLAN
+* `LEARN_DIS`:不从该帧学习源地址
 
-The `pmask` word: bit 15 is `ALLOW`, bits 14 to 0 are a port mask.
+`pmask` 字:第 15 位是 `ALLOW`,第 14 到 0 位是端口掩码。
 
-* `ALLOW` clear: the mask is the egress set, the frame goes to exactly
-  the ports given
-* `ALLOW` set: the ASIC looks the destination up as usual and the mask
-  only limits which ports the result may use
+* `ALLOW` 清零:掩码即出口集合,帧只发往所给出的端口
+* `ALLOW` 置位:ASIC 照常查找目的地址,掩码只限制查找结果可以使用哪些端口

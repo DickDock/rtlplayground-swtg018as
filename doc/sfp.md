@@ -1,63 +1,22 @@
-# SFP+ Slots
+# SFP+ 插槽
 
-English | [简体中文](sfp.zh-CN.md)
+[English](sfp.en.md) | 简体中文
 
-The RTL8372/3 provide support for 1 or 2 SFP+ slots, which support fiber and Ethernet
-module with speeds of 1GBit, 2.5GBit and 10GBit. 5GBit could be possible but is not
-implemented due to the lack of suitable modules.
+RTL8372/3 支持 1 或 2 个 SFP+ 插槽,支持速率为 1GBit、2.5GBit 和 10GBit 的光纤及以太网模块。5GBit 理论上可行,但由于缺乏合适的模块,尚未实现。
 
-When a module is inserted, it directly connects to GPIO, I2C and RX/TX data lines of
-the SoC. An example schematics can be found here:
-[SFP Module Schematics](https://sfp.by/source/manual/SCP6F44-GL-BWE.pdf). Another
-resources is [here](https://www.sfptransceiver.com/product_pdf/SFP/SFP%20Design%20Guide.pdf).
-The SoC
-detects the insertion because the MOD-DEF0 line is pulled low by the module. The
-corresponding bit in RTL837X_REG_GPIO_B or RTL837X_REG_GPIO_C will transition from
-1 to 0. At that point, the code waits for 100 system ticks (500 ms at 200 Hz) for the module to power
-up and then reads the EEPROM of the module to get the type of module and in particular
-the bit-rate. The EEPROM can be read via the MOD-DEF1 and MOD-DEF2 lines which
-provide a standard I2C interface to the standard 24C-EEPROM. The SoCs contain a simple
-I2C controller for reading such EEPROMs so that interfacing is very simple.
+插入模块后,它会直接连接到 SoC 的 GPIO、I2C 以及 RX/TX 数据线。示例原理图可在此处找到:[SFP Module Schematics](https://sfp.by/source/manual/SCP6F44-GL-BWE.pdf)。另一份资料在[这里](https://www.sfptransceiver.com/product_pdf/SFP/SFP%20Design%20Guide.pdf)。SoC 能够检测到模块的插入,因为模块会把 MOD-DEF0 线拉低,RTL837X_REG_GPIO_B 或 RTL837X_REG_GPIO_C 中的对应位会从 1 变为 0。此时,代码会等待 100 个系统 tick（200 Hz 下为 500 ms）让模块完成上电,然后读取模块的 EEPROM,以获取模块类型,尤其是比特率。EEPROM 可通过 MOD-DEF1 和 MOD-DEF2 线读取,这两条线为标准 24C EEPROM 提供标准的 I2C 接口。SoC 内置了一个用于读取此类 EEPROM 的简单 I2C 控制器,因此接口对接非常简单。
 
-## Administrative state and removal
+## 管理状态与拔除
 
-`port <physical-port> off` disables the SFP slot's host SerDes; `port <physical-port> on`
-re-enables it through the usual delayed module initialization. Administrative state is
-independent of module presence. Inserting or replacing a module, or changing its
-configured speed with `sfp <slot> <speed>`, does not override an administrative disable.
-The configured auto/forced speed is retained across off/on and removal. Existing startup
-configuration commands can replay this state; the Web UI still does not automatically
-persist SFP speed changes.
+`port <物理端口> off` 关闭 SFP 插槽的主机侧 SerDes；`port <物理端口> on` 通过正常的延迟模块初始化重新启用。管理状态与模块是否存在相互独立。插入或更换模块，以及用 `sfp <插槽> <速率>` 修改配置速率，都不会覆盖管理禁用状态。自动/强制速率在 off/on 和拔除后保留。现有启动配置命令可以回放这些状态；Web 界面仍不自动保存 SFP 速率修改。
 
-Removal switches only that slot's SerDes to `SDS_OFF` and invalidates cached module
-information. An unsupported EEPROM rate is not passed to the SerDes configuration;
-the host interface remains off until a supported forced speed or replacement module is
-selected. `/status.json` reports administrative permission in `enabled`, including an
-empty enabled slot; module identity and diagnostics are separate and appear only when
-valid. A failed diagnostic read is unavailable, not a zero measurement.
+拔除仅将该槽的 SerDes 切换为 `SDS_OFF`，并使旧模块信息失效。不支持的 EEPROM 速率不会传给 SerDes 配置函数；在选择受支持的强制速率或更换模块之前，主机接口保持关闭。`/status.json` 的 `enabled` 表示管理允许状态，空槽也可以为启用；模块身份和诊断信息与之独立，只有有效时才出现。诊断读取失败表示不可用，而不是测量值为零。
 
-This is **not module power control**. In particular, SWTG018AS-A V2.0 has no mapped
-TX_DISABLE pin, so disabling the host interface does not promise to switch off module
-power or the laser. This firmware does not add TX_DISABLE writes for targets whose pin
-mapping is unknown.
+这**不是模块电源控制**。例如 SWTG018AS-A V2.0 没有映射 TX_DISABLE 引脚，关闭主机接口不代表切断模块供电或关闭激光。对于引脚映射未知的机型，固件不会新增 TX_DISABLE 写入。
 
-## I2C Controller
+## I2C 控制器
 
-The I2C controller of the RTL8372/3 is very simple and probably designed specifically
-for reading 24C EEPROMs. Its use is straight-forward: Configure the I2C bus used
-(the code currently uses the default already set regarding what is probably timing)
-in the RTL837X_REG_I2C_CTRL register. Then set the EEPROM-register's addresss to be
-read in RTL837X_REG_I2C_IN (least-significant byte). The I2C transfer is started
-by setting the 0-bit of RTL837X_REG_I2C_CTRL. When this bit is cleared by the
-ASIC-side of the SoC, the resulting value can be read in the LSB of RTL837X_REG_I2C_OUT.
-The older single-byte example below illustrates the register protocol. The current
-`sfp_read_block()` implementation in `rtl837x_pins.c` reads up to 16 bytes and bounds both
-the preflight and completion busy waits: a 100 ms tick deadline, with a finite polling
-budget if ticks stop. Failure returns `false` without consuming old output or overwriting
-a still-busy transaction; retry waits for the controller to become idle. This does not
-recover a fault in the underlying SFR register-access engine, and no undocumented reset
-bits are written.
-
+RTL8372/3 的 I2C 控制器非常简单,很可能是专门为读取 24C EEPROM 而设计的。它的使用很直接:先在 RTL837X_REG_I2C_CTRL 寄存器中配置所使用的 I2C 总线(代码目前直接使用已设置的默认值,它决定的可能是时序)。然后将要读取的 EEPROM 寄存器地址写入 RTL837X_REG_I2C_IN(最低有效字节)。通过置位 RTL837X_REG_I2C_CTRL 的第 0 位来启动 I2C 传输。当该位被 SoC 的 ASIC 侧清零后,就可以从 RTL837X_REG_I2C_OUT 的最低字节读出结果。下方旧版单字节示例说明寄存器协议。当前 `rtl837x_pins.c` 中的 `sfp_read_block()` 一次读取最多 16 字节，并限制事务启动前和完成阶段的 busy 等待：以 tick 计时的 100 ms 截止时间，以及 tick 停止时的有限轮询预算。失败返回 `false`，不读取旧输出，也不覆盖仍 busy 的事务；重试会等待控制器空闲。这不能恢复底层 SFR 寄存器访问引擎故障，也不会写入未确认的复位位。
 ```
 uint8_t sfp_read_reg(uint8_t slot, uint8_t reg)
 {
@@ -87,11 +46,7 @@ uint8_t sfp_read_reg(uint8_t slot, uint8_t reg)
 }
 ```
 
-The description of the data stored in the EEPROM can be found in the
-[SFF-8472 standard](https://members.snia.org/document/dl/25916)
-The most relevant is byte 12 (0x0c), which gives the signalling rate of the module in
-100MBit, including the 25% overhead for error correction. Currently the code looks like
-this:
+EEPROM 中所存数据的说明见 [SFF-8472 标准](https://members.snia.org/document/dl/25916)。最相关的是字节 12(0x0c),它以 100MBit 为单位给出模块的信令速率,其中包含 25% 的纠错开销。目前的代码如下:
 ```
 static inline uint8_t sfp_rate_to_sds_config(register uint8_t rate)
 {
@@ -104,35 +59,15 @@ static inline uint8_t sfp_rate_to_sds_config(register uint8_t rate)
 	return 0xff;
 }
 ```
-For example, a 1000MBit fiber module will have a rate coding of 0xd = 13 = 1300Mbit,
-which is the rounded-up value for 1250MBit, the error-corrected bit-rate of
-a 1000BX fiber module.
+例如,一个 1000MBit 光纤模块的速率编码为 0xd = 13 = 1300Mbit,这是 1250MBit 向上取整后的值,即 1000BX 光纤模块经纠错后的比特率。
 
-## Interfacing the module for RX/TX
+## 模块的 RX/TX 接口对接
 
-In order to transmit data or receive data from the module, the SerDes of the SoC connected
-to the module needs to e properly configured. As can be seen from the
-[SFP Module Schematics](https://sfp.by/source/manual/SCP6F44-GL-BWE.pdf), the Photo-transistor
-of the module is optimized by an amplifier and quantized to bits, which directly arrive
-at the SoC in a differential pair. This data still has the 25% overhead of the error correction
-codes that were on the fiber. The switch needs to configure the SerDes correctl (sds_config())
-and set up the MAC on the SoC to talk to the SDS with the correct bit-rate.
+为了向模块发送数据或从模块接收数据,SoC 上连接模块的 SerDes 需要得到正确配置。从 [SFP Module Schematics](https://sfp.by/source/manual/SCP6F44-GL-BWE.pdf) 可以看出,模块的光电晶体管经放大器优化后被量化为比特,以差分对的形式直接到达 SoC。这些数据仍带有光纤上纠错码带来的 25% 开销。交换机需要正确配置 SerDes(sds_config()),并在 SoC 上设置 MAC,使其以正确的比特率与 SDS 通信。
 
-## Other SFP-module GPIOs
-SFP modules also provide RX-LOS GPIOs, which pulls low when the fiber or Ethernet
-cable is not attached (on either side of the link) and usually also a TX-disable GPIO,
-which allows to disable the Laser in order to power down the link. There is typically
-also a TX-Fault GPIO which pulls low when the laser overheated. While the RX-Los pin
-is connected to the SoC and can be read for the devices with a single SFP+ slot
-(for the dual-SFP+ slot KP-9000-6HX-X2 only the RX-LOS pin of the right slot seems to
-be connected), the other GPIOs have not been identified and counting lines on the PCB
-seems to indicate these pins are unlikely to be connected.
+## 其他 SFP 模块 GPIO
+SFP 模块还提供 RX-LOS GPIO,当光纤或以太网线缆未连接(在链路任一侧)时它会拉低;通常还提供一个 TX-disable GPIO,用于关闭激光器,从而切断链路供电。一般还有一个 TX-Fault GPIO,在激光器过热时拉低。RX-LOS 引脚连接到了 SoC,对于单 SFP+ 插槽的设备可以读取该引脚(对于双 SFP+ 插槽的 KP-9000-6HX-X2,似乎只有右侧插槽的 RX-LOS 引脚被连接),而其他 GPIO 尚未得到确认;从 PCB 上的走线数量来看,这些引脚很可能并未连接。
 
-The RX-LOS GPIO does not provide any further benefit, since the link status can also be
-read from the link-status registers of the MAC or SDS.
+RX-LOS GPIO 并不会带来更多好处,因为链路状态同样可以从 MAC 或 SDS 的链路状态寄存器中读取。
 
-The easiest way to identifiy additional GPIOs of an SFP module is to take a cheap module
-apart, solder wires to the pins of the on-board PCB which are then routed back through
-the end of the module. By pulling e.g. TX-Fault low while printing out the GPIOs, the
-correct GPIO can be identified.
-
+确认 SFP 模块其他 GPIO 最简单的方法,是拆开一个廉价模块,把导线焊接到板上 PCB 的引脚上,再将导线从模块末端引出。在打印 GPIO 状态的同时把例如 TX-Fault 拉低,即可识别出正确的 GPIO。

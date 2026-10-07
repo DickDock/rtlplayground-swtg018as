@@ -1,33 +1,18 @@
-# Egress and Ingress Bandwidth Control
+# 出方向与入方向带宽控制
 
-English | [简体中文](bandwidth.zh-CN.md)
+[English](bandwidth.en.md) | 简体中文
 
-The RTL8372/3 allows to control the bandwidth of data transmitted (egress) and/or
-admitted (ingress) at any given port. Once admitted, packets are internally switched
-at wire-speed, since the backplane of the devices has a bandwidth of 60GBit/s.
+RTL8372/3 允许控制在任意给定端口上发送（出方向，egress）和/或接收准入（入方向，ingress）的数据带宽。报文一旦被准入，就会在线速下进行内部交换，因为这类设备的背板带宽为 60GBit/s。
 
-The devices schedules transmission of packets by assigning packets to 8 queues
-implemented in hardware per port, which share a total of 8Mbit of memory internal
-to the switching part of the SoCs. Packets are assigned to the respective queues
-based on the priority assigned to a packet, which can be based on various
-properties of a packet such as  IEEE 802.1P priority, DSCP value, physical port
-number, destination or source MAC, Ether-Type-based, CVID, SVID, IPv4 source or
-destination IP, IPv4/IPv6 TOS field, IPv6 Flow Label and even TCP/UDP
-source/destination port. Once in a queue, packets are scheduled for egress
-based on differnent configurable algorithms.
+设备通过把报文分配到每端口 8 个硬件实现的队列来调度报文的发送，这些队列共享 SoC 交换部分内部总共 8Mbit 的内存。报文依据被赋予的优先级被分配到相应队列，优先级可以基于报文的多种属性，例如 IEEE 802.1P 优先级、DSCP 值、物理端口号、目的或源 MAC、Ether-Type、CVID、SVID、IPv4 源或目的 IP、IPv4/IPv6 TOS 字段、IPv6 Flow Label，甚至 TCP/UDP 源/目的端口。报文进入队列后，会按照多种可配置的算法被调度发出。
 
-RTLPlayground currently allows only to control the bandwidth at ingress at a port
-or just before packets leave a port. There is no control of the priority assignment
-or queue scheduling mechanisms. The bandwidth can be controlled in steps of 16Kbit/s
-from 16Kbit/s to 10Gbp/s.
+RTLPlayground 目前只允许控制端口入方向的带宽，或在报文即将离开端口时加以限制；尚不支持对优先级分配或队列调度机制的控制。带宽控制范围为 16Kbit/s 到 10Gbp/s，步进为 16Kbit/s。
 
-The bandwidth control as currently implemented allows e.g. to assign a certain
-share of bandwidth to an attached device (e.g. to share an uplink), or simulate
-connections with low bandwidth and even bad connectivity with packet drops when
-ingress is not controlled by Flow Control but by simply droping packets.
+就目前的实现而言，带宽控制可以用来为接入的设备分配一定的带宽份额（例如共享一条上行链路），也可以模拟低带宽甚至恶劣的连接（丢包）——此时入方向不通过流量控制（Flow Control）来约束，而是直接丢弃报文。
 
-## Ingress/Egress control
-The relevant registers for controlling Ingress and Egress at a port are:
+## 入方向/出方向控制
+控制端口入方向与出方向的相关寄存器如下：
+
 ```
 #define RTL837X_IGBW_CTRL		0x4c10
 #define IGBW_INC_BYPASS_PKT		0x100
@@ -45,21 +30,15 @@ The relevant registers for controlling Ingress and Egress at a port are:
 #define EGBW_INC_IFG			0x02
 #define EGBW_CPUMODE			0x01
 ```
-`RTL837X_IGBW_CTRL/RTL837X_EGBW_CTRL` control the behaviour of the bandwidth control
-at ingress and egress. The flags such as `IGBW_ADM_DHCP`control whether certain types
-of packets such as DHCP are exempt from being ingress controlled. The
-`IGBW_INC_IFG/EGBW_INC_IFG` flags control whether the Inter Frame Gaps are part of
-the bandwidth being controlled. `EGBW_CPUMODE` controls whether packets generated
-by the internal CPU are subject to egress control.
+`RTL837X_IGBW_CTRL/RTL837X_EGBW_CTRL` 控制入方向与出方向带宽控制的行为。`IGBW_ADM_DHCP` 等标志决定 DHCP 等特定类型的报文是否豁免入方向带宽控制。`IGBW_INC_IFG/EGBW_INC_IFG` 标志决定帧间隙（Inter Frame Gap）是否计入被控制的带宽。`EGBW_CPUMODE` 决定内部 CPU 生成的报文是否受出方向控制。
 
-`RTL837X_IGBW_PORT_CTRL/RTL837X_EGBW_PORT_CTRL` configure the bandwidth for ingress
-and egress at a port.
+`RTL837X_IGBW_PORT_CTRL/RTL837X_EGBW_PORT_CTRL` 配置端口入方向与出方向的带宽。
 
-`RTL837X_IGBW_PORT_FC_CTRL` configures whether packets are bandwidth-controlled using
-Flow Control (port-bit set), or simply dropped (port-bit clear).
+`RTL837X_IGBW_PORT_FC_CTRL` 配置报文的带宽控制是通过流量控制（Flow Control）实现（置位端口位），还是直接丢弃（清除端口位）。
 
-## Ingress/Egress bandwidth API
-The code currently provides the following functions:
+## 入方向/出方向带宽 API
+代码目前提供以下函数：
+
 ```
 void bandwidth_setup(void) __banked;
 void bandwidth_ingress_set(uint8_t port, __xdata uint32_t bw) __banked;
@@ -70,60 +49,53 @@ void bandwidth_egress_disable(uint8_t port) __banked;
 void bandwidth_status(uint8_t port) __banked;
 ```c
 
-`bandwidth_setup()` is called at boot-time and configures excluding all special packets
-that may be for the CPU and packets outgoing from the CPU to be excluded from bandwidth
-control. IFG is not part of the bandwidth calculation.
+`bandwidth_setup()` 在启动时被调用，它把所有可能面向 CPU 的特殊报文以及 CPU 发出的报文配置为豁免带宽控制。IFG 不参与带宽计算。
 
-`bandwidth_ingress_set()` enables ingress bandwidth control for a particular port given
-the specified bandwidth. This also enabled Flow Control at a port.
+`bandwidth_ingress_set()` 为指定端口启用入方向带宽控制，并设置指定的带宽。这同时也会在该端口上启用流量控制（Flow Control）。
 
-`bandwidth_ingress_set()` enables egress bandwidth control for a particular port given
-the specified bandwidth
+`bandwidth_ingress_set()` 为指定端口启用出方向带宽控制，并设置指定的带宽。
 
-`bandwidth_ingress_disable() / bandwidth_egress_disable()` disable ingress and egress
-bandwidth control at a given port
+`bandwidth_ingress_disable() / bandwidth_egress_disable()` 在给定端口上禁用入方向与出方向带宽控制。
 
-`bandwidth_ingress_drop(port)` configures packets exceeding bandwidth limitations to
-simply be dropped
+`bandwidth_ingress_drop(port)` 把超过带宽限制的报文配置为直接丢弃。
 
-`bandwidth_status(port)` shows the current bandwidth control status for a given port
+`bandwidth_status(port)` 显示给定端口当前的带宽控制状态。
 
-## Bandwidth control configuration on the Serial Console
-The following commands are provided on the serial console:
+## 在串口控制台上配置带宽控制
+串口控制台提供了以下命令：
+
 ```
 > bw [in|out|status] <port> [<hexvalue>|off|drop]
   Configures or shows the status of bandwidth control
 ```
-The bandwidth is given as the `<hexvalue>` in Kbit/s. Note that the control is only
-possible at a granularity of 16 Kbit/s and the minimum value is also 16 Kbit/s. The
-hexadecimal numbers must be given in full bytes, i.e. have an even number of digits.
+带宽以 `<hexvalue>` 形式给出，单位为 Kbit/s。注意控制的最小粒度为 16 Kbit/s，最小值同样是 16 Kbit/s。十六进制数必须按完整字节给出，即位数为偶数。
 
-To enable bandwidth control of ingress for physical port 2 to be set to 256 Kbit/s
-do:
+要把物理端口 2 的入方向带宽控制设置为 256 Kbit/s，执行：
+
 ```
 > bw in 2 0100 
 ```
 
-To drop packets when the bandwidth is exceeeded at port 2 do:
+要在端口 2 超过带宽时丢弃报文，执行：
+
 ```
 > bw in 2 drop 
 ```
 
-To disable bandwidth control for incoming packets on port 2 do:
+要禁用端口 2 上入方向报文的带宽控制，执行：
+
 ```
 > bw in 2 off
 ```
 
-## Bandwidth configuration via the Web Interface
-Not implemented, yet!
+## 通过 Web 界面配置带宽
+尚未实现！
 
-## A Test using iperf3
-The following is and example how to test bandwidth control with a signle Linux device using
-network namespaces to route packets between a client and a server on the same Linux device
-through an external switch.
+## 使用 iperf3 做一个测试
+下面的示例演示如何只用一台 Linux 设备测试带宽控制：利用网络命名空间（network namespaces），让同一台 Linux 设备上的客户端与服务器之间的报文经由一台外部交换机转发。
 
-You will need 2 network intefaces on the linux device, say, 2 USB-Ethernet controllers called
-eth0 and eth1: 
+你需要在这台 Linux 设备上有 2 个网络接口，例如 2 个名为 eth0 和 eth1 的 USB 以太网控制器：
+
 ```
 $ sudo ip netns add client
 $ sudo ip netns add server
@@ -139,14 +111,15 @@ $ sudo ip netns exec server ip addr add dev eth1 192.168.99.2/24
 
 $ sudo ip netns exec server iperf3 -s
 ```
-This will start an iper3 server in the above shell.
+这会在上面的 shell 中启动一个 iperf3 服务器。
 
-In a different shell you can now run the iperf3 client against your server:
+现在你可以在另一个 shell 中针对你的服务器运行 iperf3 客户端：
+
 ```
 $ sudo ip netns exec client iperf -c 192.168.99.2
 ```
-The LEDs on your switch where your network adapters are connected should start to flicker.
-On a 1GBit connection, you should see:
+交换机上连接着网络适配器的那些端口的 LED 应该开始闪烁。在 1GBit 连接上，你会看到：
+
 ```
 $ sudo ip netns exec client iperf3 -c 192.168.99.2
 Connecting to host 192.168.99.2, port 5201
@@ -168,14 +141,16 @@ Connecting to host 192.168.99.2, port 5201
 [  5]   0.00-10.00  sec  1.10 GBytes   941 Mbits/sec                  receiver
 ```
 
-Now, we limit ingress on port 1 (connected to eth0) to 4 MBit/s:
+现在，我们把端口 1（连接 eth0）的入方向限制为 4 MBit/s：
+
 ```> bw in 1 1000
 bandwidth_ingress_set called, port 04
 RTL837X_IGBW_PORT_CTRL:0x00100100
 RTL837X_IGBW_PORT_FC_CTRL:0x00000010
 ```
 
-We now get:
+我们得到：
+
 ```
 $ sudo ip netns exec client iperf3 -c 192.168.99.2
 [  5] local 192.168.99.1 port 43324 connected to 192.168.99.2 port 5201
@@ -197,11 +172,10 @@ $ sudo ip netns exec client iperf3 -c 192.168.99.2
 
 iperf Done.
 ```
-Which is the 4Mbit/s we configured. There are no packet drops (retries) because
-Flow Control is used to signal the Ethernet adapter on the incoming interface
-(port 1 of the router) to slow down.
+这正是我们配置的 4Mbit/s。没有出现丢包（重传），因为流量控制（Flow Control）被用来通知入方向接口（路由器的端口 1）上的以太网适配器减速。
 
-We can also configure a mere 256KBit/s and packet drop to simulate a bad connection:
+我们也可以只配置 256KBit/s 并配合丢包来模拟一条恶劣的连接：
+
 ```
 > bw in 1 0100
 bandwidth_ingress_set called, port 04
@@ -212,7 +186,8 @@ RTL837X_IGBW_PORT_FC_CTRL:0x00000010
 RTL837X_IGBW_PORT_FC_CTRL:0x00000000
 ```
 
-We now get:
+我们得到：
+
 ```
 $ sudo ip netns exec client iperf3 -c 192.168.99.2
 Connecting to host 192.168.99.2, port 5201
@@ -235,7 +210,4 @@ Connecting to host 192.168.99.2, port 5201
 
 iperf Done.
 ```
-Which shows a large number of retries due to dropped packets and an average number
-of received packets (the client sends the packets to the server, and they are sent
-back to the client by the server) of 210 KBit/s, the number is higher for the transmitted
-packets, because they may include dropped packets.
+可以看到，由于丢包产生了大量重传，而接收报文的平均速率（客户端把报文发给服务器，服务器再将其发回客户端）为 210 KBit/s；发送报文的数值更高，因为其中可能包含了被丢弃的报文。

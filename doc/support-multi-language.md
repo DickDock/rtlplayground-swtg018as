@@ -1,41 +1,29 @@
-# Supporting Multiple Languages in the Web UI
+# 在 Web UI 中支持多语言
 
-English | [简体中文](support-multi-language.zh-CN.md)
+[English](support-multi-language.en.md) | 简体中文
 
-The firmware uses a client-side i18n approach: all translations are stored
-in one JavaScript dictionary embedded in the firmware. No server-side
-changes are needed.
+固件采用客户端 i18n 方案：所有翻译都存储在一个嵌入固件的 JavaScript 字典里。不需要任何服务器端改动。
 
-## Architecture
+## 架构
 
-All translation logic lives in `html/app/00-i18n.js`:
+所有翻译逻辑都位于 `html/app/00-i18n.js`：
 
-- A `LANG` object with one sub-object per language (`en`, `zh`)
-- Language auto-detection: the `rtl_lang` key in `localStorage` wins
-  (written by the language selector in System → Display), then the
-  browser's `navigator.languages` are matched exactly and by prefix,
-  then English
-- `t(key, vars)` looks up a translated string; `{name}` placeholders in
-  the string are replaced from `vars`, e.g. `t("v_del_q", {n: vid})`
-- `i18nApply()` applies the dictionary to the static markup once at load
+- 一个 `LANG` 对象，每种语言各有一个子对象（`en`、`zh`）
+- 语言自动检测：`localStorage` 中的 `rtl_lang` 键优先（由 系统 → 显示 中的语言选择器写入），其次逐个匹配浏览器的 `navigator.languages`（先精确、再语言前缀），最后回退到英文
+- `t(key, vars)` 查找翻译后的字符串；字符串中的 `{name}` 占位符会用 `vars` 中的值替换，例如 `t("v_del_q", {n: vid})`
+- `i18nApply()` 在页面加载时把字典一次性应用到静态标记上
 
-Translation keys are flat strings. The English entry is the fallback when
-a key is missing in another language, and the key itself is the fallback
-when it is missing everywhere. The host tests assert that the `en` and
-`zh` key sets stay identical.
+翻译键是扁平的字符串。当某个键在其他语言中缺失时，以英文条目作为回退；当某个键在所有语言中都缺失时，以键本身作为回退。主机测试会断言 `en` 与 `zh` 的键集保持一致。
 
-Changing the language stores the choice and reloads the page, so every
-dynamically built table is rebuilt in the new language.
+切换语言会保存选择并重新加载页面，因此每个动态构建的表格都会以新语言重新生成。
 
-`login.html` is served before authentication and does not load `app.js`;
-it carries its own five strings per language in an inline table and
-repeats the same detection rule.
+`login.html` 在认证之前就会被提供，并且不加载 `app.js`；它在一张内联表中为每种语言自带那 5 个字符串，并重复同样的检测规则。
 
-## How to Add a New Language
+## 如何添加新语言
 
-### 1. Add a dictionary entry in `html/app/00-i18n.js`
+### 1. 在 `html/app/00-i18n.js` 中添加字典条目
 
-Append a sub-object to `LANG`. Every key from `LANG.en` should be present:
+向 `LANG` 追加一个子对象。`LANG.en` 中的每个键都应当存在：
 
 ```js
 var LANG={
@@ -50,7 +38,7 @@ nav_dash:"...",
 };
 ```
 
-### 2. Add the language to the selector in `html/index.html`
+### 2. 在 `html/index.html` 的选择器中添加该语言
 
 ```html
 <select class="in" id="langSel">
@@ -60,20 +48,17 @@ nav_dash:"...",
 </select>
 ```
 
-### 3. Add the login strings in `html/login.html`
+### 3. 在 `html/login.html` 中添加登录字符串
 
-The inline table there holds, per language: page title, subtitle,
-password label, button label, wrong-password message.
+那里的内联表为每种语言保存：页面标题、副标题、密码标签、按钮标签、密码错误提示。
 
-### 4. Verify auto-detection
+### 4. 验证自动检测
 
-The detection walks `navigator.languages` (falling back to
-`navigator.language`) and picks the first entry that matches a `LANG`
-key exactly or by its `xx-YY` prefix, otherwise English.
+检测逻辑遍历 `navigator.languages`（回退到 `navigator.language`），选择第一个与 `LANG` 键完全匹配或 `xx-YY` 前缀匹配的条目，否则选择英文。
 
-## Two Translation Mechanisms
+## 两种翻译机制
 
-### (A) `data-i18n` attributes (declarative, for HTML)
+### (A) `data-i18n` 属性（声明式，用于 HTML）
 
 ```html
 <h2 data-i18n="pt_title">Port configuration</h2>
@@ -81,32 +66,26 @@ key exactly or by its `xx-YY` prefix, otherwise English.
 <input class="in" data-i18n-p="l2_filter">
 ```
 
-- `data-i18n` sets the element's text content
-- `data-i18n-t` sets the `title` attribute (tooltip)
-- `data-i18n-p` sets the `placeholder` attribute
+- `data-i18n` 设置元素的文本内容
+- `data-i18n-t` 设置 `title` 属性（工具提示）
+- `data-i18n-p` 设置 `placeholder` 属性
 
-The English text stays in the markup as the fallback and as the source
-of truth for what the key means.
+英文文本保留在标记中，既作为回退，也作为该键含义的权威依据。
 
-### (B) `t("key")` calls (imperative, for JavaScript)
+### (B) `t("key")` 调用（命令式，用于 JavaScript）
 
 ```js
 tr.insertCell().textContent=t("c_port")+" "+p;
 toast(t("v_loaded",{n:vid}),"ok");
 ```
 
-Strings that are identical in every language (`10M`, `2.5G`, `MAC`,
-`VLAN`, `CPU`, `RSTP`) are literals, not dictionary entries.
+在所有语言中完全相同的字符串（`10M`、`2.5G`、`MAC`、`VLAN`、`CPU`、`RSTP`）直接写成字面量，不作为字典条目。
 
-## Size Considerations
+## 体积方面的考虑
 
-- Each language adds roughly 12 KB to `app.js` before compression; the
-  build gzips the file, so the flash cost of a language is closer to 3 KB
-- The largest embedded file must stay below 64 KB after compression
-  (`uint16_t` length in the file table); `app.js` with two languages
-  is about 30 KB compressed — see `webui-compression.md` for the budget
+- 每增加一种语言，`app.js` 压缩前大约增大 12 KB；构建会对该文件做 gzip 压缩，因此一种语言对 flash 的实际开销更接近 3 KB
+- 最大的嵌入文件压缩后必须低于 64 KB（文件表中的 `uint16_t` 长度）；包含双语的 `app.js` 压缩后约 30 KB —— 体积预算参见 `webui-compression.md`
 
-## Build
+## 构建
 
-No special flags are needed. `html/` is minified and embedded by the
-normal build (see `webui-compression.md`).
+不需要任何特殊选项。`html/` 会在正常构建中被压缩并嵌入（参见 `webui-compression.md`）。

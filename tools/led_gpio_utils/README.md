@@ -1,6 +1,6 @@
 # LED GPIO Utilities
 
-English | [简体中文](README.zh-CN.md)
+English | [简体中文](README.md)
 
 This directory contains utility talking to RTL837x switch IC via I2C bus.
 These scripts are designed to help with monitoring, debugging GPIO, and identifying LED configurations.

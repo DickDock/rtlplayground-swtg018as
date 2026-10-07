@@ -1,38 +1,17 @@
-# IGMP (Internet Group Management Protocol) and MLD (Multicast Listener Discovery)
+# IGMP(Internet Group Management Protocol)与 MLD(Multicast Listener Discovery)
 
-English | [简体中文](igmp.zh-CN.md)
+[English](igmp.en.md) | 简体中文
 
-IGMP (for IPv4) and MLD (for IPv6) are protocols that control the distribution
-of Layer-3 Multicast packets on the LAN, which otherwise would be flooded across the
-entire network. For this to work, IGMP/MLD messages are sent, in particular
-from MC consumers (e.g. the video-player that plays an IP-Multicast stream), but
-also Multicast-aware routers to control switching of the IP-MC or underlying
-L2-MC packets. The main usage in home networks is IPTV. 
+IGMP(用于 IPv4)和 MLD(用于 IPv6)是控制局域网上三层组播数据包分发的协议;如果没有这些协议,组播数据包将被泛洪到整个网络。为此,IGMP/MLD 消息会尤其由组播消费者(MC 消费者,例如播放 IP 组播流的视频播放器)发出,同时也由支持组播的路由器发出,以控制 IP-MC 或底层 L2-MC 数据包的交换。家庭网络中的主要用途是 IPTV。
 
-The RTL8372/3 SoC supports managing IPv4-MC using either Destination-IP (the IPv4
-multicast group address)/Source-IP (typically 0.0.0.0) matching or via controlling
-the switching of the underlying L2-MC packets (i.e. packets in 01:00:5e:xx:yy:zz, where
-xx:yy:zz are the LSBs of the IPv4-MC address). The DIP/SIP-based switching is
-not VLAN-aware, meaning a stream will be available in all VLANs if subscribed to.
-This is not a problem in a typical home network, however. The L2-based method
-is VLAN aware, but currently not supported in the software.
+RTL8372/3 SoC 支持通过两种方式管理 IPv4-MC:一种是基于目的 IP(IPv4 组播组地址)/源 IP(通常为 0.0.0.0)的匹配,另一种是控制底层 L2-MC 数据包的交换(即目的地址为 01:00:5e:xx:yy:zz 的数据包,其中 xx:yy:zz 是 IPv4-MC 地址的低位字节)。基于 DIP/SIP 的交换不感知 VLAN,这意味着一旦订阅了某个流,该流将出现在所有 VLAN 中。不过,在典型的家庭网络中这并不是问题。基于 L2 的方法可以感知 VLAN,但目前软件尚不支持。
 
-Although there is hardware support for IPv6/MLD-based Multicast management (i.e. intelligent
-management by the switch), the current software does not implement managing IPv6 Multicast.
-Instead, all IPv6 Multicast pakets will be flooded to all ports, just as an unmanaged
-switch would do.
+尽管硬件支持基于 IPv6/MLD 的组播管理(即由交换机进行智能管理),当前软件并未实现 IPv6 组播管理。因此,所有 IPv6 组播数据包都会被泛洪到所有端口,就像一台非管理型交换机所做的那样。
 
-The current software support works by trapping IGMP packets (only v3 supported, which
-is used in the vast majority of today's networks) to the CPU of the switch which will
-update the L3 and L2 switching tables to include switch ports in a stream or remove
-them. This trapping to the CPU is also called IGMP snooping. While there is support
-in the HW to handle IGMP/MLD packets (v3 has only limited support) entirely in hardware
-and even send out reports, it is currently not understood
-how this works, and instead IGMP is handled entirely in software, which also allows
-to fully support IGMPv3 packet which are the standard in present-day networks.
+当前软件支持的实现方式是把 IGMP 数据包(仅支持 v3,当今绝大多数网络都在使用 v3)捕获(trap)到交换机的 CPU,由 CPU 更新 L3 和 L2 交换表,把交换机端口加入某个流或从其中移除。这种向 CPU 的捕获也称为 IGMP Snooping。虽然硬件支持完全在硬件中处理 IGMP/MLD 数据包(对 v3 仅有有限支持)甚至发送报告,但目前尚不清楚其工作原理,因此 IGMP 完全由软件处理,这也使得能够完整支持 IGMPv3 数据包——它是当今网络的标准。
 
-## IP-MC control
-The relevant registers for controlling IP-MC switching are:
+## IP-MC 控制
+控制 IP-MC 交换的相关寄存器如下:
 ```
 #define RTL837X_IPV4_PORT_MC_LM_ACT	0x4f78
 #define RTL837X_IPV6_PORT_MC_LM_ACT	0x4f7c
@@ -49,25 +28,17 @@ The relevant registers for controlling IP-MC switching are:
 #define IGMP_TRAP_PRIORITY		0x7
 #define IGMP_CPU_PORT			0x00010000
 ```
-`RTL837X_IPV4_PORT_MC_LM_ACT/RTL837X_IPV6_PORT_MC_LM_ACT` control the action when an
-IP-MC packet is encountered at a switch port and there is no rule for forwarding in
-the forwarding tables. The default action is to flood such Lookup-Miss packets to all
-ports. This is the configuration without IGMP/MLD enabled.
+`RTL837X_IPV4_PORT_MC_LM_ACT`/`RTL837X_IPV6_PORT_MC_LM_ACT` 控制当交换机端口遇到 IP-MC 数据包且转发表中没有对应转发规则时所采取的动作。默认动作是把此类 Lookup-Miss 数据包泛洪到所有端口。这是未启用 IGMP/MLD 时的配置。
 
-When IGMP/MLD is turned on, the Lookup-Miss action will be changed to drop such packets
-unless a rule is found in the forwarding tables, which will need to be configured by
-IGMP packets.
+启用 IGMP/MLD 后,Lookup-Miss 动作将改为丢弃此类数据包,除非在转发表中找到规则;而这些规则需要由 IGMP 数据包来配置。
 
-Switching on IGMP also configures all ports via `RTL837X_IGMP_PORT_CFG` to trap all
-incoming IGMP packets to the CPU. `RTL837X_IGMP_TRAP_CFG` then is used to configure
-priority and CPU-Port of trapped IGMP/MLD packets. 
+开启 IGMP 时,还会通过 `RTL837X_IGMP_PORT_CFG` 把所有端口配置为将所有传入的 IGMP 数据包捕获到 CPU。随后使用 `RTL837X_IGMP_TRAP_CFG` 配置被捕获 IGMP/MLD 数据包的优先级和 CPU 端口。
 
-Configuration of the IP-MC-forwarding to the listening ports is done by managing the
-forwarding tables of the switch, see [L2 learning](l2.md).
+把 IP-MC 转发到监听端口的配置是通过管理交换机的转发表来完成的,参见 [L2 学习](l2.md)。
 
 
 ## IGMP API
-The code currently provides the following functions:
+代码目前提供以下函数:
 ```
 void igmp_setup(void) __banked;
 void igmp_enable(void) __banked;
@@ -75,21 +46,19 @@ void igmp_router_port_set(uint16_t pmask) __banked;
 void igmp_packet_handler(void) __banked;
 void igmp_show(void) __banked;
 ```c
-`igmp_setup()` is called at boot-time and configures flooding of all IP-MC packets by
-default, as otherwise no IP-MC would be possible in the network.
+`igmp_setup()` 在启动时被调用,默认把所有 IP-MC 数据包配置为泛洪,否则网络中将无法进行任何 IP-MC 传输。
 
-`igmp_enable()`starts IGMP which cause IGMP packets to be handled by the CPU and forwarding
-of IP-MC packets to be limited to only subscribed ports.
+`igmp_enable()` 启动 IGMP,使 IGMP 数据包交由 CPU 处理,并把 IP-MC 数据包的转发限制在仅已订阅的端口上。
 
-`igmp_router_port_set()`configures forwarding ports for IGMP messages.
+`igmp_router_port_set()` 为 IGMP 消息配置转发端口。
 
-`igmp_packet_handler()` implements handling of trapped IGMP packets by the CPU.
+`igmp_packet_handler()` 实现 CPU 对被捕获 IGMP 数据包的处理。
 
-`igmp_show()` prints out the IGMP configuration on the CLI.
+`igmp_show()` 在 CLI 上打印 IGMP 配置。
 
 
-## IGMP configuration on the Serial Console
-For testing the following commands are provided on the serial console:
+## 串口控制台上的 IGMP 配置
+为便于测试,串口控制台提供了以下命令:
 ```
 > igmp [on/off]
   Enables or disables IGMP
@@ -98,41 +67,32 @@ For testing the following commands are provided on the serial console:
   Shows information on IGMP
 ```
 
-## LAG configuration via the Web Interface
-Not implemented, yet!
+## 通过 Web 界面进行 LAG 配置
+尚未实现!
 
-## A Test with IP-MC streaming using vlc
-The following is a simple test verifying the IGMP and IP-MC switching capabilities.
+## 使用 vlc 进行 IP-MC 流媒体播放测试
+下面是一个验证 IGMP 与 IP-MC 交换能力的简单测试。
 
-You will need 2 Linux/Windows devices with a GUI plus a switch.
+你需要 2 台带图形界面的 Linux/Windows 设备和一台交换机。
 
-Connect the switch to an MC-aware router (e.g. to your home network). Connect the 2 Linux/Windows
-devices to the switch. The connection to the router makes sure that Linux/Windows will send
-out IGMP messages on the ports connected to the switch, which they will only do if they are aware
-that there is a MC-aware router in the network. Make sure the 2 GUI devices are in the home network
-(e.g. via DHCP).
+把交换机连接到一台支持组播的路由器(例如连接到你的家庭网络),再把 2 台 Linux/Windows 设备连接到交换机。与路由器的这一连接可以确保 Linux/Windows 会在连接到交换机的端口上发出 IGMP 消息;只有当它们得知网络中存在支持组播的路由器时,它们才会这样做。请确保这 2 台带图形界面的设备位于家庭网络中(例如通过 DHCP)。
 
-Start streaming on one of the Linux/Windows machines:
+在其中一台 Linux/Windows 机器上开始推流:
 ```
 $ vlc your_video.mp4 --sout="#std{access=udp, mux=ts, dst=239.255.0.1:8090}"
 ```
-At this point you should see all switch ports flickering heavily as the MC stream is switched to all
-switch ports, including flooding your home network. If you do not see any packets arriving at the switch,
-you can force the output interface of vlc by using `--miface=<ifname>`
+此时你应该会看到所有交换机端口剧烈闪烁,因为组播流正被交换到所有交换机端口,包括泛洪到你的家庭网络。如果看不到任何数据包到达交换机,可以用 `--miface=<ifname>` 强制指定 vlc 的输出接口。
 
-Enable IGMP on the switch-CLI:
+在交换机 CLI 上启用 IGMP:
 ```
 > igmp on
 ```
-The flickering should now stop on all ports except the port where the streaming device is connected:
-the switch drops all IP-MC packets as there are no listeners.
+此时,除推流设备所连接的端口外,其余所有端口的闪烁都应当停止:由于没有监听者,交换机会丢弃所有 IP-MC 数据包。
 
-Now, on the second Linux/Windows device start listening to the stream:
+现在,在第二台 Linux/Windows 设备上开始监听该流:
 ```
 $ vlc udp://@239.255.0.1:8090
 ```
-You should see the port-led of the port the displaying machine is connected to, to start flickering
-and after some synchronization, the video should start playing.
+你应该会看到显示设备所连接端口的端口指示灯开始闪烁,经过一段同步时间后,视频应当开始播放。
 
-Stopping vlc should also switching of the IP-MC frames to the listening device, i.e. the port-leds
-should stop flickering.
+停止 vlc 后,发往监听设备的 IP-MC 帧转发也应随之停止,即端口指示灯应当停止闪烁。

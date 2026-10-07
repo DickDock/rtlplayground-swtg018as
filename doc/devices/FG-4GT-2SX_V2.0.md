@@ -1,41 +1,41 @@
 # FG-4GT-2SX_V2.0
 
-English | [简体中文](FG-4GT-2SX_V2.0.zh-CN.md)
+[English](FG-4GT-2SX_V2.0.en.md) | 简体中文
 
-Following is documentation for unmanaged switch marked as `FG-4GT-2SX_V2.0`.
+以下是丝印为 `FG-4GT-2SX_V2.0` 的非网管交换机的文档。
 
-Original software is running UART on 9600 baud rate.
+原厂软件运行时 UART 波特率为 9600。
 
-## Brands
+## 品牌
 
 * Ruiying RY-4GT-2SX
 
 <img src="photos/FG-4GT-2SX_V2.0/RY-4GT-2SX_label.jpg" width="300" />
 
-## What works
+## 已实现的功能
 
-- All four 2.5GBASE-T RJ45 ports at 10/100/1000/2500 Mbps  
-- Both SFP ports supporting 1G, 2.5G and 10G modules 
-- LEDs
+- 全部 4 个 2.5GBASE-T RJ45 端口,支持 10/100/1000/2500 Mbps  
+- 两个 SFP 端口,支持 1G、2.5G 和 10G 模块 
+- LED 灯
 
-## PCB overview
+## PCB 概览
 
-**Board markings**  
+**板卡丝印**  
 
-- Top silkscreen: FG-4GT-2SX_V2.0
+- 顶面丝印:FG-4GT-2SX_V2.0
 
-Front panel
+前面板
 
 <img src="photos/FG-4GT-2SX_V2.0/chassis-front.jpg" width="300" />
 
-Top side
+顶面
 
 <img src="photos/FG-4GT-2SX_V2.0/PCB-top.jpg" width="300" />
 
-Bottom
+底面
 
 <img src="photos/FG-4GT-2SX_V2.0/PCB-bottom.jpg" width="300" />
 
-## Power supply
+## 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
+电源输入通过圆形插头(barell plug)提供,附带 `12V 1A` 适配器。

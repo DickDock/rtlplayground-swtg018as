@@ -1,21 +1,12 @@
-# QoS, Flow Control and Priority Flow Control
+# QoS、流量控制与优先级流量控制（PFC）
 
-English | [简体中文](qos_pfc.zh-CN.md)
+[English](qos_pfc.en.md) | 简体中文
 
-The RTL8372/3 decides an internal priority 0-7 for every packet, maps it to one of
-8 egress queues per port and schedules the queues strictly or by weight. Pause
-frames (IEEE 802.3x) can be sent and honoured on every port. The two 10G MACs
-(chip ports 3 and 8, the SFP+ cages on most devices) additionally support
-Priority Flow Control (IEEE 802.1Qbb), which pauses single priorities and is what
-lossless RoCEv2 traffic needs. The switch cannot mark ECN.
+RTL8372/3 为每个报文确定一个 0-7 的内部优先级，把它映射到每端口 8 个出方向（egress）队列之一，并按严格（strict）或加权（weight）方式调度这些队列。每个端口都可以发送并响应暂停帧（IEEE 802.3x）。两个 10G MAC（芯片端口 3 和 8，在大多数机型上是 SFP+ 笼位）还额外支持优先级流量控制（PFC，IEEE 802.1Qbb），它可以单独暂停单个优先级，而这正是无损 RoCEv2 流量所需要的。交换机不能标记 ECN。
 
-Register addresses and field layouts are taken from `rtl8373_reg_definition.h` of
-https://github.com/airjinkela/rtl837x-dsa-driver (GPL-2.0). The register values
-behind the commands are covered by `test/test_qos.c`; the behaviour of the switch
-still needs confirming on hardware, see [Verification](#verification).
+寄存器地址和字段布局取自 https://github.com/airjinkela/rtl837x-dsa-driver （GPL-2.0） 的 `rtl8373_reg_definition.h`。命令背后的寄存器写入值由 `test/test_qos.c` 覆盖；交换机的具体行为仍需在硬件上确认，参见[验证](#验证)。
 
-All commands below except `show` and `pfc <port> force` are configuration and are
-saved with the configuration. Ports are physical port numbers as everywhere else.
+除 `show` 和 `pfc <port> force` 之外，下面的所有命令都是配置命令，会随配置一起保存。端口与其他地方一样，使用物理端口号。
 
 ## QoS
 ```
@@ -27,14 +18,9 @@ qos port <port> <prio 0-7>
 qos queue <prio 0-7> <queue 0-7>
 qos sched <port> <queue 0-7> strict|<weight 1-127>
 ```
-The internal priority is chosen from several sources (802.1p PCP, DSCP, the port
-default, ACL, SVLAN) by one-hot weights, the highest weight wins. `qos trust`
-puts the given source on top in both weight tables. `qos dscp` and `qos 1p` map a
-DSCP or PCP value to an internal priority, `qos port` sets the priority a port
-assigns when no other source applies. `qos queue` maps an internal priority to a
-queue on all ports, `qos sched` makes a queue of a port strict or sets its weight.
+内部优先级通过 one-hot 权重从多个来源（802.1p PCP、DSCP、端口默认值、ACL、SVLAN）中选出，权重最高者胜出。`qos trust` 把给定来源放到两张权重表的最顶端。`qos dscp` 和 `qos 1p` 把一个 DSCP 或 PCP 值映射到一个内部优先级；`qos port` 设置端口在没有其他来源适用时赋予的优先级；`qos queue` 把一个内部优先级映射到所有端口上的一个队列；`qos sched` 把某端口的一个队列设为严格调度，或设置其权重。
 
-## 802.3x flow control
+## 802.3x 流量控制
 ```
 fc show
 fc <port> auto|on|off
@@ -42,14 +28,9 @@ fc <port> set <0-3>
 fc thr glb|<0-3> <on> <off>
 fc guar <0-3> <pages>
 ```
-`fc <port> on|off` forces sending and honouring pause frames on or off in the
-MAC, `auto` returns to the result of auto-negotiation. Thresholds are in buffer
-pages: pause is sent when the used pages exceed `<on>` and released below `<off>`.
-There is one global threshold and 4 threshold sets with a guaranteed number of
-pages, and each port selects one set. `fc show` also prints the pages in use and
-their peak, per port and in total.
+`fc <port> on|off` 在 MAC 中强制开启或关闭暂停帧的发送与响应，`auto` 则回到自协商的结果。阈值以缓冲页为单位：已用页数超过 `<on>` 时发送暂停，低于 `<off>` 时解除。系统有一个全局阈值和 4 组带有保证页数的阈值组，每个端口选择其中一组。`fc show` 还会按端口和总计打印当前使用的页数及其峰值。
 
-## Priority flow control
+## 优先级流量控制（PFC）
 ```
 pfc show
 pfc <port> map
@@ -57,32 +38,18 @@ pfc <port> on <prio>[,<prio>..]
 pfc <port> off
 pfc <port> force <prio>[,<prio>..]|off
 ```
-Only the two 10G ports are accepted. `pfc <port> map` maps internal priority
-and PCP n to priority group (PG) n, which `pfc <port> on` relies on: it enables
-PFC for the listed priorities in both directions and for the PGs of the same
-numbers. `pfc <port> force` marks PGs congested, so that the switch sends PFC
-frames for them without any load; it is meant for testing and is not saved.
+只接受那两个 10G 端口。`pfc <port> map` 把内部优先级和 PCP n 映射到优先级组（priority group，PG）n，`pfc <port> on` 依赖这一映射：它为所列出的优先级在两个方向上启用 PFC，并为相同编号的 PG 启用 PFC。`pfc <port> force` 把 PG 标记为拥塞，使交换机在没有任何负载的情况下为它们发送 PFC 帧；它只用于测试，不会被保存。
 
-`pfc show` prints the raw control words, the priority to PG maps, the PG to
-priority-enable-vector table and the pages used per PG.
+`pfc show` 打印原始控制字、优先级到 PG 的映射、PG 到优先级使能向量（priority-enable-vector）的表，以及每个 PG 使用的页数。
 
-## Verification
-The following has not been confirmed on hardware yet:
-1. Which of the two copies of the PFC registers belongs to which MAC. The code
-   assumes the first is MAC 3 and the second MAC 8 (`PFC_IDX()` in
-   `rtl837x_qos.c`). Run `pfc <port> force 3` and capture on the link partner
-   (`tcpdump -i <if> ether proto 0x8808`, or `ethtool -S <if> | grep -i pfc`):
-   the frames must appear on the port given.
-2. The PG to priority-enable-vector table (`RTL837X_PG_2_PEV_TABLE`) is 64 bits
-   wide and it is not known which of the two words holds PG 0-3. `pfc show`
-   prints both words; the PFC frames sent by `pfc <port> force` show which
-   priority a PG pauses.
-3. The meaning of the 802.3x HI/LO threshold pairs. Only the HI registers are
-   exposed.
-4. Whether `fc <port> off`, which clears the MAC pause bits, leaves PFC working.
-   If it does not, use `fc <port> auto` and disable pause on the link partner.
+## 验证
+以下内容尚未在硬件上确认：
+1. 两份 PFC 寄存器各自属于哪个 MAC。代码假定第一份属于 MAC 3、第二份属于 MAC 8（`rtl837x_qos.c` 中的 `PFC_IDX()`）。执行 `pfc <port> force 3`，并在链路伙伴（link partner）上抓包（`tcpdump -i <if> ether proto 0x8808`，或 `ethtool -S <if> | grep -i pfc`）：帧必须出现在给定的端口上。
+2. PG 到优先级使能向量的表（`RTL837X_PG_2_PEV_TABLE`）宽度为 64 位，目前不知道两个字中哪一个存放 PG 0-3。`pfc show` 会打印这两个字；由 `pfc <port> force` 发出的 PFC 帧可以显示某个 PG 暂停的是哪个优先级。
+3. 802.3x HI/LO 阈值对的含义。目前只暴露了 HI 寄存器。
+4. `fc <port> off`（清除 MAC 暂停位）之后 PFC 是否仍然工作。如果不能，请使用 `fc <port> auto`，并在链路伙伴上禁用暂停。
 
-A lossless setup for RoCEv2 traffic marked with DSCP 26 on the 10G port 9:
+下面是在 10G 端口 9 上为标记了 DSCP 26 的 RoCEv2 流量配置无损传输的设置：
 ```
 qos trust dscp
 qos dscp 26 3
@@ -90,7 +57,4 @@ qos queue 3 3
 pfc 9 map
 pfc 9 on 3
 ```
-802.3x pause should be off on this port so that it does not pause all
-priorities. Until point 4 above is confirmed, disable it on the link partner
-(`ethtool -A <if> rx off tx off`) and leave the switch at `fc 9 auto` rather
-than using `fc 9 off`.
+该端口上的 802.3x 暂停应当关闭，以免它暂停所有优先级。在确认上面的第 4 点之前，请在链路伙伴上将其禁用（`ethtool -A <if> rx off tx off`），并让交换机保持在 `fc 9 auto`，而不要使用 `fc 9 off`。

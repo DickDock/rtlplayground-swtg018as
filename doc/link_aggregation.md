@@ -1,20 +1,15 @@
-# Link Aggregation (aka Trunking)
+# 链路聚合(又称 Trunking)
 
-English | [简体中文](link_aggregation.zh-CN.md)
+[English](link_aggregation.en.md) | 简体中文
 
-The RTL827x allows to combine multiple ports to a single logical link
-(Link Aggregation / Trunking) according to IEEE 802.3ad. LAGs allow to
-combine the individual physical links into a single link with the combined
-throughput and automatic redundancy when one of the link fails.
-Up to 4 Link Aggregation Groups (LAGs) can be defined on the switch devices.
+RTL827x 支持按照 IEEE 802.3ad 把多个端口组合成一条逻辑链路(链路聚合 / Trunking)。LAG 可以把一条条物理链路合并为一条链路,获得合计的吞吐量,并在其中一条链路失效时提供自动冗余。交换机设备上最多可以定义 4 个链路聚合组(LAG)。
 
-## LAG control
-Four registers `RTL837X_TRK_MBR_CTRL_BASE(lag) (0x4f38-0x4f44)` define the LAG membership
-via a port mask of the logical port numbers.
+## LAG 控制
 
-A hash algorithm applied to L2, L3 and L4 properties of a packet are used to decide which
-of the links (ports) is being used to transfer the packet. The possible properties used in the
-hash are:
+4 个寄存器 `RTL837X_TRK_MBR_CTRL_BASE(lag) (0x4f38-0x4f44)` 通过由逻辑端口号组成的端口掩码来定义 LAG 的成员关系。
+
+通过对报文的 L2、L3、L4 属性应用哈希算法,来决定由哪条链路(端口)传输该报文。哈希可以使用的属性有:
+
 ```
 #define LAG_HASH_SOURCE_PORT_NUMBER	0x01
 #define LAG_HASH_L2_SMAC		0x02
@@ -25,11 +20,13 @@ hash are:
 #define LAG_HASH_L4_DPORT		0x40
 #define LAG_HASH_DEFAULT (LAG_HASH_L2_SMAC | LAG_HASH_L2_DMAC | LAG_HASH_L3_SIP | LAG_HASH_L3_DIP | LAG_HASH_L4_SPORT | LAG_HASH_L4_DPORT)
 ```
-The hash algorithm used to select links (exit ports) is defined for each LAG individually in
-`RTL837X_TRK_HASH_CTRL_BASE (0x4f48-0x4f54)`.
 
-## Trunking API
-The code currently provides the following functions:
+用于挑选链路(出口端口)的哈希算法在 `RTL837X_TRK_HASH_CTRL_BASE (0x4f48-0x4f54)` 中为每个 LAG 单独定义。
+
+## 链路聚合 API
+
+代码目前提供以下函数:
+
 ```
 /*
  * Configure LAGs
@@ -47,8 +44,10 @@ void port_lag_members_set(__xdata uint8_t lag, __xdata uint16_t members) __banke
 void port_lag_hash_set(__xdata uint8_t lag, __xdata uint8_t hash_bits) __banked;
 ```
 
-## LAG configuration on the Serial Console
-For testing the following commands are provided on the serial console:
+## 在串口控制台上配置 LAG
+
+串口控制台提供以下命令用于测试:
+
 ```
 > lag <LAG-ID> <p1> [p2]...
   Create or set a LAG. LAG-ID is 1 to 4. Ports are physical ports.
@@ -63,26 +62,25 @@ For testing the following commands are provided on the serial console:
   Uses the given packet properties when hashing the packet to select the link
   Names for the hashes are spa, smac, dmac, sip, dip, sport, dport
 ```
-When a lag is creates, by default the hash is based on smac, dmac, sip, dip, sport, dport. When you
-use your own hash settings, make sure that the hash always uses both the source and destination
-property of the packet, as otherwise pakets will not be routed symmetrically.
 
-## LAG configuration via the Web Interface
-In the web-interface select Link Aggregation in the left navigation panel. The page will look like this:
+LAG 创建之后,默认的哈希基于 smac、dmac、sip、dip、sport、dport。使用自定义哈希设置时,请确保哈希总是同时使用报文的源属性和目的属性,否则报文将无法对称地路由。
+
+## 通过 Web 界面配置 LAG
+
+在 Web 界面左侧的导航面板中选择 Link Aggregation(链路聚合)。页面如下所示:
+
 ![Alt text](images/LAG_config.png?raw=true "Link Aggregation Web-Page")
-Each of th 4 LAGs is configured separately. After the web-page has loaded, the current configuration
-can be edited by clicking on the port-images to include that port or exclude it from a LAG.
-When pressing on the Create/Update button, the LAG will be automatically created if not yet done, or
-updated. If a lage is updated to not having any members, then it is effectively deleted.
 
-All LAGs are created with the default hash-function (see above). This currently cannot be changed
-from the Web.
+4 个 LAG 各自单独配置。网页加载完成后,可以通过点击端口图标把该端口加入或移出某个 LAG 来编辑当前配置。按下 Create/Update 按钮时,尚未创建的 LAG 会被自动创建,已存在的则被更新。如果一个 LAG 被更新到没有任何成员,它就实际上被删除了。
 
-## A Test using a single Linux Desktop
-The following is a simple test using 2 RTL 2.5 GBit switches with at least 1 SFP+-port each. You
-will also need 4 10GBit SFP+ modules (DAC or Fiber) and 2 SFP+ ports on your desktop.
+所有 LAG 都以默认哈希函数创建(见上文)。目前无法从 Web 端更改这一点。
 
-The following shows the network configuration
+## 用一台 Linux 桌面机做的测试
+
+下面是一个简单的测试:使用 2 台 RTL 2.5 GBit 交换机,每台至少有 1 个 SFP+ 端口。你还需要 4 个 10GBit SFP+ 模块(DAC 或光纤),以及桌面机上的 2 个 SFP+ 端口。
+
+下面展示网络配置:
+
 ```
                                 -----------------             -----------------
     Linux Comuter               |                | 2.5 GBit   |                |         same Linux Computer
@@ -93,14 +91,14 @@ The following shows the network configuration
                                 ------------------            -----------------
 ```
 
-On _both_ switches create a LAG with ports 1 and 2 inside and the default hash algorithm which takes
-source and destination ports into account, e.g. just use the default:
+在_两台_交换机上分别创建一个包含端口 1 和 2 的 LAG,并使用把源端口和目的端口都考虑在内的默认哈希算法,例如直接使用默认值即可:
+
 ```
 > lag 1 1 2
 ```
 
+下面展示桌面机上的配置,使用的是带 2 个 SFP+ 模块的双口 10GBit 网卡:
 
-The following shows the configuration on the desktop using a dual 10GBit card with 2 SFP+ modules:
 ```
 [234690.755634] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver
 [234690.755637] ixgbe: Copyright (c) 1999-2016 Intel Corporation.
@@ -124,7 +122,8 @@ The following shows the configuration on the desktop using a dual 10GBit card wi
 [234691.753061] ixgbe 0000:01:00.1 enp1s0f1: NIC Link is Up 10 Gbps, Flow Control: RX/TX
 ```
 
-Now set up 2 network namespaces and put each interface inside one:
+现在建立 2 个网络命名空间,并把每个接口放入其中之一:
+
 ```
 sudo ip netns add netns_eth0
 sudo ip netns add netns_eth1
@@ -132,7 +131,8 @@ sudo ip link set enp1s0f0 netns netns_eth0
 sudo ip link set enp1s0f1 netns netns_eth1
 ```
 
-Configure network interface addresses 192.168.9.2 and 192.168.9.1 in each namespace:
+在每个命名空间中分别配置网络接口地址 192.168.9.2 和 192.168.9.1:
+
 ```
 sudo ip netns exec netns_eth0 ifconfig enp1s0f0 192.168.9.1 netmask 255.255.255.0
 
@@ -160,7 +160,9 @@ sudo ip netns exec netns_eth1 ip a
     inet6 fe80::2a41:c6ff:fexx:xxab/64 scope link proto kernel_ll
        valid_lft forever preferred_lft forever
 ```
-Test is using ping. On both switches one of the 2.5Gbit links and all 10GBit links should show activity:
+
+测试使用 ping。在两台交换机上,应当看到其中一条 2.5Gbit 链路以及所有 10GBit 链路上都有活动:
+
 ```
 $ sudo ip netns exec netns_eth1 ping 192.168.9.1
 PING 192.168.9.1 (192.168.9.1) 56(84) bytes of data.
@@ -171,19 +173,19 @@ PING 192.168.9.1 (192.168.9.1) 56(84) bytes of data.
 2 packets transmitted, 2 received, 0% packet loss, time 1030ms
 rtt min/avg/max/mdev = 0.082/0.106/0.130/0.024 ms
 ```
-You can also verify that the redundancy works by unplugging the active link, the ping should continue
-undisturbed with the other link now tranporting the pakets.
 
-In 2 shells, start 2 instances of iperf, listening on 2 different ports. You will need to make sure that
-the hash algorithm assigns different switch ports for the different port numbers. You can check this by
-running the iperf3 client against each server instance and verify that different links show activity:
+拔掉当前活跃的链路也可以验证冗余有效:ping 应当不受干扰地继续,报文改由另一条链路传送。
+
+在 2 个 shell 中分别启动 2 个 iperf 实例,监听 2 个不同的端口。你需要确保哈希算法会为不同的端口号分配不同的交换机端口。可以针对每个服务器实例分别运行 iperf3 客户端来检查这一点,并确认不同的链路显示出活动:
+
 ```
 sudo ip netns exec netns_eth0 iperf3 -s
 
 sudo ip netns exec netns_eth0 iperf3 -s -p 5333
 ```
 
-Now you can run the clients in parallel:
+现在可以并行运行客户端:
+
 ```
 $ sudo ip netns exec netns_eth1 iperf3 -c 192.168.9.1 & sudo ip netns exec netns_eth1 iperf3 -p 5333 -c 192.168.9.1
 [1] 295484
@@ -227,39 +229,20 @@ iperf Done.
 iperf Done.
 [1]+  Done                    sudo ip netns exec netns_eth1 iperf3 -c 192.168.9.1
 ```
-As you can see, the total throughput was 4.71 GBit/sec which is close to the
-maximum possible with a single 5GBit link.
 
-## LACP: how the PDUs reach the CPU
+如你所见,总吞吐量为 4.71 GBit/sec,已经接近单条 5GBit 链路所能达到的最大值。
 
-Slow-protocol frames go to the reserved group `01:80:C2:00:00:02`, and the
-ASIC's default action for it is *drop*. The *trap* action is no help either: on
-this firmware it never reaches the 8051 receive ring, verified on hardware by
-watching the receive counters stay frozen while the partner kept sending.
+## LACP:PDU 如何到达 CPU
 
-Delivery therefore uses the *forward* action, which on its own would flood the
-frame across the ingress VLAN. That leaks LACPDUs to unrelated ports, and the
-damage is real: a bond's own ports see each other's PDUs and Linux reports an
-illegal loopback, a second bond on the same switch is poisoned, and the flood
-escapes through uplinks. A reserved link-local group must never be forwarded at
-all.
+慢协议(slow-protocol)帧发往预留组 `01:80:C2:00:00:02`,而 ASIC 对它的默认动作是*丢弃*(drop)。*陷阱*(trap)动作同样帮不上忙:在本固件上,它永远到不了 8051 的接收环——这一点已在硬件上验证:partner 一直在发送,而接收计数器始终冻结。
 
-What contains it is a static L2 multicast entry for that address with a CPU only
-member mask. The forward lookup hits the entry and uses its port mask instead of
-the VLAN flood mask, so the PDU reaches the CPU and nothing else. Verified both
-ways: a mask without the CPU bit freezes the receive counters, a CPU only mask
-delivers with no egress on any port.
+因此投递采用*转发*(forward)动作,而它自身会把帧泛洪到整个入站 VLAN。这会把 LACPDU 泄露给无关端口,而且危害是实实在在的:bond 自己的端口会看到彼此的 PDU,Linux 报告 illegal loopback;同一台交换机上的第二个 bond 会被毒害;泛洪还会经由上行口外泄。预留的链路本地组绝不该被转发。
 
-Lookups are IVL on this chip, so an entry made for VID 0 is never matched and one
-entry is needed per PVID over all front panel ports, since untagged LACPDUs
-classify into the ingress port's PVID and the forward action is not limited to
-the LACP ports. Entries for stale VIDs are left behind, which is harmless
-because they only steer slow-protocol frames to the CPU, and the lookup table is
-volatile so a reboot clears them. The entries are rewritten after the startup
-configuration has been replayed and whenever a pvid is set from the console.
+对它加以约束的,是针对该地址的一条静态 L2 组播表项,其成员掩码仅含 CPU。forward 查找会命中这条表项并使用它的端口掩码,而不是 VLAN 泛洪掩码,于是 PDU 只到达 CPU,不到任何别处。两个方向都验证过:掩码不含 CPU 位时,接收计数器冻结;掩码仅含 CPU 时,投递正常且任何端口上都没有出站流量。
 
-The entry itself is written through the same SMI layout as any L2 multicast
-entry:
+这颗芯片上的查找采用 IVL,因此为 VID 0 建立的表项永远不会被匹配,需要在所有前面板端口涉及的每个 PVID 上各建一条表项,因为不带标签的 LACPDU 会归入入端口的 PVID,而 forward 动作并不限于 LACP 端口。失效 VID 的表项会遗留下来,这无害:它们只把慢协议帧引导到 CPU,而且查找表是易失的,重启即被清空。这些表项会在启动配置回放之后、以及每次从控制台设置 pvid 时重写。
+
+表项本身通过与任何 L2 组播表项相同的 SMI 布局写入:
 
 ```
 DATA_IN_A = MAC bytes 5..2                            -> c2 00 00 02
@@ -267,20 +250,10 @@ DATA_IN_B = MAC[1..0] | vid<<16 | IVL<<29 | pmask[1:0]<<30
 DATA_IN_C = pmask[9:2]
 ```
 
-With the mask set to the CPU port alone its low bits are zero, so DATA_IN_B
-carries only the address, the VID and the IVL flag, and DATA_IN_C is a constant
-0x80.
+掩码设为仅 CPU 端口时,它的低位为零,因此 DATA_IN_B 只携带地址、VID 和 IVL 标志,而 DATA_IN_C 是常量 0x80。
 
-## LACP: what the implementation leaves out
+## LACP:实现省略了什么
 
-The four state machines of Clause 43 are present in simplified form. Mux control
-is coupled rather than independent, one partner system is elected per LAG, and
-there are no churn detection machines.
+第 43 章的 4 个状态机以简化形式存在。Mux 控制是耦合的而不是独立的,每个 LAG 只选举一个 partner 系统,并且没有 churn detection 状态机。
 
-One interoperability rule is worth stating because getting it wrong is silent.
-The Partner block of an outgoing PDU has to echo the peer's own actor identity
-verbatim, meaning system and priority, key, port and port priority, and the
-aggregation flag. A Linux partner's `__record_pdu()` accepts our SYNC bit only
-when that block mirrors what it sent. Hardcoding the priorities to zero
-mismatches Linux's default of 0xffff, which clears partner SYNC, moves the state
-byte from 0x3f to 0x37, and the bond never reaches collecting and distributing.
+有一条互操作规则值得写明,因为弄错它不会有任何报错。发出 PDU 中的 Partner 块必须逐字回显对端自己的 actor 身份,包括 system 与 priority、key、port 与 port priority,以及聚合标志。只有当该块与 Linux 对端所发送的内容一致时,它的 `__record_pdu()` 才会接受我们的 SYNC 位。把优先级硬编码为 0 与 Linux 的默认值 0xffff 不符,这会清除 partner 的 SYNC,使状态字节从 0x3f 变为 0x37,bond 永远达不到 collecting 和 distributing。

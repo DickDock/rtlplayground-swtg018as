@@ -1,45 +1,45 @@
 # Steamemo IG204-V1
 
-English | [简体中文](STEAMEMO_IG204_V1.zh-CN.md)
+[English](STEAMEMO_IG204_V1.en.md) | 简体中文
 
-Following is documentation for unmanaged switch marked as `IG204-V1`.
+以下是标记为 `IG204-V1` 的非网管交换机的文档。
 
-Using SPI clamp in-board is the only method for initial installation.
+初次安装的唯一方法是在板上使用 SPI 夹具进行烧录。
 
-### Label specifications
+### 标签规格
 
-- **Name**: 2.5G Ethernet Switch  
-- **Model**: IG204 V1
-- **Ports**:  
-  - 4 × RJ45: 10/100/1000/2500 Mbps  
-  - 2 × SFP: 1000 / 2500 / 10000 Mbps  
+- **名称**:2.5G 以太网交换机  
+- **型号**:IG204 V1
+- **端口**:  
+  - 4 × RJ45:10/100/1000/2500 Mbps  
+  - 2 × SFP:1000 / 2500 / 10000 Mbps  
 
-### What works (expected from label + similar devices)
+### 可用功能(根据标签及类似设备推断)
 
-- Four 2.5GBASE-T RJ45 ports at 10/100/1000/2500 Mbps  
-- Two SFP ports supporting 1G, 2.5G and 10G modules 
-- LEDs
+- 4 个 2.5GBASE-T RJ45 端口,10/100/1000/2500 Mbps  
+- 两个 SFP 端口支持 1G、2.5G 和 10G 模块 
+- LED 灯
 
-### PCB overview
+### PCB 概览
 
-**Board markings**  
-- Top silkscreen: PB-2131
+**板卡标识**  
+- 顶面丝印:PB-2131
 
 
-Top side
+顶面
 
 <img src="photos/STEAMEMO_IG204_V1/PCB-top.jpg" width="600" />
 
-### Connectors
-### T7, serial console
+### 连接器
+### T7,串口
 
-| `T7` pin | Signal      |
+| `T7` 针脚 | 信号        |
 | -------- | ----------- |
-| 1        | TX (Output) |
+| 1        | TX(输出) |
 | 2        | GND         |
-| 3        | RX (Input)  |
+| 3        | RX(输入)  |
 | 4        | 3V3         |
 
-### Power supply
+### 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
+输入电源通过桶形插头接入,随附 `12V 1A` 适配器。

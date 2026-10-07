@@ -1,51 +1,51 @@
 ### SWTG024AS-V2.0
 
-English | [简体中文](SWTG024AS-V2.0.zh-CN.md)
+[English](SWTG024AS-V2.0.en.md) | 简体中文
 
-## Brands
-|Brand|Type|Managed|PCB|Flash|Chip RTL|
+## 品牌
+|品牌|类型|可管理|PCB|Flash|RTL 芯片|
 |---|---|---|---|---|---|
-| hongyavision | LG-SG5T1 | No | PCB-SWTG024AS-V2.0_16895 | 25Q40 | 8272 |
+| hongyavision | LG-SG5T1 | 否 | PCB-SWTG024AS-V2.0_16895 | 25Q40 | 8272 |
 
-### Label specifications
+### 铭牌规格
 
-- **Name**: 
-- **Ports**:
-  - 5 × RJ45: 10/100/1000/2500 Mbps
-  - 1 × SFP+: 1000 / 2500 / 10000 Mbps
-- **Power**: 12V DC, 1A  5525 connector 
+- **名称**：
+- **端口**：
+  - 5 × RJ45 电口：10/100/1000/2500 Mbps
+  - 1 × SFP+：1000 / 2500 / 10000 Mbps
+- **供电**：12V DC，1A，5525 插头
 
 <img src="photos/SWTG024AS-V2.0/label.jpg" width="300" />
 
-### What works
-The device is fully supported:
-- ALL 2.5GBASE-T RJ45 ports work at 10/100/1000/2500 Mbps
-- The SFP+ port supports 1G, 2.5G and 10G modules 
-- LEDs work with the same indiciations as the OEM firmware
-- Online update does not work with 512KiB flash.
-### PCB overview
+### 已验证可用的功能
+该机型已被完整支持：
+- 全部 2.5GBASE-T RJ45 电口可在 10/100/1000/2500 Mbps 下工作
+- SFP+ 口支持 1G、2.5G 和 10G 光模块
+- LED 指示灯与 OEM 固件指示含义相同
+- 在线升级不可用（Flash 仅 512KiB）。
+### PCB 概览
 
-**Board markings**
-- Top silkscreen: PCB-SWTG024AS-V2.0
+**板载丝印**
+- 顶面丝印：PCB-SWTG024AS-V2.0
 
-Top side
+顶面
 
 <img src="photos/SWTG024AS-V2.0/pcb_top.jpg" width="300" />
 
-Bottom
+底面
 
 <img src="photos/SWTG024AS-V2.0/pcb_bottom.jpg" width="300" />
 
-### J1, serial console
+### J1 串口控制台
 
-| `J1` pin | Signal      |
+| `J1` 引脚 | 信号        |
 | -------- | ----------- |
 | 1        | GND         |
-| 2        | RX (Input)  |
-| 3        | TX (Output) |
+| 2        | RX（输入）  |
+| 3        | TX（输出）  |
 
-Note,`R52`、`R53`may not be installed.You need to bridge them using either solder or resistors.
+注意，`R52`、`R53` 可能未贴装，需要用焊锡桥接或补焊电阻。
 
-## Power supply
+## 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
+电源经由圆口（barrel）插头输入，随机附带 `12V 1A` 适配器。

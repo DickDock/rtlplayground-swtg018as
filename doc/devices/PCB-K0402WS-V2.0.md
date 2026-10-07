@@ -1,99 +1,98 @@
 Hisource Hi-K0402WS V2
 
-English | [简体中文](PCB-K0402WS-V2.0.zh-CN.md)
+[English](PCB-K0402WS-V2.0.en.md) | 简体中文
 
-RTL8372-based 4×2.5G + 2×SFP+ unmanaged switch.
+基于 RTL8372 的 4×2.5G + 2×SFP+ 非网管交换机。
 
-Using SPI clamp in-board is the only method for initial installation.
+初次安装的唯一方法是在板上使用 SPI 夹具进行烧录。
 
-### Label specifications
+### 标签规格
 
-- **Manufacturer**: HISOURCE
-- **Model**: Hi-K0402WS V2
-- **Ports**:
-  - 4 × RJ45: 10/100/1000/2500 Mbps
-  - 2 × SFP+: 1G / 2.5G / 10G
+- **制造商**:HISOURCE
+- **型号**:Hi-K0402WS V2
+- **端口**:
+  - 4 × RJ45:10/100/1000/2500 Mbps
+  - 2 × SFP+:1G / 2.5G / 10G
 
-### What works
+### 已验证可用的功能
 
-- All four 2.5GBASE-T RJ45 ports at 10/100/1000/2500 Mbps
-- Both SFP+ ports supporting 1G, 2.5G and 10G modules
-- LEDs: amber (2.5G) and green (1G/100M/10M) per copper port; combined link/act on SFP ports
+- 全部 4 个 2.5GBASE-T RJ45 端口,10/100/1000/2500 Mbps
+- 两个 SFP+ 端口均支持 1G、2.5G 和 10G 模块
+- LED 灯:每个铜口有琥珀色(2.5G)和绿色(1G/100M/10M);SFP 端口为合并的连接/活动指示
 
-### PCB overview
+### PCB 概览
 
-**Board markings**
+**板卡标识**
 - PCB-K0402WS-V2.0
 - DIP-K0402WS-V2.0
 
-**Key components**
-- U1: SPI NOR flash, 2 MiB
-- S1: unpopulated slide switch footprint (three through-holes used as serial console)
+**主要元件**
+- U1:SPI NOR Flash,2 MiB
+- S1:未焊接的拨动开关焊盘(其中三个通孔用作串口)
 
-Front panel
+前面板
 
 <img src="photos/PCB-K0402WS-V2.0/chassis-front.jpg" width="400" />
 
-Bottom label
+底部标签
 
 <img src="photos/PCB-K0402WS-V2.0/chassis-bottom.jpg" width="400" />
 
-Top side (PCB)
+顶面(PCB)
 
 <img src="photos/PCB-K0402WS-V2.0/PCB-top.jpg" width="300" />
 
-### Port layout
+### 端口布局
 
-| Front panel position | Logical port | Physical port | Type    |
+| 前面板位置 | 逻辑端口 | 物理端口 | 类型    |
 |----------------------|--------------|---------------|---------|
-| SFP left             | 8            | 5             | SFP+    |
-| RJ45 1               | 4            | 1             | Copper  |
-| RJ45 2               | 5            | 2             | Copper  |
-| RJ45 3               | 6            | 3             | Copper  |
-| RJ45 4               | 7            | 4             | Copper  |
-| SFP right            | 3            | 6             | SFP+    |
+| 左侧 SFP             | 8            | 5             | SFP+    |
+| RJ45 1               | 4            | 1             | 铜口    |
+| RJ45 2               | 5            | 2             | 铜口    |
+| RJ45 3               | 6            | 3             | 铜口    |
+| RJ45 4               | 7            | 4             | 铜口    |
+| 右侧 SFP             | 3            | 6             | SFP+    |
 
-### Serial console
+### 串口
 
-The PCB has three unpopulated through-holes intended for a slide switch, directly connected to UART0.
-Numbered from the left (SFP port side), the pinout is:
+PCB 上有三个未焊接的通孔,原为拨动开关设计,直接连接到 UART0。
+从左侧(SFP 端口一侧)开始编号,引脚定义如下:
 
-| Position (left→right) | Signal | GPIO                     |
+| 位置(从左到右) | 信号 | GPIO                     |
 |-----------------------|--------|--------------------------|
-| 1 (leftmost)          | RX     | GPIO32\_UART0\_RX (32)   |
-| 2 (middle)            | GND    | GND                      |
-| 3 (rightmost)         | TX     | GPIO31\_UART0\_TX (31)   |
+| 1(最左)          | RX     | GPIO32\_UART0\_RX (32)   |
+| 2(中间)            | GND    | GND                      |
+| 3(最右)         | TX     | GPIO31\_UART0\_TX (31)   |
 
-- **Settings**: 115200 baud / 8N1 / 3.3V TTL
-- Connect a USB-TTL adapter: adapter TX → pin 1, GND → pin 2, adapter RX → pin 3
+- **参数**:115200 波特 / 8N1 / 3.3V TTL
+- 连接 USB-TTL 适配器:适配器 TX → 针脚 1,GND → 针脚 2,适配器 RX → 针脚 3
 
-### LED configuration
+### LED 配置
 
-Copper ports use LED SET0, SFP ports use LED SET1.
+铜口使用 LED SET0,SFP 端口使用 LED SET1。
 
 | SET  | LED0                                             | LED2                                              |
 |------|--------------------------------------------------|---------------------------------------------------|
-| SET0 | Amber — lights on 2.5G link                      | Green — lights on 1G / 100M / 10M link            |
-| SET1 | All speeds — lights on any link with activity    | —                                                 |
+| SET0 | 琥珀色 — 2.5G 连接时点亮                          | 绿色 — 1G / 100M / 10M 连接时点亮                  |
+| SET1 | 所有速率 — 任何连接且有活动时点亮                 | —                                                 |
 
-LED pad to physical port mapping:
+LED 焊盘与物理端口的对应关系:
 
-| GPIO pads | Port                    |
+| GPIO 焊盘 | 端口                    |
 |-----------|-------------------------|
-| GPIO8–11  | Physical port 5 (left SFP)  |
-| GPIO12–14 | Physical port 1 (RJ45 1)    |
-| GPIO15–17 | Physical port 2 (RJ45 2)    |
-| GPIO18–20 | Physical port 3 (RJ45 3)    |
-| GPIO21–23 | Physical port 4 (RJ45 4)    |
-| GPIO24–27 | Physical port 6 (right SFP) |
+| GPIO8–11  | 物理端口 5(左侧 SFP)  |
+| GPIO12–14 | 物理端口 1(RJ45 1)    |
+| GPIO15–17 | 物理端口 2(RJ45 2)    |
+| GPIO18–20 | 物理端口 3(RJ45 3)    |
+| GPIO21–23 | 物理端口 4(RJ45 4)    |
+| GPIO24–27 | 物理端口 6(右侧 SFP)  |
 
-### SFP GPIO assignments
+### SFP GPIO 分配
 
-| SFP              | pin\_detect (ModAbs)        | pin\_los               | SerDes | I2C SDA              | I2C SCL                  |
+| SFP              | pin\_detect(ModAbs)        | pin\_los               | SerDes | I2C SDA              | I2C SCL                  |
 |------------------|-----------------------------|------------------------|--------|----------------------|--------------------------|
-| Left (logical 8) | GPIO30\_ACL\_BIT3\_EN       | GPIO37                 | SDS1   | GPIO39\_I2C\_SDA4    | GPIO40\_I2C\_SCL3\_MDC1  |
-| Right (logical 3)| GPIO50\_I2C\_SCL2\_UART1\_TX | GPIO51\_I2C\_SDA2\_UART1\_RX | SDS0 | GPIO41\_I2C\_SDA3\_MDIO1 | GPIO40\_I2C\_SCL3\_MDC1 |
+| 左侧(逻辑 8) | GPIO30\_ACL\_BIT3\_EN       | GPIO37                 | SDS1   | GPIO39\_I2C\_SDA4    | GPIO40\_I2C\_SCL3\_MDC1  |
+| 右侧(逻辑 3)| GPIO50\_I2C\_SCL2\_UART1\_TX | GPIO51\_I2C\_SDA2\_UART1\_RX | SDS0 | GPIO41\_I2C\_SDA3\_MDIO1 | GPIO40\_I2C\_SCL3\_MDC1 |
 
-GPIO assignments were verified by observing GPIO state changes during SFP module insertion/removal
-and cross-checked against an original firmware register dump.
-`pin_tx_disable` is GPIO\_NA on both ports (original firmware keeps all GPIOs as inputs).
+GPIO 分配通过观察插入/拔出 SFP 模块时 GPIO 状态的变化得到验证,并与原厂固件的寄存器转存进行了交叉核对。
+两个端口的 `pin_tx_disable` 均为 GPIO\_NA(原厂固件将所有 GPIO 保留为输入)。

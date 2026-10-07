@@ -1,6 +1,6 @@
 # Host unit-test harness
 
-English | [简体中文](README.zh-CN.md)
+English | [简体中文](README.md)
 
 Compile and test individual firmware translation units on the build host with
 **gcc + AddressSanitizer + UBSan**, plus **Node.js** for Web lifecycle tests — no SDCC, no flashing, no hardware. This is

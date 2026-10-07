@@ -1,63 +1,63 @@
 # SWTG018AS-A V2.0
 
-English | [简体中文](SWTG018AS_A_V2_0.zh-CN.md)
+[English](SWTG018AS_A_V2_0.en.md) | 简体中文
 
-## Brands
-| Brand  | Type             |Managed| PCB              | Flash           | Chip RTL      |
+## 品牌
+| 品牌   | 型号             |可网管| PCB              | Flash           | RTL 芯片      |
 |--------|------------------|-------|------------------|-----------------|---------------|
-| Ampcom | SWTG018AS-A V2.0 | No    | SWTG018AS-A V2.0 | 2MB             | 8273N + 8224N |
-| Horaco | HC-SWTGW218AS-A  | Yes   | SWTG018AS-A V2.0 | 2MB(25Q16JVSIQ) | 8273N + 8224N |
+| Ampcom | SWTG018AS-A V2.0 | 是    | SWTG018AS-A V2.0 | 2MB             | 8273N + 8224N |
+| Horaco | HC-SWTGW218AS-A  | 是   | SWTG018AS-A V2.0 | 2MB(25Q16JVSIQ) | 8273N + 8224N |
 
 
-The following is a documentation for the unmanaged switch marked as `SWTG018AS-A V2.0`.
-It is e.g. sold under the Ampcom brand, but no branh-markings are found on the device.
+以下是针对标识为 `SWTG018AS-A V2.0` 的非网管型交换机的文档。
+它例如以 Ampcom 品牌销售，但设备上没有发现任何品牌丝印。
 
-The original software is running UART on 9600 baud rate. 
+原厂软件的 UART 波特率为 9600。
 
-Using a SOIC clamp in-board is the only method for initial installation.
+使用 SOIC-8 夹具（SOIC clip）进行在板安装是初始安装的唯一方法。
 
-The board has a single flash chips `BS` with 4M-bit size. The front switch, switches between the two flash chips.
-These can be programed independently by using said switch - so it is e.g. possible to run the original and new firmware in parallel.
+该板上的 flash 颗粒为 `BS`，容量 4M-bit。前面板上的开关用于在两颗 flash 颗粒之间切换。
+借助该开关，两颗颗粒可以被独立编程——因此例如可以让原厂固件与新固件并行运行。
 
-### Label specifications
+### 标签规格
 
-- **Name**: 9-Ports 2.5G Ethernet Switch
-- **Ports**:
-  - 8 × RJ45: 10/100/1000/2500 Mbps
-  - 1 × SFP+: 1000 / 2500 / 10000 Mbps
-- **Power**: 12V DC, 1A barrel connector 
+- **名称**：9 口 2.5G 以太网交换机
+- **端口**：
+  - 8 × RJ45：10/100/1000/2500 Mbps
+  - 1 × SFP+：1000 / 2500 / 10000 Mbps
+- **电源**：12V DC，1A 桶形接口
 
 <img src="photos/SWTG018AS_A_V_2_0/label.jpg" width="300" />
 
-### What works
-The device is fully supported:
-- All 8 2.5GBASE-T RJ45 ports work at 10/100/1000/2500 Mbps
-- The SFP+ port supports 1G, 2.5G and 10G modules 
-- RJ45 LEDs separate speeds by color: green (LEDID0) indicates 2.5G, yellow (LEDID1) indicates 10M/100M/1G, both gated by the LINK trigger and verified on the hardware; no activity blinking is configured on these two LEDs. The SFP and system LED modes are unchanged.
+### 可正常工作的功能
+该设备已被完全支持：
+- 全部 8 个 2.5GBASE-T RJ45 端口均可在 10/100/1000/2500 Mbps 下工作
+- SFP+ 端口支持 1G、2.5G 和 10G 模块
+- RJ45 灯按颜色区分速率：绿色（LEDID0）表示 2.5G，黄色（LEDID1）表示 10M/100M/1G，均以 LINK 触发亮灯并已在实机验证；这两颗灯不配置活动闪烁。SFP 和系统灯模式保持不变。
 
-### PCB overview
+### PCB 概览
 
-**Board markings**
-- Top silkscreen: SWTG018AS-A-V2.0.1_19649
+**板上丝印**
+- 顶部丝印：SWTG018AS-A-V2.0.1_19649
 
-Top side
+顶面
 
 <img src="photos/SWTG018AS_A_V_2_0/pcb_top.jpg" width="300" />
 
-Bottom
+底面
 
 <img src="photos/SWTG018AS_A_V_2_0/pcb_bottom.jpg" width="300" />
 
-### J1, serial console
+### J1，串口控制台
 
-| `J1` pin | Signal      |
+| `J1` 引脚 | 信号        |
 | -------- | ----------- |
 | 1        | 3V3         |
 | 2        | GND         |
-| 3        | RX (Input) |
-| 4        | TX (Output)  |
+| 3        | RX（输入） |
+| 4        | TX（输出）  |
 
 
-## Power supply
+## 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
+输入电源通过桶形插头提供，随附 `12V 1A` 适配器。

@@ -1,26 +1,20 @@
 # VLAN
 
-English | [简体中文](vlan.zh-CN.md)
+[English](vlan.en.md) | 简体中文
 
-The RTL827x provides support for up to 4096 802.1Q VLANs, each port can be
-assigend a PVID.
+RTL827x 支持多达 4096 个 802.1Q VLAN，每个端口都可以被分配一个 PVID。
 
-## VLAN control
-VLANs are controlled by the VLAN table. Configuration of entries is done as
-for the L2 entries, apart from that the ASIC does not add entries by itself.
+## VLAN 控制
+VLAN 由 VLAN 表控制。表项的配置方式与 L2 表项相同，区别在于 ASIC 不会自行添加表项。
 
-Adding a VLAN entry is done by setting:
+添加 VLAN 表项的方法是设置：
 
 ```
 RTL837x_TBL_DATA_IN_A = 02 0v vv vv
 ```
-where 0x02 designates a valid entry and vvvvv is a 20bit field made of lower 10bits designating whether a
-port is a member of a VLAN. The higher 10 bits are '0' for tagged ports
-and '1' for untagged ports (the bit-logic definition is `v = (~members) ^ tagged ^
-members`). Ports are numbered 0-9, 9 being the CPU-port. Note that for
-the RTL8372 devices, the ports are not in their physical order.
+其中 0x02 表示一个有效表项，而 vvvvv 是一个 20 位的字段，其低 10 位指示某个端口是否为该 VLAN 的成员。高 10 位对 tagged 端口为 '0'，对 untagged 端口为 '1'（位逻辑定义为 `v = (~members) ^ tagged ^ members`）。端口编号为 0-9，其中 9 为 CPU 端口。注意，对于 RTL8372 机型，端口的编号顺序与其物理顺序并不一致。
 
-Once RTL837x_TBL_DATA_IN_A is set, the entry is added to the table by:
+设置好 RTL837x_TBL_DATA_IN_A 之后，通过以下方式将表项加入表中：
 
 ```
 RTL837X_TBL_CTRL = 0V VV TT CC
@@ -29,36 +23,23 @@ VVV: VLAN-Id
 TT: 0x02 (TBL_VLAN)
 CC: 0x03 (TBL_WRITE | TBL_EXECUTE)
 ```
-The ASIC will clear bit 0 once the entry has been added.
+表项添加完成后，ASIC 会清除 bit 0。
 
-An entry is deleted by adding an invalid entry (00 instead of 0x02 in
-RTL837x_TBL_DATA_IN_A).
+删除表项的方法是添加一个无效表项（在 RTL837x_TBL_DATA_IN_A 中写入 00 而不是 0x02）。
 
-A port is assigned a PVID by setting the PVID-bits of the corresponding
-register of the port. 2 ports share a register. An odd port uses bits [23:12],
-an even port uses bits [11:0].  The base register is
-RTL837x_PVID_BASE_REG (0x4e1c) and the registers go to 0x4e2c so that also
-the CPU-Port may have a PVID.
+为端口分配 PVID 的方法是设置该端口对应寄存器中的 PVID 位。2 个端口共用一个寄存器：奇数端口使用位 [23:12]，偶数端口使用位 [11:0]。基址寄存器为 RTL837x_PVID_BASE_REG（0x4e1c），寄存器一直用到 0x4e2c，这样 CPU 端口也可以拥有 PVID。
 
-Register RTL837x_REG_INGRESS (0x4e10) allows to define the ingress rules of
-a port. 2 bits define a rule and bits 0-19 are being used. A value of 00
-defines no filtering, 01 (0x01) allows only tagged packets, while 10 (0x02)
-allows only untagged packets to enter a port.
+寄存器 RTL837x_REG_INGRESS（0x4e10）用于定义端口的入方向（ingress）规则。每 2 位定义一条规则，使用的是位 0-19。值 00 表示不做过滤，01（0x01）表示仅允许 tagged 报文进入端口，而 10（0x02）表示仅允许 untagged 报文进入端口。
 
-Register RTL837X_VLAN_PORT_IGR_FLTR (0x4e18) enables or disables ingres VLAN
-filtering, each bit corresponds to given port (port0 -> bit0, port9 -> bit9).
-When enabled, incomming package's vlan tag is checked against VLAN membership
-on given port. When package contains VLAN not in member list, package is dropped.
+寄存器 RTL837X_VLAN_PORT_IGR_FLTR（0x4e18）用于启用或禁用入方向 VLAN 过滤，每一位对应一个指定端口（port0 -> bit0，port9 -> bit9）。启用后，进入报文的 VLAN tag 会与该端口上的 VLAN 成员关系进行比对。若报文包含的 VLAN 不在成员列表中，报文将被丢弃。
 
-The default PVID on all port is 1, ingress VLAN filtering is enabled and all types of
-frames are accepted on input on all ports.
+所有端口的默认 PVID 均为 1，入方向 VLAN 过滤处于启用状态，并且所有端口在入方向接受所有类型的帧。
 
-By default, the ports transmit Ethernet frames with Realtek's proprietary
-tag format. By setting bit 6 (0x40) of the respective port configuration
-registers 0x1238, 0x1338, ...
+默认情况下，端口发送的以太网帧带有 Realtek 私有的 tag 格式。通过设置相应端口配置寄存器 0x1238、0x1338，……的 bit 6（0x40），……
 
 ## VLAN API
-The code currently provides the following functions:
+代码目前提供以下函数：
+
 ```
 void port_pvid_set(uint8_t port, __xdata uint16_t pvid) __banked;
 uint16_t port_pvid_get(uint8_t port) __banked;
@@ -68,8 +49,9 @@ void vlan_delete(uint16_t vlan) __banked;
 
 ```
 
-# VLAN configuration on the Serial Console
-For testing the following commands are provided on the serial console:
+# 在串口控制台上配置 VLAN
+为便于测试，串口控制台提供了以下命令：
+
 ```
 vlan <VLAN-ID> p[t]...
   create or set vlan with given ID and the list of ports as members, a `t`

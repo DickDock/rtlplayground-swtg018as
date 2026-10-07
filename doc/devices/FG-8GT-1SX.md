@@ -1,81 +1,81 @@
 # FG-8GT-1SX
 
-English | [简体中文](FG-8GT-1SX.zh-CN.md)
+[English](FG-8GT-1SX.en.md) | 简体中文
 
-Following is documentation for unmanaged switch marked as `FG-8GT-1SX`.
+以下是丝印为 `FG-8GT-1SX` 的非网管交换机的文档。
 
-Original software is running UART on 9600 baud rate.
+原厂软件运行时 UART 波特率为 9600。
 
-Using SPI clamp in-board is the only method for initial installation.
+使用 SPI 夹具夹住板载 Flash 颗粒是初次安装的唯一方法。
 
-### Brands
+### 品牌
 
-| Brand   | Type       | Managed | PCB        | Flash       | Chip RTL      |
+| 品牌    | 型号       | 可管理 | PCB        | Flash       | RTL 芯片      |
 |---------|------------|---------|------------|-------------|---------------|
-| Ruiying | RY-8GT-1SX | No      | FG-8GT-1SX | GD25Q80ESIG | 8373N + 8224N |
+| Ruiying | RY-8GT-1SX | 否      | FG-8GT-1SX | GD25Q80ESIG | 8373N + 8224N |
 
-### What works
+### 已实现的功能
 
-- All eight 2.5GBASE-T RJ45 ports at 10/100/1000/2500 Mbps
-- SFP port with 1G/2.5G/10G modules
-- LEDs
+- 全部 8 个 2.5GBASE-T RJ45 端口,支持 10/100/1000/2500 Mbps
+- SFP 端口,支持 1G/2.5G/10G 模块
+- LED 灯
 
-### PCB overview
+### PCB 概览
 
-**Board markings**
+**板卡丝印**
 
-- Top silkscreen: FG-8GT-1SX
+- 顶面丝印:FG-8GT-1SX
 
-Top side:
+顶面:
 
 <img src="photos/FG-8GT-1SX/PCB-top.jpg" width="600" />
 
-Bottom:
+底面:
 
 <img src="photos/FG-8GT-1SX/PCB-bottom.jpg" width="600" />
 
-### Serial console
+### 串口控制台
 
-The PCB has five unpopulated through-holes near the SoC, with a white rectangle surrouding them, labeled as `J18` and a triangle points to the square shaped first pin.
+PCB 上 SoC 附近有五个未焊接的通孔,周围有一个白色矩形框,丝印为 `J18`,一个三角形指向方形的第一个引脚。
 
-This is where the "expected" UART header should be soldered at, with redundant 3V3 VCC, but also with missing 0Ω resistors between TX/RX and SoC, so simply soldering a header would not work. One need also add the missing resistors or solder the pads together, while making sure not connecting unrelated pads.
+这里就是“预期”应焊接 UART 排针的位置,带有冗余的 3V3 VCC,但 TX/RX 与 SoC 之间缺少 0Ω 电阻,因此仅焊接排针并不能工作。还需要补上缺失的电阻或将焊盘桥接在一起,同时注意不要将无关的焊盘连接起来。
 
-Numbered from the triangle, the header pinout is:
+从三角形一侧开始编号,排针引脚定义如下:
 
-| Position | Signal | GPIO   | Status      |
+| 位置 | 信号 | GPIO   | 状态      |
 |----------|--------|--------|-------------|
-| 1        | GND    | GND    | Internal    |
-| 2        | TX     | GPIO31 | Unconnected |
-| 3        | RX     | GPIO32 | Unconnected |
-| 4        | 3V3    | -      | Internal    |
-| 5        | 3V3    | -      | Internal    |
+| 1        | GND    | GND    | 板内已连接 |
+| 2        | TX     | GPIO31 | 未连接 |
+| 3        | RX     | GPIO32 | 未连接 |
+| 4        | 3V3    | -      | 板内已连接 |
+| 5        | 3V3    | -      | 板内已连接 |
 
-There're four resistor pads near the header.
+排针附近有四个电阻焊盘。
 
-| Resistor ID | SoC Side    | Header Side |
+| 电阻编号 | SoC 侧      | 排针侧 |
 |-------------|-------------|-------------|
-| R1240       | TX / GPIO31 | Pin 2       |
+| R1240       | TX / GPIO31 | 引脚 2      |
 | R1243       | 3V3         | -           |
-| R1242       | 3V3         | Pin 3       |
+| R1242       | 3V3         | 引脚 3      |
 | R1241       | RX / GPIO32 | -           |
 
-To get TX working, solder a 0Ω resistor between the pads for R1240 or solder them together.
+要让 TX 工作,在 R1240 的两个焊盘之间焊接一颗 0Ω 电阻,或将焊盘桥接起来。
 
-For RX However, the designer certainly made a mistake, as the SoC-side lines to the resistor expected for Rx (R1242) and 3V3 (R1241) are swapped. For RX to work, the R1241 SoC side and R1242 header side shall be connected, so either:
+而 RX 方面,设计者显然犯了一个错误:连往 RX 预期电阻(R1242)和 3V3(R1241)的 SoC 侧走线被互换了。要让 RX 工作,需要将 R1241 的 SoC 侧与 R1242 的排针侧连接起来,因此可以:
 
-- Solder: R1241 SoC side -> R1241 header side -> R1242 header side
-- Jump wire: R1241 SoC side -> R1242 header side
+- 焊接:R1241 SoC 侧 -> R1241 排针侧 -> R1242 排针侧
+- 飞线:R1241 SoC 侧 -> R1242 排针侧
 
-Be sure not to bring R1242 SoC side to the connection as that would wire Rx to 3v3.
+务必不要把 R1242 的 SoC 侧也接入该连接,否则会把 RX 接到 3V3 上。
 
-A complete working serial header should look like following on this PCB:
+在这块 PCB 上,完整可用的串口排针应如下所示:
 
 <img src="photos/FG-8GT-1SX/Serial.png" width="600" />
 
-- **Settings**: 115200 baud / 8N1 / 3.3V TTL
-- Connect a USB-TTL adapter: adapter GND → pin 1, RX → pin 2, TX → pin 3
+- **串口参数**:115200 波特 / 8N1 / 3.3V TTL
+- 连接 USB-TTL 适配器:适配器 GND → 引脚 1,RX → 引脚 2,TX → 引脚 3
 
-### Power supply
+### 供电
 
-Input power is delivered via barell plug, `12V 1A` adapter was provided.
+电源输入通过圆形插头(barell plug)提供,附带 `12V 1A` 适配器。
 

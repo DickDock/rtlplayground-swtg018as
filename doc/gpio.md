@@ -1,13 +1,13 @@
 
-# GPIO Pin, Function and MUX registers.
+# GPIO 引脚、功能与 MUX 寄存器
 
-English | [简体中文](gpio.zh-CN.md)
+[English](gpio.en.md) | 简体中文
 
-These functions should bevalid for `RTL8372`, `RTL8372N`, `RTL8373`, and `RTL8373N`.
+这些功能应适用于 `RTL8372`、`RTL8372N`、`RTL8373` 和 `RTL8373N`。
 
-`N`-version doesn't seems to have all the GPIO pins available on the outside of the package.
+`N` 版本似乎并未把所有 GPIO 引脚都引出到封装外部。
 
-| GPIO | Function | TYPE | MUX REG, BIT | (RTL8372) PIN# | (RTL8372N) PIN# |
+| GPIO | 功能 | 类型 | MUX 寄存器、位 | (RTL8372) 引脚号 | (RTL8372N) 引脚号 |
 | ----- | ---- | ---- |  ---- | ---- | ---- |
 | GPIO0 | LED0 | I/OPU | IO_MUX_SEL_0, BIT 0 | G1 | 12 |
 | GPIO1 | LED1 | I/OPU | IO_MUX_SEL_0, BIT 1 | G2 | 15 |
@@ -76,7 +76,7 @@ These functions should bevalid for `RTL8372`, `RTL8372N`, `RTL8373`, and `RTL837
 
 ## I2C
 
-| I2C | Function |Type  | (RTL8372) PIN# | (RTL8372N) PIN# |
+| I2C | 功能 | 类型 | (RTL8372) 引脚号 | (RTL8372N) 引脚号 |
 |  ---- | ---- | ---- | ---- | ---- |
 | GPIO47 | SDA0 | I/OPU |  | B1 | 142 |
 | GPIO49 | SDA1 | I/OPU |  | B2 | 144 |
@@ -88,13 +88,12 @@ These functions should bevalid for `RTL8372`, `RTL8372N`, `RTL8373`, and `RTL837
 | GPIO50 | SCL2 | I/OPU |  | C1 | ??? |
 | GPIO40? | SCL3 | OPU |  | J20 |  |
 
-# Other funcitons
+# 其他功能
 
-| Function | Type | (RTL8372) PIN# | (RTL8372N) PIN# |
+| 功能 | 类型 | (RTL8372) 引脚号 | (RTL8372N) 引脚号 |
 |  ---- | ---- | ---- | ---- | 
 | nRESET   |      | A6  | 131 |
 | PTP_SYNC |      | B10 | 130 |
 | INT      | OPU  | B6  | 132 |
-
 
 

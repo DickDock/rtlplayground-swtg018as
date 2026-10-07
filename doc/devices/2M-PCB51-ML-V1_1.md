@@ -1,34 +1,34 @@
 # MokerLink POE-2G080110GS
 
-English | [简体中文](2M-PCB51-ML-V1_1.zh-CN.md)
+[English](2M-PCB51-ML-V1_1.en.md) | 简体中文
 
-The `POE-2G080110GS` is an unmanaged 8x2.5G RJ45 and 1xSFP+ PoE switch sold by Mokerlink. There is also a `POE-2G080110GSM` managed version of the switch which may be similar but this has not been verified on actual hardware.
+`POE-2G080110GS` 是 Mokerlink 销售的一款非网管 PoE 交换机,具有 8 个 2.5G RJ45 端口和 1 个 SFP+ 端口。另有网管版本 `POE-2G080110GSM`,可能与本机类似,但这尚未在实机硬件上验证过。
 
-## Brands
-| Brand  | Type             |Managed| PCB              | Flash           | Chip RTL      |
+## 品牌
+| 品牌    | 型号             | 网管 | PCB              | Flash           | RTL 芯片       |
 |--------|------------------|-------|------------------|-----------------|---------------|
-| Mokerlink | POE-2G080110GS | No | 2M-PCB51-ML-V1.1 | 4MB (W25Q32JV) | 8373N + 8224N |
+| Mokerlink | POE-2G080110GS | 否 | 2M-PCB51-ML-V1.1 | 4MB (W25Q32JV) | 8373N + 8224N |
 
-## Hardware overview
-Front
+## 硬件概览
+正面
 
 <img src="photos/POE-2G080110GS/POE-2G080110GS-front.jpg" width="300" />
 
-Label
+标签
 
 <img src="photos/POE-2G080110GS/POE-2G080110GS-label.jpg" width="300" />
 
-The stock firmware from a POE-2G080110GS device had a sha256sum of `4c280853465eaad80e1772075c0f2d29c11fb8c561547f06353d3a5443c388e9`.
+一台 POE-2G080110GS 设备原厂固件的 sha256sum 为 `4c280853465eaad80e1772075c0f2d29c11fb8c561547f06353d3a5443c388e9`。
 
 ### PCB
 
-Top silkscreen is marked `2M-PCB51-ML-V1.1`. PoE is provided by RTL8238C. Flash chip is 4 MB Winbond 25Q32JV (U8).
+顶面丝印标记为 `2M-PCB51-ML-V1.1`。PoE 由 RTL8238C 提供。Flash 颗粒为 4 MB 的 Winbond 25Q32JV(U8)。
 
 <img src="photos/POE-2G080110GS/POE-2G080110GS-pcb.jpg" width="300" />
 
 > [!CAUTION]
-> This device operates on mains voltage, which can be a dangerous or potentially lethal hazard. Even after the device is unplugged, high-voltage capacitors can remain charged afterward and may still shock you. Do not attempt to open/disassemble a mains powered device unless you understand how to do so safely. Also, opening the device may void your warranty.
+> 本设备使用市电电压,可能造成危险甚至致命的伤害。即使设备已经断电,高压电容在此之后仍可能带电,依然可能电击到你。除非你了解如何安全操作,否则不要尝试打开/拆解使用市电供电的设备。此外,打开设备可能导致保修失效。
 
-## Notes
+## 备注
 
-The stock firmware blinks both the 2.5G and 1G LEDs on activity, despite the front of the device indicating that each LED should be independent. The `POE_2G080110GS` machine config behaves as the front of the device indicates (and what seems more logical) -- each port LED turns on and blinks independently.
+原厂固件在有流量时会同时闪烁 2.5G 和 1G 两个 LED 灯,尽管设备正面标示两个 LED 应各自独立。`POE_2G080110GS` 机型配置的行为与设备正面的标示一致(也更合乎逻辑)——每个端口的 LED 独立点亮和闪烁。

@@ -1,33 +1,33 @@
-# Automation
+# 自动化
 
-English | [简体中文](automation.zh-CN.md)
+[English](automation.en.md) | 简体中文
 
-## Upload
+## 上传
 
-You can automate upload of the firmware via WEB with curl:
+可以通过 Web 使用 curl 实现固件上传的自动化：
 
-1. Authorize with /login endpoint and save cookie:
+1. 使用 /login 端点进行授权并保存 cookie：
 
    ```bash
    curl -c cookies.txt  http://${SWITCH_IP}/login -d pwd=${PASSWORD} -i
    ```
 
-   This will save session cookie in cookies.txt
-2. Send the firmware via form:
+   这条命令会把 session cookie 保存到 cookies.txt 中
+2. 通过表单发送固件：
 
     ```bash
     curl -b cookies.txt http://${SWITCH_IP}/upload -F "uploadedfile=@${FIRMWARE_FILE_PATH}" -i
     ```
 
-    You can expect that server will close connection, without responding to request.
-    Wait for SWITCH_IP to be responding again.
+    可以预期服务器会直接关闭连接而不响应请求。
+    等待 SWITCH_IP 重新恢复响应即可。
 
-## Port status
+## 端口状态
 
-In similar way to upload, you can fetch the json status of the ports.
+与上传类似，可以获取端口的 JSON 状态。
 
-1. Get the session cookie as for upload.
-2. Hit the `/status.json` with cookie:
+1. 按与上传相同的方式获取 session cookie。
+2. 携带 cookie 访问 `/status.json`：
 
     ```bash
     curl -b cookies.txt http://${SWITCH_IP}/status.json

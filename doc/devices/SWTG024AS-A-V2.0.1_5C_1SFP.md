@@ -1,47 +1,47 @@
 ### SWTG024AS-A-V2.0.1_5C_1SFP
 
-English | [简体中文](SWTG024AS-A-V2.0.1_5C_1SFP.zh-CN.md)
+[English](SWTG024AS-A-V2.0.1_5C_1SFP.en.md) | 简体中文
 
-It is highly similar to SWTG024AS-V2.0, with the only difference being the GPIO configuration for the SFP port.
+它与 SWTG024AS-V2.0 高度相似,唯一的区别是 SFP 端口的 GPIO 配置。
 
-## Brands
-|Brand|Type|Managed|PCB|Flash|Chip RTL|
+## 品牌
+|品牌|型号|网管|PCB|Flash|RTL 芯片|
 |---|---|---|---|---|---|
 | Horaco | HC-SWTGW215AS |  | PCB-SWTG024AS-A-V2.0.1_19650 | W25Q16JV | 8272N |
 
-### Label specifications
+### 标签规格
 
-- **Name**: 
-- **Ports**:
-  - 5 × RJ45: 10/100/1000/2500 Mbps
-  - 1 × SFP+: 1000 / 2500 / 10000 Mbps
-
-<!-- <img src="" width="300" /> -->
-
-### What works
-The device is fully supported:
-- ALL 2.5GBASE-T RJ45 ports work at 10/100/1000/2500 Mbps
-- The SFP+ port supports 1G, 2.5G and 10G modules 
-- LEDs work with the same indiciations as the OEM firmware
-
-### PCB overview
-
-**Board markings**
-- Top silkscreen: PCB-SWTG024AS-A-V2.0.1_19650
-
-Top side
+- **名称**: 
+- **端口**:
+  - 5 × RJ45:10/100/1000/2500 Mbps
+  - 1 × SFP+:1000 / 2500 / 10000 Mbps
 
 <!-- <img src="" width="300" /> -->
 
-Bottom
+### 已验证可用的功能
+该设备已被完整支持:
+- 全部 2.5GBASE-T RJ45 端口可在 10/100/1000/2500 Mbps 下工作
+- SFP+ 端口支持 1G、2.5G 和 10G 模块 
+- LED 灯的指示方式与原厂固件相同
+
+### PCB 概览
+
+**板卡标识**
+- 顶面丝印:PCB-SWTG024AS-A-V2.0.1_19650
+
+顶面
 
 <!-- <img src="" width="300" /> -->
 
-### J1, serial console
+底面
 
-| `J1` pin | Signal      |
+<!-- <img src="" width="300" /> -->
+
+### J1,串口
+
+| `J1` 针脚 | 信号        |
 | -------- | ----------- |
 | 1        | 3V3         |
 | 2        | GND         |
-| 3        | RX (Input)  |
-| 4        | TX (Output) |
+| 3        | RX(输入)  |
+| 4        | TX(输出) |

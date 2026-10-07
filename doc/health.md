@@ -1,11 +1,8 @@
-# The health command
+# health 命令
 
-English | [简体中文](health.zh-CN.md)
+[English](health.en.md) | 简体中文
 
-`health` prints a one-page snapshot of the firmware's vital signs on the
-serial console. It exists for the situations where the switch misbehaves and
-every probe from the network measures the network instead of the device: the
-dump is taken from inside, costs one command, and works while HTTP does not.
+`health` 在串口控制台上打印一页固件生命体征快照。它的存在是为了应对这样的情况:交换机行为异常,而来自网络的每一次探测,测量的都是网络而不是设备本身:这份转储来自设备内部,只需一条命令,并且在 HTTP 无法工作时依然可用。
 
 ```
 > health
@@ -22,60 +19,32 @@ tcp st 00 tmr 00 rtx 00 rto 00 len 0x0000 mss 0x05b4
 httpd left 0x0000 entry 00 stp 01 mvlan 0x0002
 ```
 
-The instrumentation is not part of a default build. It costs about 1.1 kB
-of bank 2, a few bytes of xdata and seven banked calls per main-loop pass,
-which is nothing a user needs unless they are chasing a problem, so it is
-switched on at build time:
+这些插桩并不是默认构建的一部分。它大约占用 bank 2 中的 1.1 kB、xdata 中的几个字节,外加主循环每轮七次 banked 调用;除非正在排查问题,否则用户并不需要它,因此它在构建时开启:
 
 ```
 make MACHINE=SWTGW218AS HEALTH=1
 ```
 
-Without it the hooks compile to nothing and `health` is not a command.
+没有它时,这些钩子会编译为空,`health` 也不是一条命令。
 
-All figures are raw hex. The counters are cumulative: take two dumps a known
-time apart and the differences give the rates.
+所有数值都是原始十六进制。计数器是累计值:间隔一段已知时间取两次转储,差值即为速率。
 
-## The first line
+## 第一行
 
-`up` is the seconds counter, `ticks` the system tick (200 per second),
-`loops` the number of main-loop passes and `rx` the frames handle_rx has
-taken off the NIC. A healthy loop completes one pass per tick, so the
-difference in `loops` tracks the difference in `ticks`; a loop that falls
-behind is being held up by one of the phases below. The `rx` rate separates
-a flooded CPU port from a stalled loop, which look identical from outside.
+`up` 是秒计数器,`ticks` 是系统节拍(每秒 200 个),`loops` 是主循环执行的轮数,`rx` 是 handle_rx 从 NIC 取走的帧数。健康的循环每个节拍完成一轮,因此 `loops` 的差值会跟随 `ticks` 的差值;落后于节拍的循环就是被下面的某个阶段拖住了。`rx` 速率可以把"CPU 端口被灌满"与"循环停滞"区分开——这两种情况从外部看起来一模一样。
 
-## Phases
+## 各阶段
 
-Each line is one section of the main loop: the link poll, SFP handling,
-frame reception, TCP transmission, the STP timers and the command dispatch.
-`max` is the worst time that section has taken, in ticks of 5 ms; `slow`
-counts the passes that took two ticks or more. A misbehaving subsystem
-names itself here, which is the difference between knowing that the loop is
-slow and knowing why.
+每一行对应主循环的一个阶段:链路轮询、SFP 处理、帧接收、TCP 发送、STP 定时器以及命令分发。`max` 是该阶段曾耗费的最长时间,以 5 ms 的节拍为单位;`slow` 统计耗时达到两个节拍及以上的轮数。行为异常的子系统会在这里自报家门,这正是"知道循环慢"与"知道为什么慢"之间的区别。
 
-A dump of its own output takes the console some milliseconds, so running
-`health` repeatedly increments the `cmd` counters by itself. That is the
-instrument observing itself, not a fault.
+转储自身输出就要占用控制台几毫秒,因此反复运行 `health` 会自行增加 `cmd` 计数器。这是仪器在观察它自己,而不是故障。
 
-## Stack
+## 栈
 
-At boot the free stack area is painted with a pattern. `sp` is the live
-stack pointer; `untouched` counts the painted bytes still intact at the top,
-which is the closest thing to a high-water mark this hardware offers. A
-shrinking `untouched` across dumps means something is reaching deeper than
-anything before it.
+启动时,空闲栈区域会被写入一种图案。`sp` 是当前的栈指针;`untouched` 统计顶端仍然完好无损的图案字节数,这是这套硬件所能提供的最接近高水位标记的东西。两次转储之间 `untouched` 变小,意味着有代码运行到了比以往任何时刻都更深的栈位置。
 
-## The TCP slot
+## TCP 槽位
 
-The connection table is printed whole, one slot per pair of lines: TCP
-state (3 is ESTABLISHED, 0 closed), retransmission timer and counter, bytes
-in flight, negotiated MSS, then the ports and the peer address. With a
-single slot serving the entire web interface, one glance answers the
-question every management outage starts with: who is holding it. A slot
-showing state 3 with nothing in flight and a peer that no longer answers is
-a connection whose owner went away.
+连接表会被完整打印,每个槽位占两行:TCP 状态(3 为 ESTABLISHED,0 为已关闭)、重传定时器与计数器、在途字节数、协商的 MSS,然后是端口和对端地址。由于整个 Web 界面只由一个槽位服务,看一眼就能回答每次管理中断最先要问的问题:是谁占着它。一个状态为 3、没有在途数据、且对端不再应答的槽位,就是一个持有者已经离开的连接。
 
-`httpd left` and `entry` describe the file transfer the web server believes
-it is in the middle of, and the trailing flags show whether STP is running
-and which VLAN carries management.
+`httpd left` 和 `entry` 描述 Web 服务器认为自己正处于进行中的文件传输,末尾的标志则显示生成树(STP)是否正在运行,以及管理流量承载在哪个 VLAN 上。

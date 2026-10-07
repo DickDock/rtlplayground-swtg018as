@@ -1,24 +1,20 @@
 # rtlplayground-swtg018as
 
-English | [简体中文](README.zh-CN.md)
+[English](README.en.md) | 简体中文
 
-Personal build of [rtl837x-plus](https://github.com/HiroGitea/rtl837x-plus) (LACP/QoS fork of
-[RTLPlayground](https://github.com/logicog/RTLPlayground)) for the **LIANGUO LG-SG8T1 (WEB)** /
-ZX903-SWTGW218AS switch — PCB `SWTG018AS-A-V2.0` (8× 2.5GBit + 1× SFP+).
+[rtl837x-plus](https://github.com/HiroGitea/rtl837x-plus)([RTLPlayground](https://github.com/logicog/RTLPlayground) 的 LACP/QoS 分支)的个人构建版本,面向 **LIANGUO LG-SG8T1 (WEB)** / ZX903-SWTGW218AS 交换机 — PCB `SWTG018AS-A-V2.0`(8× 2.5GBit + 1× SFP+)。
 
-Preconfigured in this repo:
+本仓库已预配置:
 
-- `machine.h`: `MACHINE_SWTG018AS_A_V_2_0`
-- `config.txt`: static management IP `192.168.31.3`, gateway `192.168.31.1`
-- `tools/Makefile`, `installer/Makefile`, `Makefile`: macOS (Darwin) build fixes —
-  conditional `-largp`/json-c paths and escaped `#` for GNU make < 4
+- `machine.h`:`MACHINE_SWTG018AS_A_V_2_0`
+- `config.txt`:静态管理 IP `192.168.31.3`,网关 `192.168.31.1`
+- `tools/Makefile`、`installer/Makefile`、`Makefile`:macOS(Darwin)构建修复 — 按条件处理 `-largp`/json-c 路径,并为 GNU make < 4 转义 `#`
 
-Build on macOS (SDCC ≥ 4.5, binutils for `objcopy`, json-c, argp-standalone):
+在 macOS 上构建(SDCC ≥ 4.5、提供 `objcopy` 的 binutils、json-c、argp-standalone):
 
     PATH="/opt/homebrew/opt/binutils/bin:$PATH" make
 
-Image lands in `output/SWTG018AS_A_V_2_0/` (1 MiB, web-upgradable via the RTLPlayground
-"固件" page; a SOIC-8 clip + flashrom dump remains the brick-rescue path).
+镜像输出到 `output/SWTG018AS_A_V_2_0/`(1 MiB,可通过 RTLPlayground 的“固件”页面进行 Web 升级;SOIC-8 夹具 + flashrom 转储仍是救砖的最后手段)。
 
 ---
 
@@ -26,204 +22,162 @@ Image lands in `output/SWTG018AS_A_V_2_0/` (1 MiB, web-upgradable via the RTLPla
 
 [![Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml/badge.svg)](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml)
 
-rtl837x-plus is a fork of [RTLPlayground](https://github.com/logicog/RTLPlayground), the
-open-source firmware for RTL8372/RTL8373 based 2.5 Gbit/s switches. It adds QoS, flow control
-and link aggregation functions for lossless RoCEv2 networks.
+rtl837x-plus 是 [RTLPlayground](https://github.com/logicog/RTLPlayground) 的一个分支,后者是面向基于 RTL8372/RTL8373 的 2.5 Gbit/s 交换机的开源固件。它为无损 RoCEv2 网络增加了 QoS、流量控制和链路聚合功能。
 
-## Features
+## 功能特性
 
-- QoS: priority from DSCP, IEEE 802.1p or port, queue mapping and scheduling ([documentation](doc/qos_pfc.md))
-- IEEE 802.3x flow control and IEEE 802.1Qbb Priority Flow Control ([documentation](doc/qos_pfc.md))
-- IEEE 802.3ad LACP, from upstream pull request [#299](https://github.com/logicog/RTLPlayground/pull/299) ([documentation](doc/lacp.md))
+- QoS:来自 DSCP、IEEE 802.1p 或端口的优先级,队列映射与调度([文档](doc/qos_pfc.md))
+- IEEE 802.3x 流量控制与 IEEE 802.1Qbb 优先级流量控制(PFC)([文档](doc/qos_pfc.md))
+- IEEE 802.3ad LACP,来自上游 pull request [#299](https://github.com/logicog/RTLPlayground/pull/299)([文档](doc/lacp.md))
 
 > [!WARNING]
-> These functions have not yet been fully verified on hardware. Before installing an
-> image, make sure that the flash can be restored with a SOIC-8 clip; see
-> [Flashing the ROM directly](#5-flashing-the-rom-directly-hardware-way-but-also-only-way-to-rescue).
+> 这些功能尚未在硬件上得到完整验证。安装镜像之前,请确保可以借助 SOIC-8 夹具恢复 Flash 内容;参见[直接烧写 ROM](#5-直接烧写-rom硬件方式也是救砖的唯一途径)。
 
-## Download
+## 下载
 
-Firmware images for all supported devices are built automatically. Download them from
-the latest run of the
-[Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml?query=branch%3Amain)
-workflow, or from [Releases](https://github.com/HiroGitea/rtl837x-plus/releases) for
-tagged versions. Select the image that matches your device exactly; see
-[Supported devices](doc/supported_devices.md).
+所有受支持设备的固件镜像都会自动构建。可以从 [Firmware images](https://github.com/HiroGitea/rtl837x-plus/actions/workflows/firmware.yml?query=branch%3Amain) 工作流最近一次运行中下载;带标签的版本可从 [Releases](https://github.com/HiroGitea/rtl837x-plus/releases) 下载。请选择与你的设备完全一致的镜像;参见[支持的设备](doc/supported_devices.md)。
 
-## Building
+## 构建
 
-Build requirements are listed in section (0) below. To build an image for one device:
+构建要求见下文第 (0) 节。为某台设备构建镜像:
 
 ```
 make MACHINE=<device>
 ```
 
-## License
+## 许可证
 
-MIT, as RTLPlayground. LACP was written by DrDoof for RTLPlayground. QoS and PFC
-register definitions are based on
-[rtl837x-dsa-driver](https://github.com/airjinkela/rtl837x-dsa-driver).
+与 RTLPlayground 相同,采用 MIT 许可证。LACP 由 DrDoof 为 RTLPlayground 编写。QoS 与 PFC 寄存器定义基于 [rtl837x-dsa-driver](https://github.com/airjinkela/rtl837x-dsa-driver)。
 
 ---
 
-*The following is the original RTLPlayground README.*
+*以下为 RTLPlayground 原始 README。*
 
 # RTLPlayground
-A Playground for Firmware development for advanced user of RTL8372/RTL8373 based 2.5GBit Switches.
+一个面向 RTL8372/RTL8373 2.5GBit 交换机高级用户的固件开发 Playground。
 
-For each hardware configuration of these devices, there is usually a managed and an
-unmanaged version sold, with mostly identical hardware. The aim is to provide management
-features also for unmanaged devices with additional features such as Management VLAN,
-DHCP servers, multi-language support, IPv6 and TLS-encrypted web-pages. At present, however
-only the following features are provided:
-- A modern web-interface with mouse-over to display further information
-- A serial console interface to configure all features
-- IGMP to configure Multicast streaming
-- Port configuration showing detailed information about own and Link-partner advertised
-  Speed settings and configuration of these settings on the local side
-- Per-port configuration of frame sizes (MTUs) for Jumbo-Frame support or limiting MTUs
-  for particular devices
-- EEE (Energy Efficient Ethernet) can be configured per-port. Detailed information is
-  provided for support offered by the link partner and the EEE status of a port.
-- VLAN configuration
-- SFP information is displayed on the inserted modules, the current sensor values such as
-  temperatures, RX and TX power are displayed in the CLI and as mouse-over on the web
-- Mirror configuration
-- Link Aggregation Groups can be set up
-- Detailed information on port packet statistics
-- Configuration saved to flash via the web-interface
-- Firmware updates via the web
-- Installation as a firmware upgrade from the original web-interface
+这类设备的每种硬件配置通常都有网管型(managed)与非网管型(unmanaged)两个在售版本,硬件基本相同。本项目旨在为非网管型设备也提供管理功能,并附加管理 VLAN、DHCP 服务器、多语言支持、IPv6 和 TLS 加密网页等特性。不过目前仅提供以下功能:
+- 现代的 Web 界面,鼠标悬停可显示更多信息
+- 用于配置所有功能的串口控制台接口
+- 通过 IGMP 配置组播流
+- 端口配置:显示本端与链路伙伴所通告速率设置的详细信息,并可在本端对这些设置进行配置
+- 按端口配置帧长(MTU)以支持巨型帧(Jumbo Frame),或为特定设备限制 MTU
+- 可按端口配置 EEE(节能以太网)。会提供链路伙伴所通告支持能力的详细信息,以及端口的 EEE 状态
+- VLAN 配置
+- 显示已插入模块的 SFP 信息,温度、RX/TX 功率等传感器数值会显示在 CLI 中,并在 Web 上以鼠标悬停方式显示
+- 端口镜像配置
+- 可创建链路聚合组
+- 端口数据包统计的详细信息
+- 通过 Web 界面将配置保存到 Flash
+- 通过 Web 升级固件
+- 可从原厂 Web 界面以固件升级方式安装
 
 <img width="1673" height="977" alt="GUI" src="doc/images/gui.png" />
 
-While the firmware provides already considerable improvements over the original managed firmware,
-the firmware still lacks support for the proprietary loop prevention
-protocols as well as DHCP. Spanning Tree is available (see doc/stp.md), but is
-a simplified implementation - read that document before enabling it on a
-switch you administer over the network. If you need these features, do not install the playground on your managed
-devices. In any case, installation is strongly discouraged unless you can at least make
-a backup of the original flash content via a SOIC clamp such as also used for BIOS
-backups and can re-install that firmware in case something is wrong. For this no soldering
-skills are necessary.
+虽然该固件相比原厂网管固件已有长足改进,但仍缺少对专有环路防护协议以及 DHCP 的支持。生成树(Spanning Tree)功能可用(参见 doc/stp.md),但它是一个简化实现 — 在你通过网络管理的交换机上启用它之前,请先阅读该文档。如果你需要这些功能,请不要在网管型设备上安装本固件。无论如何,强烈不建议安装,除非你至少能够通过 SOIC 夹具(与 BIOS 备份所用相同)对原始 Flash 内容做好备份,并且在出问题时能重新刷回该固件。为此并不需要焊接技能。
 
-The firmware supports all hardware features of devices with
-- 4 2.5GBit ports + 2 SFP+ ports
-- 5 2.5GBIT + 1 SFP+ port
-- 8 2.5GBit + 1 SFP+ port
-Devices sold usually have a fairly common design, however there may be differences in the LED
-configuration (switches have LEDs with different colours and use types of LEDs). The list
-of tested devices can be found in [Supported devices](doc/supported_devices.md).
+本固件支持以下配置设备的全部硬件功能:
+- 4 个 2.5GBit 端口 + 2 个 SFP+ 端口
+- 5 个 2.5GBIT + 1 个 SFP+ 端口
+- 8 个 2.5GBit + 1 个 SFP+ 端口
+市售设备的设计通常大同小异,但 LED 配置可能存在差异(各交换机的 LED 颜色和 LED 类型不同)。已测试设备的列表见[支持的设备](doc/supported_devices.md)。
 
-To do meaningful development you will need to use a serial console, so soldering skills
-are required. Flashing must be done via a SOIC-8 PatchClamp or by soldering a socket
-for the flash chip.
+要进行有意义的开发,必须使用串口控制台,因此需要焊接技能。烧写必须通过 SOIC-8 测试夹(PatchClamp)完成,或为 Flash 芯片焊接一个插座。
 
-If you don't want to open your device, you can use the project's code to learn about the
-devices by looking at the image using e.g. Ghidra. If you want to contribute to the
-design of the web-interface or get a feeling for the interface first, a standalone
-device simulator is provided, which runs as a local webserver on Linux and macOS.
+如果不想拆开设备,你仍然可以利用本项目代码,用 Ghidra 之类的工具分析镜像来了解这些设备。如果你想参与 Web 界面的设计,或想先体验一下这个界面,项目还提供了一个独立的设备模拟器,它完全运行于 Linux 之上,作为一个本地 Web 服务器。
 
-## (0) Compiling Requirements
+## (0) 编译要求
 
-Install the following particular build requisites (Debian 12/13), note that Ubuntu 24.04
-still has an older version of sdcc, but you will need sdcc version 4.5 for the code to compile:
+安装以下构建依赖(Debian 12/13);注意 Ubuntu 24.04 仍自带较旧版本的 sdcc,而代码需要 sdcc 4.5 才能编译:
 ```
 sudo apt install make gcc sdcc xxd python-is-python3 libjson-c-dev zlib1g-dev
 ```
 
 <details>
-<summary>If using Docker (click to expand)</summary>
+<summary>如果使用 Docker(点击展开)</summary>
 
-### Prerequisites
+### 前提条件
 
-Install Docker for your platform:
+为你的平台安装 Docker:
 
-- **Linux (Debian/Ubuntu)**: `sudo apt install docker.io` then `sudo usermod -aG docker $USER` (log out and back in)
-- **Linux (other distros)**: Follow the [Docker Engine install guide](https://docs.docker.com/engine/install/)
-- **Windows**: Install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
-- **macOS**: Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
+- **Linux(Debian/Ubuntu)**:`sudo apt install docker.io`,然后执行 `sudo usermod -aG docker $USER`(注销并重新登录)
+- **Linux(其他发行版)**:参照 [Docker Engine 安装指南](https://docs.docker.com/engine/install/)
+- **Windows**:安装 [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+- **macOS**:安装 [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
 
-### Usage
+### 用法
 
-A Dockerfile is provided for a reproducible build environment:
+项目提供了 Dockerfile,用于搭建可复现的构建环境:
 
 ```
 docker build -t rtlplayground-dev .
 ```
 
-Build the firmware (replace MACHINE with your target, e.g. `DEFAULT_8C_1SFP`):
+构建固件(将 MACHINE 替换为你的目标机型,例如 `DEFAULT_8C_1SFP`):
 
 ```
 docker run --rm -v $(pwd):/workspace rtlplayground-dev make MACHINE=DEFAULT_8C_1SFP
 ```
 
-The resulting `.bin` file appears in `output/` on your host.
+生成的 `.bin` 文件会出现在宿主机的 `output/` 目录中。
 
-Build host tools only:
+仅构建宿主机工具:
 
 ```
 docker run --rm -v $(pwd):/workspace rtlplayground-dev make -C tools
 ```
 
-Run the web-interface simulator locally (build the UI assets first with
-`make html_min`, it serves port 8080):
+在本地运行 Web 界面模拟器(先用 `make html_min` 构建 UI 资源,监听 8080 端口):
 
 ```
 docker run --rm -p 8080:8080 -v $(pwd):/workspace rtlplayground-dev \
   tools/output/httpd_sim /workspace/output/html_min
 ```
 
-Edit `machine.h` or `config.txt` on your host, then re-run `make` — the
-source directory is mounted into the container, so changes take effect
-immediately. To build for a different machine, pass `MACHINE=...`.
+在宿主机上编辑 `machine.h` 或 `config.txt`,然后重新运行 `make` — 源码目录被挂载进容器,更改会立即生效。要为其他机型构建,传入 `MACHINE=...` 即可。
 
 </details>
 
-## (1) Compiling for direct chip flashing AND upgrading an existing RTLPlayground running device
+## (1) 编译用于直接烧写芯片,以及升级已在运行 RTLPlayground 的设备
 
-Edit machine.h with an editor like vi or nano. Select the correct machine the firmware should build for.
+用 vi 或 nano 之类的编辑器编辑 machine.h,选择固件要构建的正确机型。
 
 > [!TIP]
-> You can write configuration parameters in config.txt (see below) in order your switch to get
-> straight at the first boot, a correct IP configuration.
+> 你可以把配置参数写在 config.txt 中(见下文),让交换机在首次启动时就拿到正确的 IP 配置。
 
-Now, building the firmware image should work:
+现在应该可以构建固件镜像了:
 ```
 make 
 ```
-Note, that the image generated ends in .bin, not .img, in order to make IMSProg happy.
+注意,生成的镜像以 .bin 结尾而不是 .img,这是为了让 IMSProg 满意。
 
-image location is stored in `RTLPlayground/output/rtlplayground_version_machine.bin`
-for example
+镜像位置为 `RTLPlayground/output/rtlplayground_version_machine.bin`,
+例如
 ```
 rtlplayground-v0.1.0-12c98ba-dirty-LIANGUO_ZX_SWTGW215AS.bin
 ```
 
 > [!CAUTION]
-> This image can be flashed directly to the chip OR through the firmware update/upgrade
-> interface of RTLPlayground interface
+> 该镜像既可以直接烧写到芯片,也可以通过 RTLPlayground 的固件更新/升级界面刷入
 
-## (2) Compiling for OEM running device with management options (web upgrade)
+## (2) 为带管理功能的 OEM 在用设备编译(Web 升级)
 
-Managed switches can be updated from the existing original firmware using a SPECIFIC upgrade image.
-You first need to build the firmware for direct chip flashing : See below (1)
+网管型交换机可以使用一个专用的升级镜像,从原有的原厂固件进行更新。你首先需要构建用于直接烧写芯片的固件:见下文 (1)
 
-Then
+然后
 
 ```
 cd installer
 make 
 ```
-image location is stored in  `RTLPlayground/installer/output/rtlplayground_oem_upgrade.bin`
+镜像位置为  `RTLPlayground/installer/output/rtlplayground_oem_upgrade.bin`
 
 > [!CAUTION]
-> This image must ONLY be used for original OEM firmware web interface firmware upgrade.
-> You do not need this image if you are already on RTLplayground firmware.
-> Unless you go back to the original OEM firmware, you would only flash this specific firmware
-> only once. Future upgrades of RTLPlayground will only need to follow (1)
+> 该镜像只能用于原厂 OEM 固件 Web 界面的固件升级。
+> 如果你已经在运行 RTLPlayground 固件,则不需要这个镜像。
+> 除非你退回原厂 OEM 固件,否则这个专用镜像只会刷写一次。之后升级 RTLPlayground 只需按照 (1) 操作
 
-example of compilation console output
+编译控制台输出示例
 
 ```
 RTLPlayground/installer$ make
@@ -243,76 +197,73 @@ Payload sum is: 0xf8fe94
 Header checksum is: 0x5a1
 ```
 
-## (3) Sandbox Usage with Ghidra (optional)
+## (3) 用 Ghidra 进行沙盒研究(可选)
 
-You can play with the image using ghidra or flash real Switch Hardware. For
-ghidra see this information about [Ghidra images](doc/ghidra.md).
+你可以用 Ghidra 研究镜像,也可以烧写真实的交换机硬件。关于 Ghidra,参见 [Ghidra 镜像](doc/ghidra.md)的相关说明。
 
-## (4) Installation through the Web interface (software way)
+## (4) 通过 Web 界面安装(软件方式)
 
-Managed switches (OEM firmware of RTLplayground firmware) can be upgraded via the web interface.
-Unmanaged switch cannot be flashed this way (see 5).
+网管型交换机(OEM 固件或 RTLPlayground 固件)可以通过 Web 界面升级。
+非网管型交换机无法用这种方式刷写(见 5)。
 
-Go to "Firmware update" tab, select the correct file.
-
-> [!IMPORTANT]
-> If your device already runs RTLPlayground, you must upload the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
-> If your device is OEM, you must upload the binary file /RTLPlayground/installer/outputrtlplayground_oem_upgrade.bin
-
-> [!CAUTION]
-> Check one more time that your device matches the machine type before flashing.
-> Be sure you have a backup of the original firmware before diving in RTLPlayground.
-
-Finally, push the Upload File Button and you're done !
-
-
-## (5) Flashing the ROM directly (hardware way, but also only way to rescue)
-
-This procedure is the only way to flash unmanaged switches, if the ROM chip is large enough.
-This is also the only way to unbrick your device if something went wrong.
+进入 “Firmware update” 标签页,选择正确的文件。
 
 > [!IMPORTANT]
-> You need a SOIC-8 clip to flash the ROM chip directly onboard.
-> Alternatively you can de-solder the flash chip and install a SOIC adapter).
-> For flashing the chip directly, you must use the binary file /RTLPlayground/output/rtlplayground_Version_Machine.bin
+> 如果你的设备已经在运行 RTLPlayground,必须上传二进制文件 /RTLPlayground/output/rtlplayground_Version_Machine.bin
+> 如果你的设备是 OEM,必须上传二进制文件 /RTLPlayground/installer/outputrtlplayground_oem_upgrade.bin
 
 > [!CAUTION]
-> As you need to open your switch case, consider that the warranty is gone.
+> 烧写之前,请再次确认你的设备与所选机型一致。
+> 在深入折腾 RTLPlayground 之前,务必先备份原厂固件。
 
-- Disconnect power from switch.
-- Open the switch.
-- Attach the clip onto the flash chip (Red line on Pin 1, Pin 1 has a point marker).
-- Connect USB of flash programmer, the power LED on the switch will light up, check cabling if not.
-- Don't panic, mixing up GND and 3.3V usually does not destroy the switch.
-- Use IMSProg, Flashrom, or whatever Programmer to detect the chip.
-- MAKE A BACKUP (DUMP) OF THE EXISTING FIRMWARE !
-- ERASE THE ROM (BLANK) !
-- Load the firmware into IMSProg.
-- Flash is to the ROM chip.
-- Disconnect the clip from the ROM chip.
-- You're done, ready for the first boot.
+最后,点击 Upload File(上传文件)按钮,就完成了!
 
-## (6) Connecting a serial interface (optional)
 
-You can connect a serial cable to the UART port found on all the devices, set 8N1 @ 115200 baud.
+## (5) 直接烧写 ROM(硬件方式,也是救砖的唯一途径)
 
-## (7) Power Up
+如果 ROM 芯片容量足够大,这是给非网管型交换机刷写的唯一方法。
+如果出了问题,这也是让你的设备救砖的唯一途径。
 
-When you power up the switch, the device will perform some examples and provide a minimal console
-(if wired to a serial interface), the documentation of which can be found in the source code rtlplayground.c`.
+> [!IMPORTANT]
+> 要在板上直接烧写 ROM 芯片,你需要一个 SOIC-8 夹具。
+> 或者,你也可以拆下 Flash 芯片,改装一个 SOIC 转接座)。
+> 直接烧写芯片时,必须使用二进制文件 /RTLPlayground/output/rtlplayground_Version_Machine.bin
 
-## (8) The web-interface
+> [!CAUTION]
+> 你需要拆开交换机外壳,请作好保修就此失效的心理准备。
 
-The web-interface can be reached under the [default 192.168.10.247](http://192.168.10.247) unless you
-specified an IP address in the config.txt before compilation.
+- 断开交换机电源。
+- 拆开交换机。
+- 把夹具夹到 Flash 芯片上(红线对准引脚 1,引脚 1 上有一个圆点标记)。
+- 连接编程器的 USB,交换机上的电源 LED 应当亮起;如果不亮,请检查接线。
+- 别慌,把 GND 和 3.3V 接反通常不会损坏交换机。
+- 用 IMSProg、Flashrom 或其他任意编程器检测芯片。
+- 务必备份(转储)现有固件!
+- 擦除 ROM(整片擦空)!
+- 把固件载入 IMSProg。
+- 将固件烧写到 ROM 芯片。
+- 从 ROM 芯片上取下夹具。
+- 完成,可以首次启动了。
+
+## (6) 连接串口(可选)
+
+所有设备上都有 UART 端口,可以连接串口线,设置为 8N1、115200 波特率。
+
+## (7) 上电
+
+交换机上电后,设备会执行一些示例,并提供一个最小控制台(如果接了串口),其文档可以在源码 rtlplayground.c` 中找到。
+
+## (8) Web 界面
+
+除非你在编译前已在 config.txt 中指定了 IP 地址,否则可以通过[默认地址 192.168.10.247](http://192.168.10.247) 访问 Web 界面。
 
 > [!TIP]
-> The default password is `1234`.
+> 默认密码为 `1234`。
 
-## (9) The command line
+## (9) 命令行
 
-The command line is very rudimentary and mostly for testing purposes.
-The following is a boot-log with some examples:
+命令行非常简陋,主要用于测试。
+下面是一段带示例的启动日志:
 ```
 Detecting CPU
 RTL8373 detected
@@ -394,17 +345,17 @@ Rate: 67  Encoding: 01
 Lightron Inc.   WSPXG-ES3LC-IHA 0000
 ```
 
-## (10) Advanced configuration
+## (10) 高级配置
 
-You can configure more deeply the switch without the need of the console mode.
+无需控制台模式,你也可以对交换机进行更深入的配置。
 
-While in compilation part, you might write directly to config.txt file before making the binary firmware
+在编译阶段,你可以在生成二进制固件之前直接编辑 config.txt 文件
 
 ```
 nano config.txt
 ```
 
-If you want to modify settings after the flash is done, go to the System tab and find the Startup Configuration.
+如果想在刷写完成之后修改设置,请进入 System 标签页,找到 Startup Configuration。
 
 <img width="1673" height="978" alt="ADVANCED SETTINGS" src="doc/images/advanced_settings.png" />
 
@@ -417,21 +368,22 @@ port z 1g               = Set 1g speed for port z
 igmp on/off             = Turn IGMP on or off
 session xxxx            = Web session timeout in seconds (default 200)
 ```
-[To be continue]
+[未完待续]
 
-Enjoy playing!
+祝玩得开心!
 
-## (11) Other documents
+## (11) 其他文档
 
-The following documents give further documentation on specific features of the RTL837x SoCs:
-- [RTL8372/3 Feature support](doc/hardware.md)
-- [CPU Port](doc/CpuPort.md)
-- [L2 learning](doc/l2.md) 
-- [IGMP (IP-MC streaming)](doc/igmp.md)
-- [SFP+ ports](doc/sfp.md) 
-- [Trunking aka. port aggregation](doc/trunking.md)
-- [LACP (802.3ad link aggregation)](doc/lacp.md)
-- [QoS, flow control and PFC](doc/qos_pfc.md)
+以下文档对 RTL837x SoC 的特定功能提供了更详细的说明:
+- [RTL8372/3 功能支持](doc/hardware.md)
+- [CPU 端口](doc/CpuPort.md)
+- [L2 学习](doc/l2.md) 
+- [IGMP(IP-MC 组播流)](doc/igmp.md)
+- [SFP+ 端口](doc/sfp.md) 
+- [链路聚合(Trunking,又称端口聚合)](doc/link_aggregation.md)
+- [LACP(802.3ad 链路聚合)](doc/lacp.md)
+- [QoS、流量控制与 PFC](doc/qos_pfc.md)
 - [VLAN](doc/vlan.md)
-- [Storm control](doc/storm_control.md)
-- [Modifications and Flash replacement](doc/mods.md)
+- [风暴控制](doc/storm_control.md)
+- [Flash 分区与内存映射](doc/flash-layout.md)(1MB 布局、bank 机制与升级流程)
+- [改动与 Flash 更换](doc/mods.md)
