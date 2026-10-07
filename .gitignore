@@ -15,3 +15,5 @@ tools/fileadder
 test/build/
 # generated: concatenated from html/app/*.js by the html_min target
 html/app.js
+# generated build-cache for the html_data table generator
+html_data.stamp
