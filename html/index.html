@@ -197,7 +197,11 @@ input.in::placeholder,textarea.in::placeholder{color:var(--fg4)}
 input.in:hover,select.in:hover,textarea.in:hover{border-color:var(--fg4)}
 input.in:focus,select.in:focus,textarea.in:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ring)}
 input.in:disabled,select.in:disabled,textarea.in:disabled{
-  opacity:.38;cursor:not-allowed;border-color:var(--bd);background:var(--s2);
+  /* background-color, not the background shorthand: the shorthand resets
+   * repeat/position to their initial values, and in light theme the later
+   * [data-theme="light"] select rule (same specificity, later in source)
+   * re-injects the arrow image — which then tiles across disabled selects. */
+  opacity:.38;cursor:not-allowed;border-color:var(--bd);background-color:var(--s2);
 }
 input.in.sm{width:7em;flex:none}
 select.in,select.ctl{
