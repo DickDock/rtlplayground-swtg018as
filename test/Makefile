@@ -32,7 +32,8 @@ TESTS = $(BUILDDIR)/test_cmd_editor \
         $(BUILDDIR)/test_tick_gate \
         $(BUILDDIR)/test_qos \
         $(BUILDDIR)/test_i2c \
-        $(BUILDDIR)/test_machine_leds
+        $(BUILDDIR)/test_machine_leds \
+        $(BUILDDIR)/test_snmp
 
 # The table tests link the register mock and one environment file; stub/
 # stands in for the two headers a firmware build generates.
@@ -76,8 +77,15 @@ $(BUILDDIR)/test_i2c: test_i2c.c support.c $(SRCROOT)/cmd_editor.c $(SRCROOT)/rt
 $(BUILDDIR)/test_machine_leds: test_machine_leds.c hw_mock.c $(SRCROOT)/machine.c $(SRCROOT)/rtl837x_leds.c $(SRCROOT)/machine.h $(SRCROOT)/rtl837x_leds.h hw_mock.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) -Wno-misleading-indentation -Wno-incompatible-pointer-types $(filter %.c,$^) -o $@ $(LDFLAGS)
 
-# Sandboxes with a Makefile of their own; each fails the run when it fails.
-SUBTESTS = lacp port_hash sfp
+# rtl837x_qos.c is compiled UNMODIFIED from the firmware tree.
+$(BUILDDIR)/test_qos: test_qos.c support.c hw_mock.c env_tables.c $(SRCROOT)/cmd_editor.c $(SRCROOT)/rtl837x_qos.c hw_mock.h | $(BUILDDIR)
+	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
+
+# snmp.c is compiled UNMODIFIED; this test carries its uIP edge itself
+# (uip_buf/appdata/conn plus the udp_new/send stubs) so the machine
+# description stays writable for the non-monotonic row-order case.
+$(BUILDDIR)/test_snmp: test_snmp.c support.c hw_mock.c $(SRCROOT)/cmd_editor.c $(SRCROOT)/snmp.c hw_mock.h | $(BUILDDIR)
+	$(CC) $(CFLAGS) $(filter %.c,$^) -o $@ $(LDFLAGS)
 
 run: $(TESTS)
 	@fail=0; for t in $(TESTS); do \

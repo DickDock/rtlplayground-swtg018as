@@ -433,6 +433,6 @@ The following documents give further documentation on specific features of the R
 - [LACP (802.3ad link aggregation)](doc/lacp.en.md)
 - [QoS, flow control and PFC](doc/qos_pfc.en.md)
 - [VLAN](doc/vlan.en.md)
-- [Storm control](doc/storm_control.en.md)
+- [SNMP (read-only monitoring agent)](doc/snmp.en.md)
 - [Flash partitioning & memory map](doc/flash-layout.en.md) (1MB layout, bank mechanism, upgrade flow)
 - [Modifications and Flash replacement](doc/mods.en.md)

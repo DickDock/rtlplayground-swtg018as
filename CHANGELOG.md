@@ -14,6 +14,12 @@
     priority to queue map and strict or weighted queue scheduling.
   - `fc` command: forced 802.3x pause per port, pause thresholds and threshold sets, buffer page counters.
   - `pfc` command: Priority Flow Control (802.1Qbb) on the two 10G ports. See doc/qos_pfc.md.
+- SNMP
+  - Read-only SNMPv2c agent on UDP 161, disabled by default: `snmp on|off`, `snmp community <word>`,
+    `snmp contact <text>` and `snmp location <text>`. MIB-II system group plus the full ifTable
+    (counters, link state, speed) and the IF-MIB 64-bit octet counters (ifHCInOctets/ifHCOutOctets)
+    with ifHighSpeed for the >1G rates. ifIndex matches the web UI port numbers. GetBulk is capped
+    to the response frame; v1 requests are answered with RFC 1157 noSuchName semantics. See doc/snmp.md.
 - Syslog
   - Every datagram now carries an uptime stamp, `<14>[up 0d 00:00:00] host message`; the
     counters are bumped once a second by the tick handler, so the packet builder needs no

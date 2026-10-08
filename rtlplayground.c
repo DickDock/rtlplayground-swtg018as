@@ -25,6 +25,7 @@
 #include "uip/uip_arp.h"
 #include "machine.h"
 #include "phy.h"
+#include "snmp.h"
 #include "syslog.h"
 #include "httpd/page_impl.h"
 #include "boot.h"
@@ -1904,6 +1905,9 @@ void main(void)
 
 	check_and_flash_update_image();
 
+#ifndef BRIDGE_LAYOUT
+	snmp_init();
+#endif
 	syslog_init();
 
 #ifdef DEBUG

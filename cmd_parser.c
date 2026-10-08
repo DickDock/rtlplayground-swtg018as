@@ -21,6 +21,9 @@
 #include "rtl837x_qos.h"
 #include "sfp.h"
 #include "dhcp.h"
+#ifndef BRIDGE_LAYOUT
+#include "snmp.h"
+#endif
 #include "syslog.h"
 #include "uip/uip.h"
 #include "version.h"
@@ -1721,6 +1724,82 @@ void parse_syslog(void)
 	}
 }
 
+#ifndef BRIDGE_LAYOUT
+/* "snmp" alone reports the current state; on/off start and stop the agent,
+ * community takes one printable word, contact/location take free text (the
+ * words are joined with single spaces since the tokenizer ate the rest). */
+static void parse_snmp(void)
+{
+	if (cmd_words_len < 2) {
+		print_string("SNMP is ");
+		if (snmp_state.enabled) {
+			print_string("enabled, community \"");
+			print_string_x(snmp_state.community);
+			print_string("\", contact \"");
+			print_string_x(snmp_state.contact);
+			print_string("\", location \"");
+			print_string_x(snmp_state.location);
+			print_string("\"\n");
+		} else {
+			print_string("disabled\n");
+		}
+		return;
+	}
+
+	if (cmd_compare(1, "on")) {
+		snmp_start();
+	} else if (cmd_compare(1, "off")) {
+		snmp_stop();
+	} else if (cmd_compare(1, "community")) {
+		if (cmd_words_len < 3) {
+			print_string("Current SNMP community: \"");
+			print_string_x(snmp_state.community);
+			print_string("\"\n");
+		} else if (cmd_words_len == 3) {
+			snmp_arg = &cmd_buffer[cmd_words_b[2]];
+			if (snmp_set_community())
+				print_string("Setting new SNMP community.\n");
+			else
+				cmd_error("community must be one word of 1-16 printable characters\n");
+		} else {
+			cmd_error("community must be one word of 1-16 printable characters\n");
+		}
+	} else if (cmd_compare(1, "contact") || cmd_compare(1, "location")) {
+		/* The words are joined with single spaces since the tokenizer
+		 * NUL-terminated each one in place. Locals are static __xdata:
+		 * the overlay segment has nothing left to give. */
+		static __xdata char *dst;
+		static __xdata uint8_t n, w, c;
+		static __xdata uint8_t *sp;
+
+		dst = cmd_compare(1, "contact") ? snmp_state.contact
+						: snmp_state.location;
+		n = 0;
+		for (w = 2; w < cmd_words_len; w++) {
+			sp = &cmd_buffer[cmd_words_b[w]];
+			while (*sp && n < SNMP_TEXT_MAX) {
+				c = *sp++;
+				*dst++ = name_char(c);
+				n++;
+			}
+			if (w + 1 < cmd_words_len && n < SNMP_TEXT_MAX) {
+				*dst++ = ' ';
+				n++;
+			}
+		}
+		*dst = NUL;
+		print_string("Setting new SNMP ");
+		print_string(cmd_compare(1, "contact") ? "contact.\n" : "location.\n");
+	} else {
+		cmd_error("snmp [on|off|community <word>|contact <text>|location <text>]\n"
+			  "  on/off enables or disables the read-only SNMP agent (UDP 161),\n"
+			  "  community sets the community string (default public),\n"
+			  "  contact and location set the matching sysContact/sysLocation\n");
+	}
+}
+
+#endif /* !BRIDGE_LAYOUT */
+
 void parse_session(void)
 {
 	if (cmd_words_len >= 2) {
@@ -1882,6 +1961,10 @@ void cmd_parser(void) __banked
 			parse_mtu();
 		} else if (cmd_compare(0, "syslog")) {
 			parse_syslog();
+#ifndef BRIDGE_LAYOUT
+		} else if (cmd_compare(0, "snmp")) {
+			parse_snmp();
+#endif
 		} else if (cmd_compare(0, "ip")) {
 			if (cmd_compare(1, "dhcp")) {
 				dhcp_start();
