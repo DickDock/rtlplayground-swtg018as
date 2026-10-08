@@ -20,6 +20,9 @@
     (counters, link state, speed) and the IF-MIB 64-bit octet counters (ifHCInOctets/ifHCOutOctets)
     with ifHighSpeed for the >1G rates. ifIndex matches the web UI port numbers. GetBulk is capped
     to the response frame; v1 requests are answered with RFC 1157 noSuchName semantics. See doc/snmp.md.
+  - Chip temperature under enterprises 1.3.6.1.4.1.32473.1: `chipTemp`/`chipTempPowerOn` scalars
+    in tenths of a degree, live from the sensor registers, so NMS dashboards can trend and alert
+    on the same reading the `temp` command prints.
 - Syslog
   - Every datagram now carries an uptime stamp, `<14>[up 0d 00:00:00] host message`; the
     counters are bumped once a second by the tick handler, so the packet builder needs no

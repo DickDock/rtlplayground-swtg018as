@@ -2,7 +2,7 @@
 
 [English](snmp.en.md) | 简体中文
 
-The firmware ships a read-only SNMPv2c agent for integration with monitoring platforms such as Zabbix, PRTG and LibreNMS. It is disabled by default and enabled from the CLI or the startup config. It exposes the MIB-II system and interfaces groups (including the IF-MIB 64-bit octet counters and ifHighSpeed), listens on UDP port 161 and authenticates with a community string.
+The firmware ships a read-only SNMPv2c agent for integration with monitoring platforms such as Zabbix, PRTG and LibreNMS. It is disabled by default and enabled from the CLI or the startup config. It exposes the MIB-II system and interfaces groups (including the IF-MIB 64-bit octet counters and ifHighSpeed) plus the chip temperature scalars under an enterprises subtree, and listens on UDP port 161 and authenticates with a community string.
 
 ## Commands
 ```
@@ -58,6 +58,13 @@ Common prefix `1.3.6.1.2.1` (MIB-II); the ifXTable columns live under `1.3.6.1.2
 | 1.31.1.1.1.10.N | ifHCOutOctets | Counter64 |
 | 1.31.1.1.1.15.N | ifHighSpeed | port speed in Mbps (the true value for 2.5G/5G/10G) |
 
+The chip temperature lives under the enterprises subtree `1.3.6.1.4.1.32473.1` (the same enterprise number sysObjectID names); in one walk the subtree follows MIB-II in natural OID order:
+
+| OID | Name | Notes |
+|---|---|---|
+| 1.3.6.1.4.1.32473.1.1.0 | chipTemp | chip temperature, Integer32 in tenths of a degree C (737 = 73.7 °C), live sensor read |
+| 1.3.6.1.4.1.32473.1.2.0 | chipTempPowerOn | chip temperature at power-on, same unit; compare against chipTemp to separate ambient drift from self-heating |
+
 ## Behaviour and limits
 
 - **Read-only.** GetRequest, GetNextRequest and GetBulk are supported; SetRequest is silently dropped (no response).
@@ -66,11 +73,11 @@ Common prefix `1.3.6.1.2.1` (MIB-II); the ifXTable columns live under `1.3.6.1.2
 - No IP reassembly: a response is capped at ~1500 bytes. GetBulk repetitions are trimmed to the remaining space (RFC-legal); a GET with more than 16 varbinds is answered with tooBig.
 - Counters are read live — a few dozen register accesses per request, same order as the web status page, no impact on the forwarding plane.
 - `ifInDiscards`/`ifOutDiscards` map to the two halves of chip counter 8; the direction mapping has not been verified on hardware yet — report back if it turns out reversed.
-- The sysObjectID enterprise number `32473` is an **unregistered placeholder**; register a PEN and change `SNMP_SYSOBJID_PEN` in `snmp.c` for proper device identification.
+- The sysObjectID enterprise number `32473` is an **unregistered placeholder**; register a PEN and change `SNMP_SYSOBJID_PEN` in `snmp.c` (`oid_prefix_ent` alongside) for proper device identification; the temperature scalars sit under the same enterprise number (`.1.1.0`/`.1.2.0`).
 
 ## Implementation notes
 
-The code lives in `snmp.c` (bank7 in the 1MB layout; the transitional bridge image does not include SNMP). The request is parsed in place inside the uIP buffer and the response is built above the header reserve, then shifted into place. Internal RAM's overlay segment is exhausted, so the module works entirely from static XDATA state with global argument passing and no function parameters. Host-side unit tests: `test/test_snmp.c` (63 assertions: BER byte encodings, negative request validation, v1/v2c error semantics, full-tree GETNEXT order, non-monotonic port maps, GetBulk capping, community handling).
+The code lives in `snmp.c` (bank7 in the 1MB layout; the transitional bridge image does not include SNMP). The request is parsed in place inside the uIP buffer and the response is built above the header reserve, then shifted into place. Internal RAM's overlay segment is exhausted, so the module works entirely from static XDATA state with global argument passing and no function parameters. Host-side unit tests: `test/test_snmp.c` (67 assertions: BER byte encodings, negative request validation, v1/v2c error semantics, full-tree GETNEXT order, non-monotonic port maps, GetBulk capping, community handling, temperature conversion and the MIB-II→enterprises walk handoff).
 
 ## Verification
 
@@ -78,5 +85,6 @@ The code lives in `snmp.c` (bank7 in the 1MB layout; the transitional bridge ima
 snmpwalk     -v2c -c public <ip> 1.3.6.1.2.1          # full tree
 snmpbulkwalk -v2c -c public <ip> 1.3.6.1.2.1.2.2      # ifTable
 snmpget      -v1  -c public <ip> sysUpTime.0          # v1 compat
+snmpget      -v2c -c public <ip> 1.3.6.1.4.1.32473.1.1.0   # chip temperature (0.1 °C)
 snmpwalk     -v2c -c wrong  <ip> 1.3.6.1              # should time out
 ```

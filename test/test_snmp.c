@@ -136,6 +136,9 @@ static const uint8_t oid_hcin[]      = { 0x2b,0x06,0x01,0x02,0x01,0x1f,0x01,0x01
 static const uint8_t oid_hcout[]     = { 0x2b,0x06,0x01,0x02,0x01,0x1f,0x01,0x01,0x01,0x0a,0x01 };
 static const uint8_t oid_hispd[]     = { 0x2b,0x06,0x01,0x02,0x01,0x1f,0x01,0x01,0x01,0x0f,0x01 };
 static const uint8_t oid_bogus[]     = { 0x2b,0x06,0x01,0x02,0x01,0x63,0x00 };
+/* enterprises 1.3.6.1.4.1.32473.1.{1,2}.0: chip temperature scalars */
+static const uint8_t oid_chip_temp[]    = { 0x2b,0x06,0x01,0x04,0x01,0x81,0xfd,0x59,0x01,0x01,0x00 };
+static const uint8_t oid_chip_temp_po[] = { 0x2b,0x06,0x01,0x04,0x01,0x81,0xfd,0x59,0x01,0x02,0x00 };
 
 static void b_oid(const uint8_t *o, uint16_t n)
 {
@@ -416,6 +419,21 @@ static void t_values(void)
 	      vb_val_is(&R.vbs[0], (const uint8_t[]){0x06,0x08,0x2b,0x06,0x01,0x04,0x01,0x81,0xFD,0x59}, 10),
 	      "sysObjectID -> 1.3.6.1.4.1.32473");
 
+	/* chip temperature: the sensor register is signed 1/128 °C, reported
+	 * in tenths of a degree. 73.5 °C = 9408, arithmetic shift -> 735. */
+	hw_reg_set(RTL837X_TM_RESULT, 9408);
+	CHECK(run_get(oid_chip_temp, sizeof(oid_chip_temp)) &&
+	      vb_val_is(&R.vbs[0], (const uint8_t[]){0x02,0x02,0x02,0xDF}, 4),
+	      "chipTemp with sensor at 73.5 C -> INTEGER 735");
+	hw_reg_set(RTL837X_TM_RESULT, (uint32_t)-672);   /* -5.25 °C, sign-extended */
+	CHECK(run_get(oid_chip_temp, sizeof(oid_chip_temp)) &&
+	      vb_val_is(&R.vbs[0], (const uint8_t[]){0x02,0x01,0xCB}, 3),
+	      "chipTemp below zero -> minimal negative INTEGER (-53)");
+	hw_reg_set(RTL837X_TM_RESULT_POWERON, 8000);     /* 62.5 °C at power-on */
+	CHECK(run_get(oid_chip_temp_po, sizeof(oid_chip_temp_po)) &&
+	      vb_val_is(&R.vbs[0], (const uint8_t[]){0x02,0x02,0x02,0x71}, 4),
+	      "chipTempPowerOn reads the power-on register (625)");
+
 	/* MAC, sysName, description */
 	CHECK(run_get(oid_ifphys, sizeof(oid_ifphys)) &&
 	      vb_val_is(&R.vbs[0], (const uint8_t[]){0x04,0x06,0x02,0x11,0x22,0x33,0x44,0x55}, 8),
@@ -595,10 +613,19 @@ static void t_errors(void)
 		      "request-id echoed verbatim");
 	}
 
-	/* v2c GETNEXT past the end: endOfMibView */
+	/* v2c GETNEXT past the end: endOfMibView. The tree now ends at the
+	 * temperature scalars under enterprises, which sort after MIB-II. */
 	{
-		static const uint8_t past[] =
+		static const uint8_t past[] = { 0x2b,0x06,0x01,0x04,0x01,0x81,0xfd,0x59,0x01,0x02,0x00 };
+
+		/* and crossing from the MIB-II tail lands on the first one */
+		static const uint8_t hispd9[] =
 			{ 0x2b,0x06,0x01,0x02,0x01,0x1f,0x01,0x01,0x01,0x0f,0x09 };
+		build_getnext(1, "public", hispd9, sizeof(hispd9));
+		deliver();
+		CHECK(decode(resp_bytes(), sent_len, &R) && R.n_vb == 1 &&
+		      vb_oid_is(&R.vbs[0], oid_chip_temp, sizeof(oid_chip_temp)),
+		      "GETNEXT from ifHighSpeed.9 crosses into the enterprises subtree");
 		build_getnext(1, "public", past, sizeof(past));
 		deliver();
 		CHECK(decode(resp_bytes(), sent_len, &R) &&
@@ -695,7 +722,7 @@ static void t_walk(void)
 	}
 
 	CHECK(ok, "walk stays strictly ascending");
-	CHECK(count == 188, "188 instances: 8 scalars + 20 columns x 9 ports");
+	CHECK(count == 190, "190 instances: 8 scalars + 20 columns x 9 ports + 2 temperature");
 	CHECK(ifindex_seen == 9 && prev_ifindex == 9, "ifIndex rows ascend 1..9");
 
 	/* spot checks: first and last instance */
@@ -711,7 +738,7 @@ static void t_walk(void)
 		deliver();
 		CHECK(decode(resp_bytes(), sent_len, &R) &&
 		      vb_oid_is(&R.vbs[0], last, sizeof(last)),
-		      "walk ends at ifHighSpeed.9");
+		      "ifHighSpeed.9 is the last MIB-II instance");
 	}
 }
 
@@ -848,7 +875,7 @@ static void t_bulk(void)
 		}
 		CHECK(sent_len <= 1502, "every bulk response fits one frame");
 		CHECK(total >= 100, "bulk walk covers the whole ifTable");
-		CHECK(total == 179, "179 instances follow ifIndex.1");
+		CHECK(total == 181, "181 instances follow ifIndex.1 (incl. the temperature scalars)");
 	}
 }
 

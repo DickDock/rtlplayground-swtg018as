@@ -1,6 +1,7 @@
 /* SNMPv2c read-only agent: MIB-II system group + interfaces group (with the
- * IF-MIB 64-bit octet counters and ifHighSpeed). One UDP listener on port
- * 161, community-string auth, off until `snmp on`.
+ * IF-MIB 64-bit octet counters and ifHighSpeed), plus the chip temperature
+ * under enterprises 1.3.6.1.4.1.32473. One UDP listener on port 161,
+ * community-string auth, off until `snmp on`.
  *
  * Everything happens inside the uIP appcall: the request is parsed where it
  * landed in uip_buf, the response is built further up in the same buffer and
@@ -76,6 +77,14 @@ static __xdata uint8_t sysdescr_len;
 #define OID_PREFIX_LEN 5
 static __code const uint8_t oid_prefix[OID_PREFIX_LEN] = { 0x2b, 0x06, 0x01, 0x02, 0x01 };
 
+/* The temperature scalars live under the same enterprises prefix sysObjectID
+ * names: 1.3.6.1.4.1.32473 = { 0x2b,06,01,04,01,81,fd,59 }. In encoded byte
+ * order the whole subtree sorts after MIB-II (0x02 < 0x04 at the fourth
+ * byte), so leaves must keep it at the end of the table. */
+#define ENT_PREFIX_LEN 8
+static __code const uint8_t oid_prefix_ent[ENT_PREFIX_LEN] =
+	{ 0x2b, 0x06, 0x01, 0x04, 0x01, 0x81, 0xfd, 0x59 };
+
 /* Longest instance we can name: an ifHC column under 31.1.1.1 plus the row
  * byte. Requests carrying more content than that are outside anything we
  * model; the stored prefix gets bit 7 of its length set so it sorts past
@@ -110,15 +119,17 @@ enum {
 	SNV_IFADMIN, SNV_IFOPER, SNV_IFLASTCH,
 	SNV_IFINOCT, SNV_IFINUCAST, SNV_IFINDISC, SNV_IFINERR,
 	SNV_IFOUTOCT, SNV_IFOUTUCAST, SNV_IFOUTDISC, SNV_IFOUTERR,
-	SNV_HCIINOCT, SNV_HCIOUTOCT, SNV_IFHISPD
+	SNV_HCIINOCT, SNV_HCIOUTOCT, SNV_IFHISPD,
+	SNV_CHIP_TEMP, SNV_CHIP_TEMP_PO
 };
 
 struct snmp_leaf {
-	__code const uint8_t *suffix;   /* encoded subids after 1.3.6.1.2.1 */
+	__code const uint8_t *suffix;   /* encoded subids after the prefix */
 	uint8_t suffix_len;
 	uint8_t type;                   /* SNT_* */
 	uint8_t src;                    /* SNV_* */
 	uint8_t port_col;               /* 0 = scalar (.0), 1 = one row per port */
+	uint8_t pfx;                    /* 0 = MIB-II prefix, 1 = enterprises */
 };
 
 /* The tree in strict encoded-OID order - GETNEXT correctness depends on it.
@@ -153,8 +164,12 @@ static __code const uint8_t suf_ifouterr[]   = { 0x02, 0x02, 0x01, 0x14 };
 static __code const uint8_t suf_hcin[]  = { 0x1f, 0x01, 0x01, 0x01, 0x06 };
 static __code const uint8_t suf_hcout[] = { 0x1f, 0x01, 0x01, 0x01, 0x0a };
 static __code const uint8_t suf_hispd[] = { 0x1f, 0x01, 0x01, 0x01, 0x0f };
+/* Chip temperature under 1.3.6.1.4.1.32473.1, Integer32 in tenths of °C. */
+static __code const uint8_t suf_chip_temp[]    = { 0x01, 0x01, 0x00 };
+static __code const uint8_t suf_chip_temp_po[] = { 0x01, 0x02, 0x00 };
 
-#define LEAF(suf, t, s, pc) { suf, sizeof(suf), (t), (s), (pc) }
+#define LEAF(suf, t, s, pc)   { suf, sizeof(suf), (t), (s), (pc), 0 }
+#define LEAF_E(suf, t, s, pc) { suf, sizeof(suf), (t), (s), (pc), 1 }
 static __code const struct snmp_leaf leaves[] = {
 	LEAF(suf_sysdescr,  SNT_OCTS,  SNV_SYSDSCR,   0),
 	LEAF(suf_sysobjid,  SNT_OID,   SNV_SYSOBJID,  0),
@@ -184,6 +199,10 @@ static __code const struct snmp_leaf leaves[] = {
 	LEAF(suf_hcin,      SNT_C64,   SNV_HCIINOCT,  1),
 	LEAF(suf_hcout,     SNT_C64,   SNV_HCIOUTOCT, 1),
 	LEAF(suf_hispd,     SNT_G32,   SNV_IFHISPD,   1),
+	/* The enterprises subtree sorts after all of MIB-II (see oid_prefix_ent),
+	 * so the temperature scalars must stay last. */
+	LEAF_E(suf_chip_temp,    SNT_INT, SNV_CHIP_TEMP,    0),
+	LEAF_E(suf_chip_temp_po, SNT_INT, SNV_CHIP_TEMP_PO, 0),
 };
 #define N_LEAVES ((uint8_t)(sizeof(leaves) / sizeof(leaves[0])))
 
@@ -356,19 +375,19 @@ static uint8_t put_octets(void)
 	return a + 2;
 }
 
-/* Full instance OID at p for leaf a, row b: 1.3.6.1.2.1 + suffix + row. */
+/* Full instance OID at p for leaf a, row b: prefix + suffix + row. */
 static uint8_t put_oid_inst(void)
 {
 	static __code const struct snmp_leaf * __xdata L;
-	static __xdata uint8_t k, i;
+	static __code const uint8_t * __xdata P;
+	static __xdata uint8_t k, i, pl;
 
 	L = &leaves[a];
-	k = OID_PREFIX_LEN + 2;
-	p[2] = oid_prefix[0];
-	p[3] = oid_prefix[1];
-	p[4] = oid_prefix[2];
-	p[5] = oid_prefix[3];
-	p[6] = oid_prefix[4];
+	pl = L->pfx ? ENT_PREFIX_LEN : OID_PREFIX_LEN;
+	P = L->pfx ? oid_prefix_ent : oid_prefix;
+	k = 2;
+	for (i = 0; i < pl; i++)
+		p[k++] = P[i];
 	for (i = 0; i < L->suffix_len; i++)
 		p[k++] = L->suffix[i];
 	if (L->port_col)
@@ -599,6 +618,19 @@ static void read_stat(void)
 		   ((uint32_t)sfr_data[2] << 8) | sfr_data[3];
 }
 
+/* Chip temperature into v, in tenths of a degree: the sensor register
+ * (selector in w) holds a signed 16-bit value in 1/128 °C, so the
+ * arithmetic shift drops at most a tenth — the same conversion the
+ * `temp` command prints. */
+static void read_temp(void)
+{
+	static __xdata int32_t t;
+
+	reg_read(w);
+	t = (int32_t)(int16_t)SFR_DATA_U16 * 10;
+	v = t >> 7;
+}
+
 /* bps for ifSpeed; rates past 4.29 Gbps saturate the Gauge32 (RFC 3635),
  * ifHighSpeed carries the true value. Speed nibble in a. */
 static uint32_t nibble_bps(void)
@@ -802,6 +834,16 @@ static uint8_t put_value(void)
 		}
 		a = TAG_G32;
 		return put_u32();
+	case SNV_CHIP_TEMP:
+		w = RTL837X_TM_RESULT;
+		read_temp();
+		a = TAG_INT;
+		return put_int();
+	case SNV_CHIP_TEMP_PO:
+		w = RTL837X_TM_RESULT_POWERON;
+		read_temp();
+		a = TAG_INT;
+		return put_int();
 	default: /* SNV_HCIOUTOCT */
 		a = 1;
 		read_stat_row();
@@ -820,16 +862,19 @@ static uint8_t put_value(void)
 static int16_t cmp_inst(void)
 {
 	static __code const struct snmp_leaf * __xdata L;
-	static __xdata uint8_t total, oi, i, byte;
+	static __code const uint8_t * __xdata P;
+	static __xdata uint8_t total, oi, i, byte, pl;
 
 	L = &leaves[a];
-	total = OID_PREFIX_LEN + L->suffix_len + (L->port_col ? 1 : 0);
+	pl = L->pfx ? ENT_PREFIX_LEN : OID_PREFIX_LEN;
+	P = L->pfx ? oid_prefix_ent : oid_prefix;
+	total = pl + L->suffix_len + (L->port_col ? 1 : 0);
 	oi = 0;
 	for (i = 0; i < total; i++) {
-		if (i < OID_PREFIX_LEN)
-			byte = oid_prefix[i];
-		else if (i < OID_PREFIX_LEN + L->suffix_len)
-			byte = L->suffix[i - OID_PREFIX_LEN];
+		if (i < pl)
+			byte = P[i];
+		else if (i < pl + L->suffix_len)
+			byte = L->suffix[i - pl];
 		else
 			byte = b;
 		if (oi >= c)
